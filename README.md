@@ -1,15 +1,15 @@
 ![slide](doc/source/_static/logo.png)
 --------------------------------------------------------------------------------
 [![PyPI version](https://badge.fury.io/py/solt.svg)](https://badge.fury.io/py/solt)
-[![CI](https://github.com/Oulu-IMEDS/solt/actions/workflows/ci.yaml/badge.svg?branch=master&event=push)](https://github.com/Oulu-IMEDS/solt/actions/workflows/ci.yaml)
-[![codecov](https://codecov.io/gh/Oulu-IMEDS/solt/branch/master/graph/badge.svg?token=tEqWMIZSrW)](https://codecov.io/gh/Oulu-IMEDS/solt)
+[![CI](https://github.com/imedslab/solt/actions/workflows/ci.yaml/badge.svg?branch=master&event=push)](https://github.com/imedslab/solt/actions/workflows/ci.yaml)
+[![codecov](https://codecov.io/gh/imedslab/solt/branch/master/graph/badge.svg?token=tEqWMIZSrW)](https://codecov.io/gh/imedslab/solt)
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md)
 [![DOI](https://zenodo.org/badge/143310844.svg)](https://zenodo.org/badge/latestdoi/143310844)
 
 ## Description
 A data augmentation library for Deep Learning that supports images, segmentation masks, labels, and keypoints. 
 Furthermore, SOLT is fast and has OpenCV in its backend. 
-Full auto-generated docs and examples are available at [https://oulu-imeds.github.io/solt/](https://oulu-imeds.github.io/solt/).
+Full auto-generated docs and examples are available at [https://imedslab.github.io/solt/](https://imedslab.github.io/solt/).
 
 ## Features
 
@@ -59,7 +59,7 @@ pip install solt
 ```
 You can fetch the most fresh changes from this repository:
 ```
-pip install git+https://github.com/MIPT-Oulu/solt
+pip install git+https://github.com/imedslab/solt
 ```
 
 ## Benchmark
