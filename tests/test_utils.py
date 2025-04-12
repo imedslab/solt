@@ -170,6 +170,7 @@ def test_stream_serializes_all_args_are_set():
     assert "padding" in serialized
     assert "optimize_stack" in serialized
     assert "transforms" in serialized
+    assert "shuffle" in serialized
     assert len(serialized) == 5
 
     trfs = serialized["transforms"]
