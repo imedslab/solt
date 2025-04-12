@@ -5,11 +5,8 @@ You need to make sure that you have the right setup. Install anaconda, and you c
 to setup your environment:
 
 ```
-conda create -q -y -n solt_test_env python=3.8
-conda install -y -n solt_test_env pandoc
-conda install -y -n solt_test_env pytorch torchvision cpuonly -c pytorch
+conda create -q -y -n solt_test_env python=3.11 pandoc
 source activate solt_test_env
-conda install -y pip
 pip install -r ci/requirements.txt
 pip install pre-commit
 pre-commit install
