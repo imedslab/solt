@@ -509,10 +509,10 @@ class Projection(MatrixTransform):
             affine_transforms = Stream()
 
         if not isinstance(affine_transforms, Stream):
-            raise TypeError
+            raise TypeError("Affine transforms must be a Stream")
         for trf in affine_transforms.transforms:
             if not isinstance(trf, MatrixTransform):
-                raise TypeError
+                raise TypeError("Affine transforms must be a MatrixTransform")
 
         self.affine_transforms = affine_transforms
         self.vrange = validate_numeric_range_parameter(
@@ -636,7 +636,7 @@ class Pad(BaseTransform, PaddingPropertyHolder):
         if self.pad_to is None:
             return pts
         if self.padding[0] != "z":
-            raise ValueError
+            raise ValueError("Padding must be 'z'")
         pts_data = pts.data.copy()
 
         pad_h_top, pad_h_bottom = self.state_dict["pad_h"]
@@ -796,7 +796,7 @@ class Crop(BaseTransform):
         h, w = super(Crop, self).sample_transform(data)
         if self.crop_to is not None:
             if self.crop_to[0] > w or self.crop_to[1] > h:
-                raise ValueError
+                raise ValueError("Crop size must be less than the image size")
 
             if self.crop_mode == "r":
                 self.state_dict["x"] = int(random.random() * (w - self.crop_to[0]))
@@ -883,7 +883,7 @@ class Noise(BaseTransform):
                 break
 
         if w is None or h is None or c is None:
-            raise ValueError
+            raise ValueError("Image must have 3 channels")
 
         random_state = np.random.RandomState(random.randint(0, 2**32 - 1))
         noise_img = random_state.randn(h, w, c)
@@ -925,7 +925,7 @@ class CutOut(ImageTransform):
     ----------
     cutout_size : tuple or int or float or None
         The size of the cutout. If None, then it is equal to 2.
-    n_cuts: int
+    n_cuts: int or tuple of int
         Number of cutouts to make. By default, it is 1.
     data_indices : tuple or None
         Indices of the images within the data container to which this transform needs to be applied.
@@ -956,7 +956,7 @@ class CutOut(ImageTransform):
             if not isinstance(cutout_size[0], (int, float)) or not isinstance(
                 cutout_size[1], (int, float)
             ):
-                raise TypeError
+                raise TypeError("Cutout size must be a tuple of int or float")
 
         if isinstance(cutout_size, (int, float)):
             cutout_size = (cutout_size, cutout_size)
@@ -1204,7 +1204,7 @@ class Blur(ImageTransform):
 
         for k in k_size:
             if k % 2 == 0 or k < 1 or not isinstance(k, int):
-                raise ValueError
+                raise ValueError("Kernel size must be an odd integer")
 
         if isinstance(gaussian_sigma, (int, float)):
             gaussian_sigma = (gaussian_sigma, gaussian_sigma)
@@ -1454,14 +1454,14 @@ class CvtColor(ImageTransform):
             return img
         elif self.mode == "gs2rgb":
             if len(img.shape) != 3:
-                raise ValueError
+                raise ValueError("Grayscale images must also have 3 channels")
             if img.shape[-1] == 1:
                 return np.dstack((img, img, img))
             elif img.shape[-1] == 3:
                 return img
         elif self.mode == "rgb2gs":
             if len(img.shape) != 3:
-                raise ValueError
+                raise ValueError("RGB images must have 3 channels")
             if img.shape[-1] == 1:
                 return img
             elif img.shape[-1] == 3:
@@ -1640,11 +1640,11 @@ class GridMask(ImageTransform):
         self.ratio = ratio
 
         if not isinstance(rotate, int) and not isinstance(rotate, tuple):
-            raise TypeError
+            raise TypeError("Rotate must be an int or a tuple of int")
 
         if isinstance(rotate, tuple):
             if not isinstance(rotate[0], int) or not isinstance(rotate[1], int):
-                raise TypeError
+                raise TypeError("Rotate must be an int or a tuple of int")
 
         if isinstance(rotate, int) and rotate:
             rotate = (-rotate, rotate)
