@@ -182,9 +182,7 @@ class Stream(Serializable):
 
         """
 
-        res: DataContainer = Stream.exec_stream(
-            self.transforms, data, self.optimize_stack
-        )
+        res: DataContainer = Stream.exec_stream(self.transforms, data, self.optimize_stack)
 
         if return_torch:
             return res.to_torch(
@@ -227,9 +225,7 @@ class Stream(Serializable):
                     else:
                         transforms_stack[-1].fuse_with(trf)
             else:
-                raise TypeError(
-                    "Nested streams or other transforms but the `Matrix` ones are not supported!"
-                )
+                raise TypeError("Nested streams or other transforms but the `Matrix` ones are not supported!")
 
         if len(transforms_stack) > 0:
             transforms_stack[-1].correct_transform()
