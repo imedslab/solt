@@ -949,23 +949,26 @@ class CutOut(ImageTransform):
         if cut_size_x > w or cut_size_y > h:
             raise ValueError("Cutout size is too large!")
 
-        self.state_dict["x"] = int(random.random() * (w - cut_size_x))
-        self.state_dict["y"] = int(random.random() * (h - cut_size_y))
+        self.state_dict["x"] = list()
+        self.state_dict["y"] = list()
         self.state_dict["cut_size_x"] = cut_size_x
         self.state_dict["cut_size_y"] = cut_size_y
+        for _ in range(self.n_cuts):
+            self.state_dict["x"].append(int(random.random() * (w - cut_size_x)))
+            self.state_dict["y"].append(int(random.random() * (h - cut_size_y)))
+
 
     def __cutout_img(self, img):
-        img[
-            self.state_dict["y"] : self.state_dict["y"] + self.state_dict["cut_size_y"],
-            self.state_dict["x"] : self.state_dict["x"] + self.state_dict["cut_size_x"],
-        ] = 0
+        for x, y in zip(self.state_dict["x"], self.state_dict["y"]):
+            img[
+                y : y + self.state_dict["cut_size_y"],
+                x : x + self.state_dict["cut_size_x"],
+            ] = 0
         return img
 
     @img_shape_checker
     def _apply_img(self, img: np.ndarray, settings: dict):
-        for i in range(self.n_cuts):
-            self.sample_transform(img)
-            img = self.__cutout_img(img)
+        img = self.__cutout_img(img)
         return img
 
 
