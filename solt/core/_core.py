@@ -364,10 +364,8 @@ class SelectiveStream(Stream):
                 n = random_state.choice(self.n, replace=False)
             else:
                 n = self.n
-                
-            trfs = random_state.choice(
-                    self.transforms, n, replace=False, p=self.probs
-                )
+
+            trfs = random_state.choice(self.transforms, n, replace=False, p=self.probs)
             if self.optimize_stack:
                 trfs = [copy.deepcopy(x) for x in trfs]
                 trfs = Stream.optimize_transforms_stack(trfs, data)
