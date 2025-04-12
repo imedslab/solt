@@ -964,6 +964,7 @@ class CutOut(ImageTransform):
     @img_shape_checker
     def _apply_img(self, img: np.ndarray, settings: dict):
         for i in range(self.n_cuts):
+            self.sample_transform(img)
             img = self.__cutout_img(img)
         return img
 
