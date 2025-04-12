@@ -296,7 +296,10 @@ class SelectiveStream(Stream):
         transforms : list
             List of k transforms to sample from
         n : int or tuple of int
-            How many transform to sample. If tuple, the number of transforms to sample will be chosen randomly from the tuple.
+            How many transform to sample. If tuple, the number of transforms
+            to sample will be chosen randomly from the tuple.
+        probs : list of float
+            Probabilities of the transforms to sample. If None, the transforms will be sampled uniformly.
         optimize_stack : bool
             Whether to execute stack optimization for augmentations.
         """
@@ -308,10 +311,10 @@ class SelectiveStream(Stream):
         if transforms is None:
             transforms = []
         if n < 0 or n > len(transforms):
-            raise ValueError
+            raise ValueError("Number of transforms to sample must be between 0 and the number of transforms")
         if probs is not None:
             if len(probs) != len(transforms):
-                raise ValueError
+                raise ValueError("Number of probabilities must be equal to the number of transforms")
         self.n = n
         self.probs = probs
 
