@@ -49,6 +49,8 @@ class Stream(Serializable):
         in a row.
     ignore_fast_mode : bool
         Whether to ignore the fast mode. This option enables full geometric transforms.
+    shuffle : bool
+        Whether to shuffle the transforms before applying them.
 
     """
 
@@ -297,8 +299,8 @@ class SelectiveStream(Stream):
         ----------
         transforms : list
             List of k transforms to sample from
-        n : int
-            How many transform to sample
+        n : int or tuple of int
+            How many transform to sample. If tuple, the number of transforms to sample will be chosen randomly from the tuple.
         optimize_stack : bool
             Whether to execute stack optimization for augmentations.
         """
@@ -358,9 +360,14 @@ class SelectiveStream(Stream):
 
         if len(self.transforms) > 0:
             random_state = np.random.RandomState(random.randint(0, 2**32 - 1))
+            if isinstance(self.n, tuple):
+                n = random_state.choice(self.n, replace=False)
+            else:
+                n = self.n
+                
             trfs = random_state.choice(
-                self.transforms, self.n, replace=False, p=self.probs
-            )
+                    self.transforms, n, replace=False, p=self.probs
+                )
             if self.optimize_stack:
                 trfs = [copy.deepcopy(x) for x in trfs]
                 trfs = Stream.optimize_transforms_stack(trfs, data)
