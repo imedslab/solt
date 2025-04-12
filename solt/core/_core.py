@@ -63,6 +63,7 @@ class Stream(Serializable):
         padding=None,
         optimize_stack=False,
         ignore_fast_mode=False,
+        shuffle=False,
     ):
         super(Stream, self).__init__()
 
@@ -72,6 +73,7 @@ class Stream(Serializable):
         for trf in transforms:
             if not isinstance(trf, BaseTransform) and not isinstance(trf, Stream):
                 raise TypeError
+        self.shuffle = shuffle
         self.optimize_stack = optimize_stack
         self.interpolation = interpolation
         self.padding = padding
@@ -228,7 +230,7 @@ class Stream(Serializable):
         return transforms_stack
 
     @staticmethod
-    def exec_stream(transforms, data, optimize_stack):
+    def exec_stream(transforms, data, optimize_stack, shuffle=False):
         """
         Static method, executes the list of transformations for a given data point.
 
@@ -249,6 +251,8 @@ class Stream(Serializable):
         """
 
         data = BaseTransform.wrap_data(data)
+        if shuffle:
+            random.shuffle(transforms)
         # Performing the transforms using the optimized stack
         if optimize_stack:
             transforms = Stream.optimize_transforms_stack(transforms, data)
