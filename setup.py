@@ -7,7 +7,7 @@ from setuptools import find_packages, setup
 
 requirements = (
     "numpy>=2.0.0",
-    "scipy>=1.13.2",
+    "scipy>=1.13.0",
     "opencv-python-headless>=4.6.0.66",
     "torch>=2.6.0",
     "torchvision>=0.21.0",
