@@ -14,7 +14,7 @@ test_requirements = ("pytest",)
 description = """Data augmentation library for Deep Learning, which supports images, segmentation masks, labels and keypoints. 
 Furthermore, SOLT is fast and has OpenCV in its backend. 
 Full auto-generated docs and 
-examples are available here: https://mipt-oulu.github.io/solt/.
+examples are available here: https://imedslab.github.io/solt/.
 
 """
 
@@ -27,9 +27,10 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
     ],
@@ -45,6 +46,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/mipt-oulu/solt",
-    version="0.1.9",
+    version="0.2",
     zip_safe=False,
 )
