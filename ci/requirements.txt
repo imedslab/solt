@@ -1,4 +1,4 @@
-black==22.6.0
+black>=24.3.0
 codecov==2.1.13
 coverage==6.4.1
 opencv-python-headless>=4.6.0.66
