@@ -1,9 +1,8 @@
 import numpy as np
 
-from ._base_transforms import (
-    BaseTransform,
-    MatrixTransform2D,
-)
+from ._base_transforms import BaseTransform
+from ._matrix_transform_2d import MatrixTransform2D
+
 import copy
 import random
 

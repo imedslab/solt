@@ -1,13 +1,7 @@
 from ._core import Stream, SelectiveStream
-from ._base_transforms import (
-    BaseTransform,
-    MatrixTransform2D,
-)
-from ._base_transforms import (
-    PaddingPropertyHolder,
-    InterpolationPropertyHolder,
-    ImageTransform,
-)
+from ._base_transforms import BaseTransform, ImageTransform
+from ._matrix_transform_2d import MatrixTransform2D
+from ._property_holders import PaddingPropertyHolder, InterpolationPropertyHolder
 from ._data import DataContainer, Keypoints
 
 
