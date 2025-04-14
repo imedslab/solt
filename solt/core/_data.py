@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from solt.constants import ALLOWED_INTERPOLATIONS_2D, ALLOWED_PADDINGS, ALLOWED_TYPES
+from solt.constants import ALLOWED_INTERPOLATIONS_2D, ALLOWED_PADDINGS_2D, ALLOWED_TYPES
 from solt.utils import validate_parameter
 
 
@@ -79,11 +79,11 @@ class DataContainer(object):
                     )
 
                 if "padding" not in transform_settings[idx]:
-                    transform_settings[idx]["padding"] = validate_parameter(None, ALLOWED_PADDINGS, "z", str, True)
+                    transform_settings[idx]["padding"] = validate_parameter(None, ALLOWED_PADDINGS_2D, "z", str, True)
                 else:
                     transform_settings[idx]["padding"] = validate_parameter(
                         (transform_settings[idx]["padding"], "strict"),
-                        ALLOWED_PADDINGS,
+                        ALLOWED_PADDINGS_2D,
                         "z",
                         str,
                         True,

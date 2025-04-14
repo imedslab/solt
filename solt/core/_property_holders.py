@@ -1,5 +1,5 @@
 from solt.utils import validate_parameter
-from solt.constants import ALLOWED_PADDINGS, ALLOWED_INTERPOLATIONS_2D
+from solt.constants import ALLOWED_PADDINGS_2D, ALLOWED_INTERPOLATIONS_2D
 
 
 class PaddingPropertyHolder(object):
@@ -17,7 +17,7 @@ class PaddingPropertyHolder(object):
 
     def __init__(self, padding=None):
         super(PaddingPropertyHolder, self).__init__()
-        self.padding = validate_parameter(padding, ALLOWED_PADDINGS, "z")
+        self.padding = validate_parameter(padding, ALLOWED_PADDINGS_2D, "z")
 
 
 class InterpolationPropertyHolder(object):

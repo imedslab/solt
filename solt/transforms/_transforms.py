@@ -18,7 +18,7 @@ from ..constants import (
     ALLOWED_COLOR_CONVERSIONS,
     ALLOWED_CROPS,
     ALLOWED_INTERPOLATIONS_2D,
-    ALLOWED_PADDINGS,
+    ALLOWED_PADDINGS_2D,
     DTYPES_MAX,
     ALLOWED_GRIDMASK_MODES,
 )
@@ -591,10 +591,10 @@ class Pad(BaseTransform, PaddingPropertyHolder):
             return img
         pad_h_top, pad_h_bottom = self.state_dict["pad_h"]
         pad_w_left, pad_w_right = self.state_dict["pad_w"]
-        padding = ALLOWED_PADDINGS[self.padding[0]]
+        padding = ALLOWED_PADDINGS_2D[self.padding[0]]
 
         if settings["padding"][1] == "strict":
-            padding = ALLOWED_PADDINGS[settings["padding"][0]]
+            padding = ALLOWED_PADDINGS_2D[settings["padding"][0]]
 
         return cv2.copyMakeBorder(img, pad_h_top, pad_h_bottom, pad_w_left, pad_w_right, padding, value=0)
 

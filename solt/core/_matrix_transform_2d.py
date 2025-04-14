@@ -4,7 +4,7 @@ import cv2
 from ._base_transforms import BaseTransform
 from ._property_holders import InterpolationPropertyHolder, PaddingPropertyHolder
 from ._data import Keypoints
-from ..constants import ALLOWED_INTERPOLATIONS_2D, ALLOWED_PADDINGS
+from ..constants import ALLOWED_INTERPOLATIONS_2D, ALLOWED_PADDINGS_2D
 from ..utils import img_shape_checker
 from abc import abstractmethod
 
@@ -186,9 +186,9 @@ class MatrixTransform2D(BaseTransform, InterpolationPropertyHolder, PaddingPrope
         if settings["interpolation"][1] == "strict":
             interp = ALLOWED_INTERPOLATIONS_2D[settings["interpolation"][0]]
 
-        padding = ALLOWED_PADDINGS[self.padding[0]]
+        padding = ALLOWED_PADDINGS_2D[self.padding[0]]
         if settings["padding"][1] == "strict":
-            padding = ALLOWED_PADDINGS[settings["padding"][0]]
+            padding = ALLOWED_PADDINGS_2D[settings["padding"][0]]
 
         return interp, padding
 

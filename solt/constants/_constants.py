@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-ALLOWED_PADDINGS = {"z": cv2.BORDER_CONSTANT, "r": cv2.BORDER_REFLECT_101}
+ALLOWED_PADDINGS_2D = {"z": cv2.BORDER_CONSTANT, "r": cv2.BORDER_REFLECT_101}
 ALLOWED_INTERPOLATIONS_2D = {
     "bilinear": cv2.INTER_LINEAR,
     "bicubic": cv2.INTER_CUBIC,

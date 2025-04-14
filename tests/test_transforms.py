@@ -9,7 +9,7 @@ import pytest
 import solt.core as slc
 
 import solt.transforms as slt
-from solt.constants import ALLOWED_INTERPOLATIONS_2D, ALLOWED_PADDINGS
+from solt.constants import ALLOWED_INTERPOLATIONS_2D, ALLOWED_PADDINGS_2D
 
 from .fixtures import *
 from .utils import gen_gs_img_black_edge
@@ -210,10 +210,10 @@ def test_rotate_90_img_mask_keypoints_destructive(img_3x3, mask_3x3, transform_s
     M = cv2.getRotationMatrix2D((W // 2, H // 2), -90, 1)
 
     img_inter = ALLOWED_INTERPOLATIONS_2D["bicubic"]
-    img_pad = ALLOWED_PADDINGS["z"]
+    img_pad = ALLOWED_PADDINGS_2D["z"]
     if transform_settings is not None:
         img_inter = ALLOWED_INTERPOLATIONS_2D[transform_settings[0]["interpolation"]]
-        img_pad = ALLOWED_PADDINGS[transform_settings[0]["padding"]]
+        img_pad = ALLOWED_PADDINGS_2D[transform_settings[0]["padding"]]
 
     expected_img_res = cv2.warpAffine(img, M, (W, H), flags=img_inter, borderMode=img_pad).reshape((H, W, 1))
     expected_mask_res = cv2.warpAffine(mask, M, (W, H))
