@@ -364,9 +364,9 @@ class InterpolationPropertyHolder(object):
         self.interpolation = validate_parameter(interpolation, ALLOWED_INTERPOLATIONS_2D, "bilinear")
 
 
-class MatrixTransform(BaseTransform, InterpolationPropertyHolder, PaddingPropertyHolder):
+class MatrixTransform2D(BaseTransform, InterpolationPropertyHolder, PaddingPropertyHolder):
     """
-    Matrix Transform abstract class. (Affine and Homography).
+    Matrix Transform abstract class. (Affine and Homography). Works for 2D data.
     Does all the transforms around the image /  center.
 
     Parameters
@@ -433,7 +433,7 @@ class MatrixTransform(BaseTransform, InterpolationPropertyHolder, PaddingPropert
         None
 
         """
-        super(MatrixTransform, self).sample_transform(data)
+        super(MatrixTransform2D, self).sample_transform(data)
         self.sample_transform_matrix(data)  # Only this method needs to be implemented!
 
         # If we are in fast mode, we do not have to recompute the the new coordinate frame!
@@ -442,7 +442,7 @@ class MatrixTransform(BaseTransform, InterpolationPropertyHolder, PaddingPropert
             height = self.state_dict["h"]
             origin = [(width - 1) // 2, (height - 1) // 2]
             # First, let's make sure that our transformation matrix is applied at the origin
-            transform_matrix_corr = MatrixTransform.move_transform_to_origin(
+            transform_matrix_corr = MatrixTransform2D.move_transform_to_origin(
                 self.state_dict["transform_matrix"], origin
             )
             self.state_dict["h_new"], self.state_dict["w_new"] = (
@@ -508,7 +508,7 @@ class MatrixTransform(BaseTransform, InterpolationPropertyHolder, PaddingPropert
         """
         origin = [(width - 1) // 2, (height - 1) // 2]
         # First, let's make sure that our transformation matrix is applied at the origin
-        transform_matrix = MatrixTransform.move_transform_to_origin(transform_matrix, origin)
+        transform_matrix = MatrixTransform2D.move_transform_to_origin(transform_matrix, origin)
         # Now, if we think of scaling, rotation and translation, the image size gets increased
         # when we apply any geometric transform. Default behaviour in OpenCV is designed to crop the
         # image edges, however it is not desired when we want to deal with Keypoints (don't want them
@@ -516,7 +516,7 @@ class MatrixTransform(BaseTransform, InterpolationPropertyHolder, PaddingPropert
 
         # If we imagine that the image edges are a rectangle, we can rotate it around the origin
         # to obtain the new coordinate frame
-        h_new, w_new = MatrixTransform.recompute_coordinate_frame(transform_matrix, width, height)
+        h_new, w_new = MatrixTransform2D.recompute_coordinate_frame(transform_matrix, width, height)
         transform_matrix[0, -1] += w_new // 2 - origin[0]
         transform_matrix[1, -1] += h_new // 2 - origin[1]
 
@@ -532,7 +532,7 @@ class MatrixTransform(BaseTransform, InterpolationPropertyHolder, PaddingPropert
     def correct_transform(self):
         h, w = self.state_dict["h"], self.state_dict["w"]
         tm = self.state_dict["transform_matrix"]
-        tm_corr, w_new, h_new = MatrixTransform.correct_for_frame_change(tm, w, h)
+        tm_corr, w_new, h_new = MatrixTransform2D.correct_for_frame_change(tm, w, h)
         self.state_dict["h_new"], self.state_dict["w_new"] = h_new, w_new
         self.state_dict["transform_matrix_corrected"] = tm_corr
 

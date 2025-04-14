@@ -10,7 +10,7 @@ from ..core import (
     BaseTransform,
     ImageTransform,
     InterpolationPropertyHolder,
-    MatrixTransform,
+    MatrixTransform2D,
     PaddingPropertyHolder,
 )
 from ..constants import (
@@ -86,7 +86,7 @@ class Flip(BaseTransform):
         return Keypoints(pts=pts_data, height=pts.height, width=pts.width)
 
 
-class Rotate(MatrixTransform):
+class Rotate(MatrixTransform2D):
     """
     Random rotation around the center clockwise
 
@@ -103,7 +103,7 @@ class Rotate(MatrixTransform):
     p : float
         Probability of using this transform
     ignore_state : bool
-        Whether to ignore the state. See details in the docs for `MatrixTransform`.
+        Whether to ignore the state. See details in the docs for `MatrixTransform2D`.
 
     """
 
@@ -189,7 +189,7 @@ class Rotate90(Rotate):
         return np.ascontiguousarray(np.rot90(mask, -self.k))
 
 
-class Shear(MatrixTransform):
+class Shear(MatrixTransform2D):
     """
     Random shear around the center.
 
@@ -209,7 +209,7 @@ class Shear(MatrixTransform):
     p : float
         Probability of using this transform
     ignore_state : bool
-        Whether to ignore the state. See details in the docs for `MatrixTransform`.
+        Whether to ignore the state. See details in the docs for `MatrixTransform2D`.
 
     """
 
@@ -266,7 +266,7 @@ class Shear(MatrixTransform):
         self.state_dict["transform_matrix"][2, 2] = 1
 
 
-class Scale(MatrixTransform):
+class Scale(MatrixTransform2D):
     """
     Random scale transform.
 
@@ -290,7 +290,7 @@ class Scale(MatrixTransform):
     p : float
         Probability of using this transform
     ignore_state : bool
-        Whether to ignore the state. See details in the docs for `MatrixTransform`.
+        Whether to ignore the state. See details in the docs for `MatrixTransform2D`.
 
     """
 
@@ -372,7 +372,7 @@ class Scale(MatrixTransform):
         self.state_dict["transform_matrix"][2, 2] = 1
 
 
-class Translate(MatrixTransform):
+class Translate(MatrixTransform2D):
     """
     Random Translate transform..
 
@@ -445,7 +445,7 @@ class Translate(MatrixTransform):
         self.state_dict["transform_matrix"][2, 2] = 1
 
 
-class Projection(MatrixTransform):
+class Projection(MatrixTransform2D):
     """
     Random Projective transform.
 
@@ -493,8 +493,8 @@ class Projection(MatrixTransform):
         if not isinstance(affine_transforms, Stream):
             raise TypeError("Affine transforms must be a Stream")
         for trf in affine_transforms.transforms:
-            if not isinstance(trf, MatrixTransform):
-                raise TypeError("Affine transforms must be a MatrixTransform")
+            if not isinstance(trf, MatrixTransform2D):
+                raise TypeError("Affine transforms must be a MatrixTransform2D")
 
         self.affine_transforms = affine_transforms
         self.vrange = validate_numeric_range_parameter(v_range, self._default_range)  # projection components.

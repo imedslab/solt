@@ -2,7 +2,7 @@ import numpy as np
 
 from ._base_transforms import (
     BaseTransform,
-    MatrixTransform,
+    MatrixTransform2D,
 )
 import copy
 import random
@@ -90,7 +90,7 @@ class Stream(Serializable):
         if not isinstance(value, bool):
             raise TypeError("Ignore fast mode must be bool!")
         for trf in self.transforms:
-            if isinstance(trf, MatrixTransform):
+            if isinstance(trf, MatrixTransform2D):
                 trf.ignore_fast_mode = value
 
     def reset_interpolation(self, value):
@@ -215,7 +215,7 @@ class Stream(Serializable):
         # First we should create a stack
         transforms_stack = []
         for trf in transforms:
-            if isinstance(trf, MatrixTransform):
+            if isinstance(trf, MatrixTransform2D):
                 trf.ignore_fast_mode = True
                 trf.reset_state()
                 if trf.use_transform():
