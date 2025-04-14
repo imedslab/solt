@@ -33,13 +33,13 @@ class BaseTransform(Serializable, metaclass=ABCMeta):
 
         self.p = p
         if data_indices is not None and not isinstance(data_indices, tuple):
-            raise TypeError
+            raise TypeError("Data indices must be a tuple!")
         if isinstance(data_indices, tuple):
             for el in data_indices:
                 if not isinstance(el, int):
-                    raise TypeError
+                    raise TypeError("Data indices must be integers!")
                 if el < 0:
-                    raise ValueError
+                    raise ValueError("Data indices must be >= 0!")
 
         self.data_indices = data_indices
 

@@ -170,7 +170,7 @@ class DataContainer(object):
         .. code-block:: python
 
             d = {'image': i1, masks: (m1, m2, m3, m4), 'labels': (l1, l2, l3, l4, l5),
-            'keypoints': solt.core.KeyPoints(k, h, w)
+            'keypoints': solt.core.KeyPoints(k, h, w)}
             dc_from_dict = solt.core.DataContainer.from_dict(d)
 
         will be equivalent to

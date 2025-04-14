@@ -74,7 +74,7 @@ class Stream(Serializable):
 
         for trf in transforms:
             if not isinstance(trf, BaseTransform) and not isinstance(trf, Stream):
-                raise TypeError
+                raise TypeError("Unknown transform type found in the Stream!")
         self.shuffle = shuffle
         self.optimize_stack = optimize_stack
         self.interpolation = interpolation
