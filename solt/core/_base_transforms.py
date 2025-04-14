@@ -266,6 +266,32 @@ class BaseTransform(Serializable, metaclass=ABCMeta):
 
         """
 
+    def _apply_vol(self, vol: np.ndarray, settings: dict):
+        """
+        Abstract method, which determines the transform's behaviour when it is applied to volumes HxWxDxC.
+
+        Parameters
+        ----------
+        vol : numpy.ndarray
+            Volume to be augmented
+
+        Returns
+        -------
+        out : numpy.ndarray
+            Result
+        """
+
+    def _apply_vol_mask(self, vol_mask: np.ndarray, settings: dict):
+        """
+        Abstract method, which determines the transform's behaviour when it is applied to volumetric masks HxWxD.
+
+        Parameters
+        ----------
+        vol_mask : numpy.ndarray
+            Volumetric mask to be augmented
+
+        """
+
 
 class ImageTransform(BaseTransform):
     """
