@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 
 from solt.utils import Serializable
-from solt.constants import ALLOWED_INTERPOLATIONS, ALLOWED_PADDINGS
+from solt.constants import ALLOWED_INTERPOLATIONS_2D, ALLOWED_PADDINGS
 from ._data import DataContainer, Keypoints
 from solt.utils import (
     img_shape_checker,
@@ -335,7 +335,7 @@ class InterpolationPropertyHolder(object):
 
     def __init__(self, interpolation=None):
         super(InterpolationPropertyHolder, self).__init__()
-        self.interpolation = validate_parameter(interpolation, ALLOWED_INTERPOLATIONS, "bilinear")
+        self.interpolation = validate_parameter(interpolation, ALLOWED_INTERPOLATIONS_2D, "bilinear")
 
 
 class MatrixTransform(BaseTransform, InterpolationPropertyHolder, PaddingPropertyHolder):
@@ -511,9 +511,9 @@ class MatrixTransform(BaseTransform, InterpolationPropertyHolder, PaddingPropert
         self.state_dict["transform_matrix_corrected"] = tm_corr
 
     def parse_settings(self, settings):
-        interp = ALLOWED_INTERPOLATIONS[self.interpolation[0]]
+        interp = ALLOWED_INTERPOLATIONS_2D[self.interpolation[0]]
         if settings["interpolation"][1] == "strict":
-            interp = ALLOWED_INTERPOLATIONS[settings["interpolation"][0]]
+            interp = ALLOWED_INTERPOLATIONS_2D[settings["interpolation"][0]]
 
         padding = ALLOWED_PADDINGS[self.padding[0]]
         if settings["padding"][1] == "strict":

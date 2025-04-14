@@ -240,13 +240,13 @@ def validate_parameter(parameter, allowed_modes, default_value, basic_type=str, 
 
     if isinstance(parameter, tuple) and heritable:
         if len(parameter) != 2:
-            raise ValueError
+            raise ValueError("Parameter must be a tuple of length 2")
         if not isinstance(parameter[0], basic_type):
-            raise TypeError
+            raise TypeError("Parameter must be of type " + str(basic_type))
         if parameter[0] not in allowed_modes:
-            raise ValueError
+            raise ValueError("Parameter mode must be in " + str(allowed_modes))
         if parameter[1] not in {"inherit", "strict"}:
-            raise ValueError
+            raise ValueError("Parameter mode must be in " + str({"inherit", "strict"}))
     elif heritable:
         raise NotImplementedError
 

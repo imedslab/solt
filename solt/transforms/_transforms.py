@@ -17,7 +17,7 @@ from ..constants import (
     ALLOWED_BLURS,
     ALLOWED_COLOR_CONVERSIONS,
     ALLOWED_CROPS,
-    ALLOWED_INTERPOLATIONS,
+    ALLOWED_INTERPOLATIONS_2D,
     ALLOWED_PADDINGS,
     DTYPES_MAX,
     ALLOWED_GRIDMASK_MODES,
@@ -683,9 +683,9 @@ class Resize(BaseTransform, InterpolationPropertyHolder):
     def _apply_img_or_mask(self, img: np.ndarray, settings: dict):
         if self.resize_to is None:
             return img
-        interp = ALLOWED_INTERPOLATIONS[self.interpolation[0]]
+        interp = ALLOWED_INTERPOLATIONS_2D[self.interpolation[0]]
         if settings["interpolation"][1] == "strict":
-            interp = ALLOWED_INTERPOLATIONS[settings["interpolation"][0]]
+            interp = ALLOWED_INTERPOLATIONS_2D[settings["interpolation"][0]]
 
         resize_to = self._handle_resize(img.shape[0], img.shape[1])
 
@@ -1724,9 +1724,9 @@ class RandomResizedCrop(BaseTransform, InterpolationPropertyHolder):
         img = self.__crop_img_or_mask(img)
         if self.resize_to is None:
             return img
-        interp = ALLOWED_INTERPOLATIONS[self.interpolation[0]]
+        interp = ALLOWED_INTERPOLATIONS_2D[self.interpolation[0]]
         if settings["interpolation"][1] == "strict":
-            interp = ALLOWED_INTERPOLATIONS[settings["interpolation"][0]]
+            interp = ALLOWED_INTERPOLATIONS_2D[settings["interpolation"][0]]
 
         return cv2.resize(img, self.resize_to, interpolation=interp)
 

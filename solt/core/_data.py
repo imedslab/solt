@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from solt.constants import ALLOWED_INTERPOLATIONS, ALLOWED_PADDINGS, ALLOWED_TYPES
+from solt.constants import ALLOWED_INTERPOLATIONS_2D, ALLOWED_PADDINGS, ALLOWED_TYPES
 from solt.utils import validate_parameter
 
 
@@ -43,17 +43,17 @@ class DataContainer(object):
             if not isinstance(data, list):
                 data = (data,)
             else:
-                raise TypeError
+                raise TypeError("Data must be a tuple or a list")
 
         if not isinstance(data, tuple):
-            raise TypeError
+            raise TypeError("Data must be a tuple")
 
         if len(data) != len(fmt):
-            raise ValueError
+            raise ValueError("Data and format must have the same length")
 
         if transform_settings is not None:
             if not isinstance(transform_settings, dict):
-                raise TypeError
+                raise TypeError("Transform settings must be a dictionary")
         else:
             transform_settings = {}
 
@@ -67,12 +67,12 @@ class DataContainer(object):
                 val = ("nearest", "strict") if fmt[idx] == "M" else None
                 if "interpolation" not in transform_settings[idx]:
                     transform_settings[idx]["interpolation"] = validate_parameter(
-                        val, ALLOWED_INTERPOLATIONS, "bilinear", str, True
+                        val, ALLOWED_INTERPOLATIONS_2D, "bilinear", str, True
                     )
                 else:
                     transform_settings[idx]["interpolation"] = validate_parameter(
                         (transform_settings[idx]["interpolation"], "strict"),
-                        ALLOWED_INTERPOLATIONS,
+                        ALLOWED_INTERPOLATIONS_2D,
                         "bilinear",
                         str,
                         True,
@@ -88,16 +88,18 @@ class DataContainer(object):
                         str,
                         True,
                     )
+            elif fmt[idx] == "V" or fmt[idx] == "VM":
+                raise ValueError("Volume and volumetric mask data types are not supported yet")
             else:
                 if "interpolation" in transform_settings[idx] or "padding" in transform_settings[idx]:
-                    raise TypeError
+                    raise TypeError("Transform settings must not contain interpolation or padding for non-image data")
 
         if len(data) != len(transform_settings):
-            raise ValueError
+            raise ValueError("Data and transform settings must have the same length")
 
         for t in fmt:
             if t not in ALLOWED_TYPES:
-                raise TypeError
+                raise TypeError("Invalid data type")
 
         self.__data = data
         self.__fmt = fmt

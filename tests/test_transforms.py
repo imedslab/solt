@@ -9,7 +9,7 @@ import pytest
 import solt.core as slc
 
 import solt.transforms as slt
-from solt.constants import ALLOWED_INTERPOLATIONS, ALLOWED_PADDINGS
+from solt.constants import ALLOWED_INTERPOLATIONS_2D, ALLOWED_PADDINGS
 
 from .fixtures import *
 from .utils import gen_gs_img_black_edge
@@ -209,10 +209,10 @@ def test_rotate_90_img_mask_keypoints_destructive(img_3x3, mask_3x3, transform_s
     label_res, _, _ = dc_res[3]
     M = cv2.getRotationMatrix2D((W // 2, H // 2), -90, 1)
 
-    img_inter = ALLOWED_INTERPOLATIONS["bicubic"]
+    img_inter = ALLOWED_INTERPOLATIONS_2D["bicubic"]
     img_pad = ALLOWED_PADDINGS["z"]
     if transform_settings is not None:
-        img_inter = ALLOWED_INTERPOLATIONS[transform_settings[0]["interpolation"]]
+        img_inter = ALLOWED_INTERPOLATIONS_2D[transform_settings[0]["interpolation"]]
         img_pad = ALLOWED_PADDINGS[transform_settings[0]["padding"]]
 
     expected_img_res = cv2.warpAffine(img, M, (W, H), flags=img_inter, borderMode=img_pad).reshape((H, W, 1))
@@ -1379,9 +1379,9 @@ def test_different_interpolations_per_item_per_transform(img_6x6, transform_sett
     dc = slc.DataContainer((img_6x6,), "I", transform_settings=transform_settings)
     dc_res = slt.Resize(resize_to=(10, 15), interpolation="bilinear")(dc)
 
-    interp = ALLOWED_INTERPOLATIONS["bilinear"]
+    interp = ALLOWED_INTERPOLATIONS_2D["bilinear"]
     if transform_settings is not None:
-        interp = ALLOWED_INTERPOLATIONS[transform_settings[0]["interpolation"][0]]
+        interp = ALLOWED_INTERPOLATIONS_2D[transform_settings[0]["interpolation"][0]]
     assert np.array_equal(
         cv2.resize(img_6x6, (10, 15), interpolation=interp).reshape(15, 10, 1),
         dc_res.data[0],
