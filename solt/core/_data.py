@@ -2,6 +2,7 @@ import numpy as np
 import torch
 
 from solt.constants import ALLOWED_INTERPOLATIONS_2D, ALLOWED_PADDINGS_2D, ALLOWED_TYPES
+from solt.constants import ALLOWED_INTERPOLATIONS_3D, ALLOWED_PADDINGS_3D
 from solt.utils import validate_parameter
 
 
@@ -63,33 +64,40 @@ class DataContainer(object):
             if idx not in transform_settings:
                 transform_settings[idx] = {}
 
-            if fmt[idx] == "I" or fmt[idx] == "M":
-                val = ("nearest", "strict") if fmt[idx] == "M" else None
+            if fmt[idx] in ["I", "M", "V", "VM"]:
+                if fmt[idx] in ["V", "VM"]:
+                    allowed_interpolations = ALLOWED_INTERPOLATIONS_3D
+                    default_interpolation = "trilinear"
+                    allowed_paddings = ALLOWED_PADDINGS_3D
+                else:
+                    allowed_interpolations = ALLOWED_INTERPOLATIONS_2D
+                    default_interpolation = "bilinear"
+                    allowed_paddings = ALLOWED_PADDINGS_2D
+
+                val = ("nearest", "strict") if fmt[idx] in ["M", "VM"] else None
                 if "interpolation" not in transform_settings[idx]:
                     transform_settings[idx]["interpolation"] = validate_parameter(
-                        val, ALLOWED_INTERPOLATIONS_2D, "bilinear", str, True
+                        val, allowed_interpolations, default_interpolation, str, True
                     )
                 else:
                     transform_settings[idx]["interpolation"] = validate_parameter(
                         (transform_settings[idx]["interpolation"], "strict"),
-                        ALLOWED_INTERPOLATIONS_2D,
-                        "bilinear",
+                        allowed_interpolations,
+                        default_interpolation,
                         str,
                         True,
                     )
 
                 if "padding" not in transform_settings[idx]:
-                    transform_settings[idx]["padding"] = validate_parameter(None, ALLOWED_PADDINGS_2D, "z", str, True)
+                    transform_settings[idx]["padding"] = validate_parameter(None, allowed_paddings, "z", str, True)
                 else:
                     transform_settings[idx]["padding"] = validate_parameter(
                         (transform_settings[idx]["padding"], "strict"),
-                        ALLOWED_PADDINGS_2D,
+                        allowed_paddings,
                         "z",
                         str,
                         True,
                     )
-            elif fmt[idx] == "V" or fmt[idx] == "VM":
-                raise ValueError("Volume and volumetric mask data types are not supported yet")
             else:
                 if "interpolation" in transform_settings[idx] or "padding" in transform_settings[idx]:
                     raise TypeError("Transform settings must not contain interpolation or padding for non-image data")
