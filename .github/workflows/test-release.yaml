@@ -87,7 +87,7 @@ jobs:
           echo "Dist contents before rename:"
           ls dist/
       
-          # Find built sdist (.tar.gz) and wheel (.whl)
+          # Find sdist and wheel
           SDIST_FILE=$(ls dist/*.tar.gz | head -n 1)
           WHEEL_FILE=$(ls dist/*.whl | head -n 1)
       
@@ -108,10 +108,12 @@ jobs:
           mkdir -p extracted-wheel
           unzip "$WHEEL_FILE" -d extracted-wheel
       
-          # Patch only METADATA (don't rename directories!)
+          # Only patch the METADATA content, **not** the folder name
           sed -i "s/^Name: $OLD_NAME$/Name: $NEW_NAME/" extracted-wheel/*.dist-info/METADATA
       
           NEW_WHEEL_FILE=$(echo "$WHEEL_FILE" | sed "s/$OLD_NAME/$NEW_NAME/")
+      
+          # Carefully rebuild wheel preserving original folder names
           (cd extracted-wheel && zip -r "../$NEW_WHEEL_FILE" .)
       
           # --- Cleanup ---
