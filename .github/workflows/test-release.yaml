@@ -74,19 +74,47 @@ jobs:
 
       - name: Update pip
         run: python -m pip install --upgrade pip
-
+  
       - name: Install wheel
         run: python -m pip install --upgrade wheel
-
+  
       - name: Install build tools
         run: python -m pip install build
-
+  
       - name: Build package
         run: python -m build
-
+  
+      - name: Rename package for TestPyPI
+        run: |
+          echo "Renaming built package from solt to solt-test..."
+  
+          # Extract and modify sdist (.tar.gz)
+          mkdir extracted-sdist
+          tar -xzf dist/solt-*.tar.gz -C extracted-sdist
+          sed -i 's/^Name: solt$/Name: solt-test/' extracted-sdist/solt-*/PKG-INFO
+          NEW_SDIST_NAME=$(ls dist/solt-*.tar.gz | sed 's/solt/solt-test/')
+          tar -czf "$NEW_SDIST_NAME" -C extracted-sdist solt-*
+  
+          # Extract and modify wheel (.whl)
+          mkdir extracted-wheel
+          unzip dist/solt-*.whl -d extracted-wheel
+          sed -i 's/^Name: solt$/Name: solt-test/' extracted-wheel/solt-*.dist-info/METADATA
+          NEW_WHEEL_NAME=$(ls dist/solt-*.whl | sed 's/solt/solt-test/')
+          zip -r "$NEW_WHEEL_NAME" extracted-wheel
+  
+          # Remove original solt builds
+          rm dist/solt-*.tar.gz
+          rm dist/solt-*.whl
+  
+          # List the final dist contents
+          echo "Final dist folder:"
+          ls -l dist/
+  
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
           password: ${{ secrets.TEST_PYPI_API }}
+          packages-dir: dist/
           verbose: true
+  
