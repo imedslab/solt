@@ -14,6 +14,7 @@
 #
 import os
 import sys
+import datetime
 
 import msmb_theme
 
@@ -23,7 +24,10 @@ sys.path.insert(0, os.path.abspath("../../notebooks/"))
 # -- Project information -----------------------------------------------------
 
 project = "solt"
-copyright = "2018, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu"
+current_year = datetime.datetime.now().year
+copyright = (
+    f"{current_year}, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu"
+)
 author = "Aleksei Tiulpin"
 
 # The short X.Y version
