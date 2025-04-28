@@ -6,7 +6,7 @@ on:
 
 jobs:
   validate-release:
-    name: Validate Release Across Python Versions 🔍
+    name: Validate Release Across Python Versions
     runs-on: ubuntu-latest
     strategy:
       matrix:
