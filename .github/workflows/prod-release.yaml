@@ -1,12 +1,8 @@
 name: Publish to PyPI
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Git Tag (Release) to validate and upload'
-        required: true
-        type: string
+  release:
+    types: [published]
 
 jobs:
   validate-release:
@@ -21,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.tag }}
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
