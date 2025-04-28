@@ -15,7 +15,6 @@
 import os
 import sys
 import datetime
-import sphinx_rtd_theme
 
 sys.path.insert(0, os.path.abspath("../../solt/"))
 sys.path.insert(0, os.path.abspath("../../notebooks/"))
@@ -74,7 +73,7 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -91,7 +90,6 @@ pygments_style = "sphinx"
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # html_theme = "sphinx_rtd_theme"
 # Theme options are theme-specific and customize the look and feel of a theme
