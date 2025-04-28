@@ -15,6 +15,7 @@
 import os
 import sys
 import datetime
+import sphinx_rtd_theme
 
 sys.path.insert(0, os.path.abspath("../../solt/"))
 sys.path.insert(0, os.path.abspath("../../notebooks/"))
@@ -89,8 +90,8 @@ pygments_style = "sphinx"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "msmb_theme"
-html_theme_path = [msmb_theme.get_html_theme_path()]
+html_theme = "sphinx_rtd_theme"
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # html_theme = "sphinx_rtd_theme"
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -178,6 +179,6 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    "https://docs.python.org/": None,
-    "http://docs.scipy.org/doc/numpy": None,
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
 }
