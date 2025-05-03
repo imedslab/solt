@@ -180,3 +180,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
 }
+
+
+def setup(app):
+    app.add_css_file("custom.css")
