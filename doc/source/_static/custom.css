@@ -1,0 +1,4 @@
+/* Change background color of search sidebar */
+.wy-side-nav-search {
+  background-color: white !important;
+}

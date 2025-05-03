@@ -10,7 +10,7 @@ Here is how you can run the benchmark yourself on a validation set from ImageNet
 export DATA_DIR="<PATH to ImageNet val>"
 conda env create -f benchmark/augbench.yaml
 conda activate augbench
-pip install git+https://github.com/MIPT-Oulu/solt@master#egg-name=solt
+pip install -U git+https://github.com/imedslab/solt.git
 pip install -e benchmark
 python -u -m augbench.benchmark -i 500 -r 20  --deterministic --markdown 
 ```

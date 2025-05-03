@@ -31,7 +31,7 @@ You can also fetch the most fresh changes from our GitHub repository:
 
 ::
 
-   pip install -U git+https://github.com/MIPT-Oulu/solt
+   pip install -U git+https://github.com/imedslab/solt.git
 
 
 
