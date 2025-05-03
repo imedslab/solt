@@ -1,0 +1,803 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>solt.core._base_transforms &mdash; solt v0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=0b1ce4df" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=683873e3"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            solt
+              <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Welcome to solt’s documentation!</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">solt</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Basics_of_solt.html">Basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Helen_faces.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> to augment the keypoints (landmarks)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../DSBowl18_segmentation.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> for instance and semantic segmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Medical_Data_Augmentation_CXR14.html">Augmenting Medical Images: Chest X-ray 14 dataset</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">solt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">solt.core._base_transforms</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for solt.core._base_transforms</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">solt.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Serializable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">solt.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">ALLOWED_INTERPOLATIONS</span><span class="p">,</span> <span class="n">ALLOWED_PADDINGS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataContainer</span><span class="p">,</span> <span class="n">Keypoints</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">solt.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">img_shape_checker</span><span class="p">,</span>
+    <span class="n">validate_parameter</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="BaseTransform">
+<a class="viewcode-back" href="../../../core.html#solt.core.BaseTransform">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseTransform</span><span class="p">(</span><span class="n">Serializable</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transformation abstract class.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    p : float or None</span>
+<span class="sd">        Probability of executing this transform</span>
+<span class="sd">    data_indices : tuple or None</span>
+<span class="sd">        Indices where the transforms need to be applied</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BaseTransform</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="k">if</span> <span class="n">data_indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_indices</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Data indices must be a tuple!&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_indices</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">data_indices</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Data indices must be integers!&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">el</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data indices must be &gt;= 0!&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_indices</span> <span class="o">=</span> <span class="n">data_indices</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_state</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;use&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+
+<div class="viewcode-block" id="BaseTransform.use_transform">
+<a class="viewcode-back" href="../../../core.html#solt.core.BaseTransform.use_transform">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">use_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to randomly determine whether to use this transform.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : bool</span>
+<span class="sd">            Boolean flag. True if the transform is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;use&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;use&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="BaseTransform.sample_transform">
+<a class="viewcode-back" href="../../../core.html#solt.core.BaseTransform.sample_transform">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">DataContainer</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Samples transform parameters based on data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : DataContainer</span>
+<span class="sd">            Data container to be used for sampling.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : tuple</span>
+<span class="sd">            Coordinate frame (h, w).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="BaseTransform.apply">
+<a class="viewcode-back" href="../../../core.html#solt.core.BaseTransform.apply">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">DataContainer</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Applies transformation to a DataContainer items depending on the type.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : DataContainer</span>
+<span class="sd">            Data to be augmented</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : DataContainer</span>
+<span class="sd">            Result</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">types</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">settings</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_indices</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)))</span>
+        <span class="n">tmp_item</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">item_settings</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_indices</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="s2">&quot;I&quot;</span><span class="p">:</span>  <span class="c1"># Image</span>
+                    <span class="n">tmp_item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_img</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">item_settings</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">t</span> <span class="o">==</span> <span class="s2">&quot;M&quot;</span><span class="p">:</span>  <span class="c1"># Mask</span>
+                    <span class="n">tmp_item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_mask</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">item_settings</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">t</span> <span class="o">==</span> <span class="s2">&quot;P&quot;</span><span class="p">:</span>  <span class="c1"># Points</span>
+                    <span class="n">tmp_item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_pts</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">item_settings</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">t</span> <span class="o">==</span> <span class="s2">&quot;L&quot;</span><span class="p">:</span>  <span class="c1"># Labels</span>
+                    <span class="n">tmp_item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_labels</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">item_settings</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="s2">&quot;I&quot;</span> <span class="ow">or</span> <span class="n">t</span> <span class="o">==</span> <span class="s2">&quot;M&quot;</span><span class="p">:</span>
+                    <span class="n">tmp_item</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="n">t</span> <span class="o">==</span> <span class="s2">&quot;L&quot;</span><span class="p">:</span>
+                    <span class="n">tmp_item</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">t</span> <span class="o">==</span> <span class="s2">&quot;P&quot;</span><span class="p">:</span>
+                    <span class="n">tmp_item</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+            <span class="n">types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_item</span><span class="p">)</span>
+            <span class="n">settings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">item_settings</span>
+
+        <span class="k">return</span> <span class="n">DataContainer</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">types</span><span class="p">))</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">wrap_data</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">DataContainer</span><span class="p">((</span><span class="n">data</span><span class="p">,),</span> <span class="s2">&quot;I&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">DataContainer</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">DataContainer</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unknown data type!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">return_torch</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">as_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">scale_keypoints</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Applies the transform to a DataContainer</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : DataContainer or dict or np.ndarray.</span>
+<span class="sd">            Data to be augmented. See ``solt.core.DataContainer.from_dict`` for details.</span>
+<span class="sd">            If np.ndarray, then the data will be wrapped as a data container with format</span>
+<span class="sd">            ``I``.</span>
+<span class="sd">        return_torch : bool</span>
+<span class="sd">            Whether to convert the result into a torch tensors.</span>
+<span class="sd">            By default, it is `False` for transforms and ``True`` for the streams.</span>
+<span class="sd">        as_dict : bool</span>
+<span class="sd">            Whether to pool the results into a dict.</span>
+<span class="sd">            See ``solt.core.DataContainer.to_dict`` for details</span>
+<span class="sd">        scale_keypoints : bool</span>
+<span class="sd">            Whether to scale the keypoints into 0-1 range</span>
+<span class="sd">        normalize : bool</span>
+<span class="sd">            Whether to normalize the resulting tensor. If mean or std args are None,</span>
+<span class="sd">            ImageNet statistics will be used</span>
+<span class="sd">        mean : None or tuple of float or np.ndarray or torch.FloatTensor</span>
+<span class="sd">            Mean to subtract for the converted tensor</span>
+<span class="sd">        std : None or tuple of float or np.ndarray or torch.FloatTensor</span>
+<span class="sd">            Mean to subtract for the converted tensor</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : DataContainer or dict or list</span>
+<span class="sd">            Result</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">BaseTransform</span><span class="o">.</span><span class="n">wrap_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_state</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_transform</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sample_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="k">if</span> <span class="n">return_torch</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">to_torch</span><span class="p">(</span>
+                <span class="n">as_dict</span><span class="o">=</span><span class="n">as_dict</span><span class="p">,</span>
+                <span class="n">scale_keypoints</span><span class="o">=</span><span class="n">scale_keypoints</span><span class="p">,</span>
+                <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">,</span>
+                <span class="n">mean</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span>
+                <span class="n">std</span><span class="o">=</span><span class="n">std</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_img</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Abstract method, which determines the transform&#39;s behaviour when it is applied to images HxWxC.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        img : numpy.ndarray</span>
+<span class="sd">            Image to be augmented</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : numpy.ndarray</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Abstract method, which determines the transform&#39;s behaviour when it is applied to masks HxW.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mask : numpy.ndarray</span>
+<span class="sd">            Mask to be augmented</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : numpy.ndarray</span>
+<span class="sd">            Result</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Abstract method, which determines the transform&#39;s behaviour when it is applied to labels (e.g. label smoothing)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        labels : numpy.ndarray</span>
+<span class="sd">            Array of labels.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : numpy.ndarray</span>
+<span class="sd">            Result</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">:</span> <span class="n">Keypoints</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Abstract method, which determines the transform&#39;s behaviour when it is applied to keypoints.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pts : Keypoints</span>
+<span class="sd">            Keypoints object</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : Keypoints</span>
+<span class="sd">            Result</span>
+
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ImageTransform">
+<a class="viewcode-back" href="../../../core.html#solt.core.ImageTransform">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ImageTransform</span><span class="p">(</span><span class="n">BaseTransform</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class, allowing the application of a transform only to an image</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ImageTransform</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">data_indices</span><span class="o">=</span><span class="n">data_indices</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">mask</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">:</span> <span class="n">Keypoints</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pts</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">labels</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_img</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Abstract method, which determines the transform&#39;s behaviour when it is applied to images HxWxC.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        img : numpy.ndarray</span>
+<span class="sd">            Image to be augmented</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : numpy.ndarray</span>
+
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="PaddingPropertyHolder">
+<a class="viewcode-back" href="../../../core.html#solt.core.PaddingPropertyHolder">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PaddingPropertyHolder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    PaddingPropertyHolder</span>
+
+<span class="sd">    Adds padding property to a class and validates it using the allowed paddings from constants.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    padding : None or str or tuple</span>
+<span class="sd">        Padding mode. Inheritance can be specified as the second argument of the `padding` tuple.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PaddingPropertyHolder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="n">validate_parameter</span><span class="p">(</span><span class="n">padding</span><span class="p">,</span> <span class="n">ALLOWED_PADDINGS</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InterpolationPropertyHolder">
+<a class="viewcode-back" href="../../../core.html#solt.core.InterpolationPropertyHolder">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InterpolationPropertyHolder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    InterpolationPropertyHolder</span>
+
+<span class="sd">    Adds interpolation property to a class and validates it using the allowed interpolations from constants.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    interpolation : None or str or tuple</span>
+<span class="sd">        Interpolation mode. Inheritance can be specified as the second argument of the `interpolation` tuple.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">InterpolationPropertyHolder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="n">validate_parameter</span><span class="p">(</span><span class="n">interpolation</span><span class="p">,</span> <span class="n">ALLOWED_INTERPOLATIONS</span><span class="p">,</span> <span class="s2">&quot;bilinear&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MatrixTransform">
+<a class="viewcode-back" href="../../../core.html#solt.core.MatrixTransform">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MatrixTransform</span><span class="p">(</span><span class="n">BaseTransform</span><span class="p">,</span> <span class="n">InterpolationPropertyHolder</span><span class="p">,</span> <span class="n">PaddingPropertyHolder</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Matrix Transform abstract class. (Affine and Homography).</span>
+<span class="sd">    Does all the transforms around the image /  center.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    interpolation : str</span>
+<span class="sd">        Interpolation mode.</span>
+<span class="sd">    padding : str or None</span>
+<span class="sd">        Padding Mode.</span>
+<span class="sd">    p : float</span>
+<span class="sd">        Probability of transform&#39;s execution.</span>
+<span class="sd">    ignore_state : bool</span>
+<span class="sd">        Whether to ignore the pre-calculated transformation or not. If False,</span>
+<span class="sd">        then it will lead to an incorrect behavior when the objects are of different sizes.</span>
+<span class="sd">        Should be used only when it is assumed that the image, mask and keypoints are of</span>
+<span class="sd">        the same size.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;bilinear&quot;</span><span class="p">,</span>
+        <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">,</span>
+        <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">ignore_state</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">affine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">ignore_fast_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">BaseTransform</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">data_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">InterpolationPropertyHolder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">interpolation</span><span class="p">)</span>
+        <span class="n">PaddingPropertyHolder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ignore_fast_mode</span> <span class="o">=</span> <span class="n">ignore_fast_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fast_mode</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">affine</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ignore_state</span> <span class="o">=</span> <span class="n">ignore_state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_state</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">BaseTransform</span><span class="o">.</span><span class="n">reset_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;transform_matrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MatrixTransform.fuse_with">
+<a class="viewcode-back" href="../../../core.html#solt.core.MatrixTransform.fuse_with">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fuse_with</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trf</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes a transform an performs a matrix fusion. This is useful to optimize the computations</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        trf : MatrixTransform</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">trf</span><span class="o">.</span><span class="n">padding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="n">trf</span><span class="o">.</span><span class="n">padding</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="n">trf</span><span class="o">.</span><span class="n">interpolation</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;transform_matrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">trf</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;transform_matrix&quot;</span><span class="p">]</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;transform_matrix&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="MatrixTransform.sample_transform">
+<a class="viewcode-back" href="../../../core.html#solt.core.MatrixTransform.sample_transform">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Samples the transform and corrects for frame change.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatrixTransform</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">sample_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_transform_matrix</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># Only this method needs to be implemented!</span>
+
+        <span class="c1"># If we are in fast mode, we do not have to recompute the the new coordinate frame!</span>
+        <span class="k">if</span> <span class="s2">&quot;P&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">data_format</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_fast_mode</span><span class="p">:</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span>
+            <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
+            <span class="n">origin</span> <span class="o">=</span> <span class="p">[(</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span>
+            <span class="c1"># First, let&#39;s make sure that our transformation matrix is applied at the origin</span>
+            <span class="n">transform_matrix_corr</span> <span class="o">=</span> <span class="n">MatrixTransform</span><span class="o">.</span><span class="n">move_transform_to_origin</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;transform_matrix&quot;</span><span class="p">],</span> <span class="n">origin</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;h_new&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;w_new&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;transform_matrix_corrected&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">transform_matrix_corr</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If we have the keypoints or the transform is a homographic one, we can&#39;t use the fast mode at all.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">correct_transform</span><span class="p">()</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">move_transform_to_origin</span><span class="p">(</span><span class="n">transform_matrix</span><span class="p">,</span> <span class="n">origin</span><span class="p">):</span>
+        <span class="c1"># First we correct the transformation so that it is performed around the origin</span>
+        <span class="n">transform_matrix</span> <span class="o">=</span> <span class="n">transform_matrix</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">t_origin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="n">t_origin_back</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">transform_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">t_origin_back</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">transform_matrix</span><span class="p">,</span> <span class="n">t_origin</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">transform_matrix</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">recompute_coordinate_frame</span><span class="p">(</span><span class="n">transform_matrix</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+        <span class="n">coord_frame</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="n">width</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+        <span class="n">new_frame</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">transform_matrix</span><span class="p">,</span> <span class="n">coord_frame</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/=</span> <span class="n">new_frame</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/=</span> <span class="n">new_frame</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">new_frame</span> <span class="o">=</span> <span class="n">new_frame</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Computing the new coordinates</span>
+
+        <span class="c1"># If during the transform, we obtained negative coordinates, we have to move to the origin</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+
+        <span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-=</span> <span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">w_new</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+        <span class="n">h_new</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">new_frame</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+
+        <span class="k">return</span> <span class="n">h_new</span><span class="p">,</span> <span class="n">w_new</span>
+
+<div class="viewcode-block" id="MatrixTransform.correct_for_frame_change">
+<a class="viewcode-back" href="../../../core.html#solt.core.MatrixTransform.correct_for_frame_change">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">correct_for_frame_change</span><span class="p">(</span><span class="n">transform_matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method takes a matrix transform, and modifies its origin.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        transform_matrix : numpy.ndarray</span>
+<span class="sd">            Transform (3x3) matrix</span>
+<span class="sd">        width : int</span>
+<span class="sd">            Width of the coordinate frame</span>
+<span class="sd">        height : int</span>
+<span class="sd">            Height of the coordinate frame</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : numpy.ndarray</span>
+<span class="sd">            Modified Transform matrix</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">origin</span> <span class="o">=</span> <span class="p">[(</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="c1"># First, let&#39;s make sure that our transformation matrix is applied at the origin</span>
+        <span class="n">transform_matrix</span> <span class="o">=</span> <span class="n">MatrixTransform</span><span class="o">.</span><span class="n">move_transform_to_origin</span><span class="p">(</span><span class="n">transform_matrix</span><span class="p">,</span> <span class="n">origin</span><span class="p">)</span>
+        <span class="c1"># Now, if we think of scaling, rotation and translation, the image size gets increased</span>
+        <span class="c1"># when we apply any geometric transform. Default behaviour in OpenCV is designed to crop the</span>
+        <span class="c1"># image edges, however it is not desired when we want to deal with Keypoints (don&#39;t want them</span>
+        <span class="c1"># to exceed teh image size).</span>
+
+        <span class="c1"># If we imagine that the image edges are a rectangle, we can rotate it around the origin</span>
+        <span class="c1"># to obtain the new coordinate frame</span>
+        <span class="n">h_new</span><span class="p">,</span> <span class="n">w_new</span> <span class="o">=</span> <span class="n">MatrixTransform</span><span class="o">.</span><span class="n">recompute_coordinate_frame</span><span class="p">(</span><span class="n">transform_matrix</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+        <span class="n">transform_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">w_new</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">transform_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">h_new</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">transform_matrix</span><span class="p">,</span> <span class="n">w_new</span><span class="p">,</span> <span class="n">h_new</span></div>
+
+
+<div class="viewcode-block" id="MatrixTransform.sample_transform_matrix">
+<a class="viewcode-back" href="../../../core.html#solt.core.MatrixTransform.sample_transform_matrix">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample_transform_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method that is called to sample the transform matrix</span>
+
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">correct_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span>
+        <span class="n">tm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;transform_matrix&quot;</span><span class="p">]</span>
+        <span class="n">tm_corr</span><span class="p">,</span> <span class="n">w_new</span><span class="p">,</span> <span class="n">h_new</span> <span class="o">=</span> <span class="n">MatrixTransform</span><span class="o">.</span><span class="n">correct_for_frame_change</span><span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;h_new&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;w_new&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">h_new</span><span class="p">,</span> <span class="n">w_new</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;transform_matrix_corrected&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tm_corr</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="n">interp</span> <span class="o">=</span> <span class="n">ALLOWED_INTERPOLATIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;interpolation&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;strict&quot;</span><span class="p">:</span>
+            <span class="n">interp</span> <span class="o">=</span> <span class="n">ALLOWED_INTERPOLATIONS</span><span class="p">[</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;interpolation&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+
+        <span class="n">padding</span> <span class="o">=</span> <span class="n">ALLOWED_PADDINGS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;padding&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;strict&quot;</span><span class="p">:</span>
+            <span class="n">padding</span> <span class="o">=</span> <span class="n">ALLOWED_PADDINGS</span><span class="p">[</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;padding&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+
+        <span class="k">return</span> <span class="n">interp</span><span class="p">,</span> <span class="n">padding</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_img_or_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Applies a transform to an image or mask without controlling the shapes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        img : numpy.ndarray</span>
+<span class="sd">            Image or mask</span>
+<span class="sd">        settings : dict</span>
+<span class="sd">            Item-wise settings</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : numpy.ndarray</span>
+<span class="sd">            Warped image</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">affine</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_img_or_mask_affine</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_img_or_mask_perspective</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_img_or_mask_perspective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">h_new</span><span class="p">,</span> <span class="n">w_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;h_new&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;w_new&quot;</span><span class="p">]</span>
+        <span class="n">interp</span><span class="p">,</span> <span class="n">padding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_settings</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+        <span class="n">transf_m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;transform_matrix_corrected&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpPerspective</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">transf_m</span><span class="p">,</span> <span class="p">(</span><span class="n">w_new</span><span class="p">,</span> <span class="n">h_new</span><span class="p">),</span> <span class="n">flags</span><span class="o">=</span><span class="n">interp</span><span class="p">,</span> <span class="n">borderMode</span><span class="o">=</span><span class="n">padding</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_img_or_mask_affine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">h_new</span><span class="p">,</span> <span class="n">w_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;h_new&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;w_new&quot;</span><span class="p">]</span>
+        <span class="n">interp</span><span class="p">,</span> <span class="n">padding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_settings</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+        <span class="n">transf_m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;transform_matrix_corrected&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpAffine</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">transf_m</span><span class="p">[:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:],</span> <span class="p">(</span><span class="n">w_new</span><span class="p">,</span> <span class="n">h_new</span><span class="p">),</span> <span class="n">flags</span><span class="o">=</span><span class="n">interp</span><span class="p">,</span> <span class="n">borderMode</span><span class="o">=</span><span class="n">padding</span><span class="p">)</span>
+
+    <span class="nd">@img_shape_checker</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_img</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Applies a matrix transform to an image.</span>
+<span class="sd">        If padding is None, the default behavior (zero padding) is expected.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        img : numpy.ndarray</span>
+<span class="sd">            Input Image</span>
+<span class="sd">        settings : dict</span>
+<span class="sd">            Item-wise settings</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : numpy.ndarray</span>
+<span class="sd">            Output Image</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_img_or_mask</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Abstract method, which defines the transform&#39;s behaviour when it is applied to masks HxW.</span>
+
+<span class="sd">        If padding is None, the default behavior (zero padding) is expected.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mask : numpy.ndarray</span>
+<span class="sd">            Mask to be augmented</span>
+<span class="sd">        settings : dict</span>
+<span class="sd">            Item-wise settings</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : numpy.ndarray</span>
+<span class="sd">            Result</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_img_or_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transform&#39;s application to labels. Simply returns them back without modifications.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        labels : numpy.ndarray</span>
+<span class="sd">            Array of labels.</span>
+<span class="sd">        settings : dict</span>
+<span class="sd">            Item-wise settings</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : numpy.ndarray</span>
+<span class="sd">            Result</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">labels</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="p">:</span> <span class="n">Keypoints</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Abstract method, which defines the transform&#39;s behaviour when it is applied to keypoints.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pts : Keypoints</span>
+<span class="sd">            Keypoints object</span>
+<span class="sd">        settings : dict</span>
+<span class="sd">            Item-wise settings</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : Keypoints</span>
+<span class="sd">            Result</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;r&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot apply transform to keypoints with reflective padding!&quot;</span><span class="p">)</span>
+
+        <span class="n">pts_data</span> <span class="o">=</span> <span class="n">pts</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">w_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;w_new&quot;</span><span class="p">]</span>
+        <span class="n">h_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;h_new&quot;</span><span class="p">]</span>
+        <span class="n">tm_corr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;transform_matrix_corrected&quot;</span><span class="p">]</span>
+
+        <span class="n">pts_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">pts_data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">pts_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))))</span>
+        <span class="n">pts_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tm_corr</span><span class="p">,</span> <span class="n">pts_data</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="n">pts_data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/=</span> <span class="n">pts_data</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">pts_data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/=</span> <span class="n">pts_data</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">Keypoints</span><span class="p">(</span><span class="n">pts_data</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">h_new</span><span class="p">,</span> <span class="n">w_new</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

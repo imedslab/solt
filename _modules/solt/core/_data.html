@@ -1,0 +1,556 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>solt.core._data &mdash; solt v0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=0b1ce4df" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=683873e3"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            solt
+              <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Welcome to solt’s documentation!</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">solt</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Basics_of_solt.html">Basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Helen_faces.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> to augment the keypoints (landmarks)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../DSBowl18_segmentation.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> for instance and semantic segmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Medical_Data_Augmentation_CXR14.html">Augmenting Medical Images: Chest X-ray 14 dataset</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">solt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">solt.core._data</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for solt.core._data</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">solt.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">ALLOWED_INTERPOLATIONS</span><span class="p">,</span> <span class="n">ALLOWED_PADDINGS</span><span class="p">,</span> <span class="n">ALLOWED_TYPES</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">solt.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_parameter</span>
+
+
+<div class="viewcode-block" id="DataContainer">
+<a class="viewcode-back" href="../../../core.html#solt.core.DataContainer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DataContainer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data container to encapsulate different types of data, such as images, bounding boxes, etc.</span>
+
+<span class="sd">    The container itself is iterable according to the format.</span>
+<span class="sd">    Data container assumes the same coordinate system for all the items it is storing.</span>
+<span class="sd">    For instance, the behavior shown below is not supported:</span>
+
+<span class="sd">    .. highlight:: python</span>
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from solt.core import DataContainer</span>
+<span class="sd">        import numpy as np</span>
+
+<span class="sd">        img1 = np.ones((100, 100, 3), dtype=np.int32)</span>
+<span class="sd">        img2 = np.ones((110, 110, 3), dtype=np.int32)</span>
+<span class="sd">        trf_img = DataContainer.from_dict({&#39;images&#39;: (img1, img2)})</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : tuple</span>
+<span class="sd">        Data items stored in a tuple</span>
+<span class="sd">    fmt : str</span>
+<span class="sd">        Data format. Example: &#39;IMMM&#39; - image and three masks.</span>
+<span class="sd">    transform_settings : dict or None</span>
+<span class="sd">        Settings for each data item. At this stage, the settings include only padding and interpolation.</span>
+<span class="sd">        The key in this dict corresponds to the index of the element in the given data tuple.</span>
+<span class="sd">        The value is another dict, which has all the settings. Segmentation masks have nearest neighbor interpolation</span>
+<span class="sd">        by default, this can be changed manually if needed.</span>
+<span class="sd">        Example: ``transform_settings={0:{&#39;interpolation&#39;:&#39;bilinear&#39;}, 1: {&#39;interpolation&#39;:&#39;bicubic&#39;}}``</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">fmt</span><span class="p">,</span> <span class="n">transform_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">,)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fmt</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span>
+
+        <span class="k">if</span> <span class="n">transform_settings</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transform_settings</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">transform_settings</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Element-wise settings</span>
+        <span class="c1"># If no settings provided for certain items, they will be created</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">transform_settings</span><span class="p">:</span>
+                <span class="n">transform_settings</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">if</span> <span class="n">fmt</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;I&quot;</span> <span class="ow">or</span> <span class="n">fmt</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;M&quot;</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;nearest&quot;</span><span class="p">,</span> <span class="s2">&quot;strict&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">fmt</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;M&quot;</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="s2">&quot;interpolation&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">transform_settings</span><span class="p">[</span><span class="n">idx</span><span class="p">]:</span>
+                    <span class="n">transform_settings</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s2">&quot;interpolation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">validate_parameter</span><span class="p">(</span>
+                        <span class="n">val</span><span class="p">,</span> <span class="n">ALLOWED_INTERPOLATIONS</span><span class="p">,</span> <span class="s2">&quot;bilinear&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">True</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">transform_settings</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s2">&quot;interpolation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">validate_parameter</span><span class="p">(</span>
+                        <span class="p">(</span><span class="n">transform_settings</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s2">&quot;interpolation&quot;</span><span class="p">],</span> <span class="s2">&quot;strict&quot;</span><span class="p">),</span>
+                        <span class="n">ALLOWED_INTERPOLATIONS</span><span class="p">,</span>
+                        <span class="s2">&quot;bilinear&quot;</span><span class="p">,</span>
+                        <span class="nb">str</span><span class="p">,</span>
+                        <span class="kc">True</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                <span class="k">if</span> <span class="s2">&quot;padding&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">transform_settings</span><span class="p">[</span><span class="n">idx</span><span class="p">]:</span>
+                    <span class="n">transform_settings</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s2">&quot;padding&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">validate_parameter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ALLOWED_PADDINGS</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">transform_settings</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s2">&quot;padding&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">validate_parameter</span><span class="p">(</span>
+                        <span class="p">(</span><span class="n">transform_settings</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s2">&quot;padding&quot;</span><span class="p">],</span> <span class="s2">&quot;strict&quot;</span><span class="p">),</span>
+                        <span class="n">ALLOWED_PADDINGS</span><span class="p">,</span>
+                        <span class="s2">&quot;z&quot;</span><span class="p">,</span>
+                        <span class="nb">str</span><span class="p">,</span>
+                        <span class="kc">True</span><span class="p">,</span>
+                    <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;interpolation&quot;</span> <span class="ow">in</span> <span class="n">transform_settings</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;padding&quot;</span> <span class="ow">in</span> <span class="n">transform_settings</span><span class="p">[</span><span class="n">idx</span><span class="p">]:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">transform_settings</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">fmt</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ALLOWED_TYPES</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fmt</span> <span class="o">=</span> <span class="n">fmt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__transform_settings</span> <span class="o">=</span> <span class="n">transform_settings</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__imagenet_mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">((</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">))</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__imagenet_std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">((</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">))</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">prev_h</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">prev_w</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Let&#39;s make sure that all the objects have the same coordinate frame</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">for</span> <span class="n">obj</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">settings</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="s2">&quot;M&quot;</span> <span class="ow">or</span> <span class="n">t</span> <span class="o">==</span> <span class="s2">&quot;I&quot;</span><span class="p">:</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">t</span> <span class="o">==</span> <span class="s2">&quot;P&quot;</span><span class="p">:</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">height</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">width</span>
+            <span class="k">elif</span> <span class="n">t</span> <span class="o">==</span> <span class="s2">&quot;L&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">prev_h</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">prev_h</span> <span class="o">=</span> <span class="n">h</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">prev_h</span> <span class="o">!=</span> <span class="n">h</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Coordinate frames within DataContainer do not match (height)!&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">prev_w</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">prev_w</span> <span class="o">=</span> <span class="n">w</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">prev_w</span> <span class="o">!=</span> <span class="n">w</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Coordinate frames within DataContainer do not match (width)!&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">prev_h</span><span class="p">,</span> <span class="n">prev_w</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">data_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fmt</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transform_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__transform_settings</span>
+
+<div class="viewcode-block" id="DataContainer.from_dict">
+<a class="viewcode-back" href="../../../core.html#solt.core.DataContainer.from_dict">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a data container from a dictionary.</span>
+
+<span class="sd">        If data is a dict, then the ``solt.data.DataContainer`` will be created so that the</span>
+<span class="sd">        ``image`` data will be stored first. Subsequently, multiple images under the key ``images``</span>
+<span class="sd">        will be stored. The same applies to masks (first ``mask`` and then ``masks``),</span>
+<span class="sd">        labels (``label`` and ``labels``), and the keypoints (``keypoints`` and ``keypoints_array``).</span>
+<span class="sd">        You must use ``solt.data.KeyPoints`` object here. Labels will always be stored last.</span>
+
+<span class="sd">        For example, if the input ``dict`` looks like this: ``d = {&#39;label&#39;: l1, &#39;image&#39;: i1, &#39;mask&#39;: m1}`` or</span>
+<span class="sd">        ``d = {&#39;mask&#39;: m1, &#39;image&#39;: i1, &#39;label&#39;: l1}``, the ``DataContainer`` will convert this</span>
+<span class="sd">        into ``sld.DataContainer((i1, m1, l1), &#39;IML&#39;)``.</span>
+
+<span class="sd">        More complex case:</span>
+
+<span class="sd">        .. highlight:: python</span>
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            d = {&#39;image&#39;: i1, masks: (m1, m2, m3, m4), &#39;labels&#39;: (l1, l2, l3, l4, l5),</span>
+<span class="sd">            &#39;keypoints&#39;: solt.core.KeyPoints(k, h, w)}</span>
+<span class="sd">            dc_from_dict = solt.core.DataContainer.from_dict(d)</span>
+
+<span class="sd">        will be equivalent to</span>
+
+<span class="sd">        .. highlight:: python</span>
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            dc = solt.core.DataContainer((i1, m1, m2, m3, m4, solt.core.KeyPoints(k, h, w), l1, l2, l3, l4, l5),</span>
+<span class="sd">            &#39;IMMMMPLLLLLL&#39;).</span>
+
+
+<span class="sd">        Please note, that when you create DataContainer using such a simplified interface,</span>
+<span class="sd">        you cannot setup the transform parameters per item. Use a proper constructor instead.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : dict</span>
+<span class="sd">            Data stored in a dictionary</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : sld.DataContainer</span>
+<span class="sd">            Newly instantiated data container object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dc_content</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dc_format</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="s2">&quot;image&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">dc_content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">])</span>
+            <span class="n">dc_format</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;I&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;images&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">dc_content</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">])</span>
+            <span class="n">dc_format</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="s2">&quot;I&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">dc_content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">])</span>
+            <span class="n">dc_format</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;M&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;masks&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">dc_content</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;masks&quot;</span><span class="p">])</span>
+            <span class="n">dc_format</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="s2">&quot;M&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;masks&quot;</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="s2">&quot;keypoints&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">dc_content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;keypoints&quot;</span><span class="p">])</span>
+            <span class="n">dc_format</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;P&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;keypoints_array&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">dc_content</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;keypoints_array&quot;</span><span class="p">])</span>
+            <span class="n">dc_format</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="s2">&quot;P&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;keypoints_array&quot;</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="s2">&quot;label&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">dc_content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">])</span>
+            <span class="n">dc_format</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;L&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;labels&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">dc_content</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+            <span class="n">dc_format</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="s2">&quot;L&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">DataContainer</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">dc_content</span><span class="p">),</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dc_format</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">wrap_mean_std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unknown type (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span><span class="si">}</span><span class="s2">) of mean vector! &quot;</span> <span class="sa">f</span><span class="s2">&quot;Expected tuple, list, np.ndarray or torch.FloatTensor&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">std</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unknown type (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span><span class="si">}</span><span class="s2">) of mean vector! &quot;</span> <span class="sa">f</span><span class="s2">&quot;Expected tuple, list, np.ndarray or torch.FloatTensor&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span> <span class="o">!=</span> <span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Size of the mean vector does not match the number of channels&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">std</span><span class="p">)</span> <span class="o">!=</span> <span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Size of the std vector does not match the number of channels&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">std</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">std</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">std</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">std</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span>
+
+<div class="viewcode-block" id="DataContainer.to_torch">
+<a class="viewcode-back" href="../../../core.html#solt.core.DataContainer.to_torch">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_torch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scale_keypoints</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method converts the DataContainer Content into a dict or a list PyTorch objects</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        as_dict : bool</span>
+<span class="sd">            Whether to return the result as a dictionary. If a single item is present, then the singular naming</span>
+<span class="sd">            will be used. If plural, then the plural will be used. The items will be stored and</span>
+<span class="sd">            sorted a similar manner to the method ``from_dict``: images, masks, keypoints_array, and labels.</span>
+<span class="sd">            The same applies to a singular case/</span>
+<span class="sd">        scale_keypoints : bool</span>
+<span class="sd">            Whether to scale keypoints to 0-1 range. ``True`` by default.</span>
+<span class="sd">        normalize : bool</span>
+<span class="sd">            Whether to subtract mean</span>
+<span class="sd">        mean : torch.Tensor</span>
+<span class="sd">            Mean to subtract. If None, then the ImageNet mean will be subtracted.</span>
+<span class="sd">        std : torch.Tensor</span>
+<span class="sd">            Std to subtract. If None, then the ImageNet std will be subtracted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;images&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(),</span>
+            <span class="s2">&quot;masks&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(),</span>
+            <span class="s2">&quot;keypoints_array&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(),</span>
+            <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(),</span>
+        <span class="p">}</span>
+        <span class="n">not_as_dict</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fmt</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="s2">&quot;I&quot;</span><span class="p">:</span>
+                <span class="n">scale</span> <span class="o">=</span> <span class="mf">255.0</span>
+                <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">:</span>
+                    <span class="n">scale</span> <span class="o">=</span> <span class="mf">65535.0</span>
+                    <span class="n">el</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+                <span class="n">img</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">mean</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">std</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__imagenet_mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__imagenet_std</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_mean_std</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
+
+                    <span class="n">img</span><span class="o">.</span><span class="n">sub_</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
+                    <span class="n">img</span><span class="o">.</span><span class="n">div_</span><span class="p">(</span><span class="n">std</span><span class="p">)</span>
+                <span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+                <span class="n">not_as_dict</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">f</span> <span class="o">==</span> <span class="s2">&quot;M&quot;</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">el</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+                <span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;masks&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+                <span class="n">not_as_dict</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">f</span> <span class="o">==</span> <span class="s2">&quot;P&quot;</span><span class="p">:</span>
+                <span class="n">landmarks</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">scale_keypoints</span><span class="p">:</span>
+                    <span class="n">landmarks</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/=</span> <span class="n">el</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span>
+                    <span class="n">landmarks</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/=</span> <span class="n">el</span><span class="o">.</span><span class="n">height</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;keypoints_array&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">landmarks</span><span class="p">)</span>
+                <span class="n">not_as_dict</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">landmarks</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">f</span> <span class="o">==</span> <span class="s2">&quot;L&quot;</span><span class="p">:</span>
+                <span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+                <span class="n">not_as_dict</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">as_dict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">not_as_dict</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">not_as_dict</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">not_as_dict</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">remap_results_dict</span><span class="p">(</span><span class="n">res_dict</span><span class="p">)</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remap_results_dict</span><span class="p">(</span><span class="n">res_dict</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;masks&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;masks&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;masks&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;masks&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;masks&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;keypoints_array&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;keypoints&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;keypoints_array&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;keypoints_array&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;keypoints_array&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;keypoints_array&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res_dict</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a data item and its type using index.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        idx : int</span>
+<span class="sd">            Index of an element to return according to the specified format</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : tuple</span>
+<span class="sd">            Data item (e.g. numpy.ndarray), its type, e.g. &#39;I&#39; - image and the transform settings,</span>
+<span class="sd">            e.g. interpolation</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fmt</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">__transform_settings</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="n">fmt_equal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_format</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">data_format</span>
+        <span class="n">data_equal</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">d1</span><span class="p">,</span> <span class="n">d2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">data_equal</span> <span class="o">=</span> <span class="n">data_equal</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d1</span><span class="p">,</span> <span class="n">Keypoints</span><span class="p">):</span>
+                <span class="n">data_equal</span> <span class="o">=</span> <span class="n">data_equal</span> <span class="ow">and</span> <span class="p">(</span><span class="n">d1</span> <span class="o">==</span> <span class="n">d2</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data_equal</span> <span class="o">=</span> <span class="n">data_equal</span> <span class="ow">and</span> <span class="n">d1</span> <span class="o">==</span> <span class="n">d2</span>
+
+        <span class="k">return</span> <span class="n">fmt_equal</span> <span class="ow">and</span> <span class="n">data_equal</span></div>
+
+
+
+<div class="viewcode-block" id="Keypoints">
+<a class="viewcode-back" href="../../../core.html#solt.core.Keypoints">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Keypoints</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Keypoints class</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pts : numpy.ndarray</span>
+<span class="sd">        Key points as an numpy.ndarray in (x, y) format.</span>
+<span class="sd">    height : int</span>
+<span class="sd">        Height of the coordinate frame.</span>
+<span class="sd">    width : int</span>
+<span class="sd">        Width of the coordinate frame.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span> <span class="o">=</span> <span class="n">pts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__height</span> <span class="o">=</span> <span class="n">height</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__width</span> <span class="o">=</span> <span class="n">width</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">height</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__height</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__width</span>
+
+    <span class="nd">@height</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">height</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__height</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@width</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">width</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__width</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="n">dim_equal</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">height</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">width</span><span class="p">)</span>
+        <span class="n">data_equal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dim_equal</span> <span class="ow">and</span> <span class="n">data_equal</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

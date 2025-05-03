@@ -1,0 +1,514 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>solt.core._core &mdash; solt v0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=0b1ce4df" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=683873e3"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            solt
+              <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Welcome to solt’s documentation!</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">solt</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Basics_of_solt.html">Basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Helen_faces.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> to augment the keypoints (landmarks)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../DSBowl18_segmentation.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> for instance and semantic segmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Medical_Data_Augmentation_CXR14.html">Augmenting Medical Images: Chest X-ray 14 dataset</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">solt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">solt.core._core</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for solt.core._core</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">._base_transforms</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BaseTransform</span><span class="p">,</span>
+    <span class="n">MatrixTransform</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">solt.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Serializable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataContainer</span>
+
+
+<div class="viewcode-block" id="Stream">
+<a class="viewcode-back" href="../../../core.html#solt.core.Stream">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Stream</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stream class. Executes the list of transformations.</span>
+
+<span class="sd">    The stream can be called directly on a dict of items,</span>
+<span class="sd">    which get converted into a DataContainer. Note that the DataContainer assumes</span>
+<span class="sd">    **the same** coordinate system for all the items it is storing.</span>
+<span class="sd">    For instance, the behavior shown below is not supported for any stream:</span>
+
+<span class="sd">    .. highlight:: python</span>
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        import solt.transforms as slt</span>
+<span class="sd">        import numpy as np</span>
+
+<span class="sd">        trf = solt.Stream([slt.Resize(resize_to=(50, 50)),</span>
+<span class="sd">                               slt.Flip()])</span>
+<span class="sd">        img1 = np.ones((100, 100, 3), dtype=np.int32)</span>
+<span class="sd">        img2 = np.ones((110, 110, 3), dtype=np.int32)</span>
+<span class="sd">        trf({&#39;images&#39;: (img1, img2)})</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    transforms : list or None</span>
+<span class="sd">        List of transforms to execute</span>
+<span class="sd">    interpolation : str or None</span>
+<span class="sd">        Stream-wide settings for interpolation. If for some particular transform your would like</span>
+<span class="sd">        to still use its own mode, simply pass ``(&lt;interpolation_value&gt;, &#39;strict&#39;)``</span>
+<span class="sd">        in the constructor of that transform.</span>
+<span class="sd">    padding : str or None</span>
+<span class="sd">        Stream-wide settings for padding. If for some particular transform your would like</span>
+<span class="sd">        to still use its own mode, simply pass ``(&lt;padding_value&gt;, &#39;strict&#39;)``</span>
+<span class="sd">        in the constructor of that transform.</span>
+<span class="sd">    optimize_stack : bool</span>
+<span class="sd">        Whether to run transforms stack optimization. It can only be useful if many matrix transformations are</span>
+<span class="sd">        in a row.</span>
+<span class="sd">    ignore_fast_mode : bool</span>
+<span class="sd">        Whether to ignore the fast mode. This option enables full geometric transforms.</span>
+<span class="sd">    shuffle : bool</span>
+<span class="sd">        Whether to shuffle the transforms before applying them.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">serializable_name</span> <span class="o">=</span> <span class="s2">&quot;stream&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    How the class should be stored in the registry&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">transforms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">interpolation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">padding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">optimize_stack</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">ignore_fast_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Stream</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">transforms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">transforms</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">trf</span> <span class="ow">in</span> <span class="n">transforms</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="n">BaseTransform</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unknown transform type found in the Stream!&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="o">=</span> <span class="n">shuffle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimize_stack</span> <span class="o">=</span> <span class="n">optimize_stack</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="n">interpolation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="n">padding</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ignore_fast_mode</span> <span class="o">=</span> <span class="n">ignore_fast_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span> <span class="o">=</span> <span class="n">transforms</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_ignore_fast_mode</span><span class="p">(</span><span class="n">ignore_fast_mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_padding</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_interpolation</span><span class="p">(</span><span class="n">interpolation</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_ignore_fast_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Ignore fast mode must be bool!&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">trf</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="n">MatrixTransform</span><span class="p">):</span>
+                <span class="n">trf</span><span class="o">.</span><span class="n">ignore_fast_mode</span> <span class="o">=</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="Stream.reset_interpolation">
+<a class="viewcode-back" href="../../../core.html#solt.core.Stream.reset_interpolation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_interpolation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resets the interpolation for the whole pipeline of transforms.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        value : str or None</span>
+<span class="sd">            A value from ``solt.constants.ALLOWED_INTERPOLATIONS``</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        solt.constants.ALLOWED_INTERPOLATIONS</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">for</span> <span class="n">trf</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="s2">&quot;interpolation&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="n">BaseTransform</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">trf</span><span class="o">.</span><span class="n">interpolation</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;strict&quot;</span><span class="p">:</span>
+                        <span class="n">trf</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">,</span> <span class="n">trf</span><span class="o">.</span><span class="n">interpolation</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
+                    <span class="n">trf</span><span class="o">.</span><span class="n">reset_interpolation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Stream.reset_padding">
+<a class="viewcode-back" href="../../../core.html#solt.core.Stream.reset_padding">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_padding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Allows to reset the padding for the whole Stream</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        value : str</span>
+<span class="sd">            Should be a string from ``solt.constants.ALLOWED_PADDINGS``</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        solt.constants.ALLOWED_PADDINGS</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">for</span> <span class="n">trf</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="n">BaseTransform</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">trf</span><span class="o">.</span><span class="n">padding</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;strict&quot;</span><span class="p">:</span>
+                        <span class="n">trf</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span> <span class="n">trf</span><span class="o">.</span><span class="n">padding</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
+                    <span class="n">trf</span><span class="o">.</span><span class="n">reset_padding</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">return_torch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">as_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">scale_keypoints</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the list of the pre-defined transformations for a given data container.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : DataContainer or dict</span>
+<span class="sd">            Data to be augmented. See ``solt.core.DataContainer.from_dict`` for details.</span>
+<span class="sd">        return_torch : bool</span>
+<span class="sd">            Whether to convert the result into a torch tensors. By default, it is false for transforms and</span>
+<span class="sd">            true for the streams.</span>
+<span class="sd">        as_dict : bool</span>
+<span class="sd">            Whether to pool the results into a dict. See ``solt.core.DataContainer.to_dict`` for details</span>
+<span class="sd">        scale_keypoints : bool</span>
+<span class="sd">            Whether to scale the keypoints into 0-1 range</span>
+<span class="sd">        normalize : bool</span>
+<span class="sd">            Whether to normalize the resulting tensor. If mean or std args are None,</span>
+<span class="sd">            ImageNet statistics will be used</span>
+<span class="sd">        mean : None or tuple of float or np.ndarray or torch.FloatTensor</span>
+<span class="sd">            Mean to subtract for the converted tensor</span>
+<span class="sd">        std : None or tuple of float or np.ndarray or torch.FloatTensor</span>
+<span class="sd">            Mean to subtract for the converted tensor</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : DataContainer or dict or list</span>
+<span class="sd">            Result</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">res</span><span class="p">:</span> <span class="n">DataContainer</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">exec_stream</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimize_stack</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_torch</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">to_torch</span><span class="p">(</span>
+                <span class="n">as_dict</span><span class="o">=</span><span class="n">as_dict</span><span class="p">,</span>
+                <span class="n">scale_keypoints</span><span class="o">=</span><span class="n">scale_keypoints</span><span class="p">,</span>
+                <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">,</span>
+                <span class="n">mean</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span>
+                <span class="n">std</span><span class="o">=</span><span class="n">std</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+<div class="viewcode-block" id="Stream.optimize_transforms_stack">
+<a class="viewcode-back" href="../../../core.html#solt.core.Stream.optimize_transforms_stack">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">optimize_transforms_stack</span><span class="p">(</span><span class="n">transforms</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Static method which fuses the transformations</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        transforms : list</span>
+<span class="sd">            A list of transforms</span>
+<span class="sd">        data : DataContainer</span>
+<span class="sd">            Data container to be used to sample the transforms</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : list</span>
+<span class="sd">            An optimized list of transforms</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># First we should create a stack</span>
+        <span class="n">transforms_stack</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">trf</span> <span class="ow">in</span> <span class="n">transforms</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="n">MatrixTransform</span><span class="p">):</span>
+                <span class="n">trf</span><span class="o">.</span><span class="n">ignore_fast_mode</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">trf</span><span class="o">.</span><span class="n">reset_state</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">trf</span><span class="o">.</span><span class="n">use_transform</span><span class="p">():</span>
+                    <span class="n">trf</span><span class="o">.</span><span class="n">sample_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">transforms_stack</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">transforms_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trf</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">transforms_stack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">fuse_with</span><span class="p">(</span><span class="n">trf</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Nested streams or other transforms but the `Matrix` ones are not supported!&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">transforms_stack</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">transforms_stack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">correct_transform</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">transforms_stack</span></div>
+
+
+<div class="viewcode-block" id="Stream.exec_stream">
+<a class="viewcode-back" href="../../../core.html#solt.core.Stream.exec_stream">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">exec_stream</span><span class="p">(</span><span class="n">transforms</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">optimize_stack</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Static method, executes the list of transformations for a given data point.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        transforms : list</span>
+<span class="sd">            List of transformations to execute</span>
+<span class="sd">        data : DataContainer or dict</span>
+<span class="sd">            Data to be augmented. See ``solt.data.DataContainer.from_dict``</span>
+<span class="sd">            to check how a conversion from dict is done.</span>
+<span class="sd">        optimize_stack : bool</span>
+<span class="sd">            Whether to execute augmentations stack optimization.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : DataContainer</span>
+<span class="sd">            Result</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">BaseTransform</span><span class="o">.</span><span class="n">wrap_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">shuffle</span><span class="p">:</span>
+            <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">transforms</span><span class="p">)</span>
+        <span class="c1"># Performing the transforms using the optimized stack</span>
+        <span class="k">if</span> <span class="n">optimize_stack</span><span class="p">:</span>
+            <span class="n">transforms</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">optimize_transforms_stack</span><span class="p">(</span><span class="n">transforms</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">trf</span> <span class="ow">in</span> <span class="n">transforms</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="n">BaseTransform</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">optimize_stack</span><span class="p">:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">trf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">return_torch</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">trf</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trf</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">trf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">return_torch</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unknown transform type found in the Stream!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SelectiveStream">
+<a class="viewcode-back" href="../../../core.html#solt.core.SelectiveStream">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SelectiveStream</span><span class="p">(</span><span class="n">Stream</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stream that uniformly selects n out of k given transforms.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">serializable_name</span> <span class="o">=</span> <span class="s2">&quot;selective_stream&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;How the class should be stored in the registry&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">transforms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">probs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">optimize_stack</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">ignore_fast_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        transforms : list</span>
+<span class="sd">            List of k transforms to sample from</span>
+<span class="sd">        n : int or tuple of int</span>
+<span class="sd">            How many transform to sample. If tuple, the number of transforms</span>
+<span class="sd">            to sample will be chosen randomly from the tuple.</span>
+<span class="sd">        probs : list of float</span>
+<span class="sd">            Probabilities of the transforms to sample. If None, the transforms will be sampled uniformly.</span>
+<span class="sd">        optimize_stack : bool</span>
+<span class="sd">            Whether to execute stack optimization for augmentations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SelectiveStream</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">transforms</span><span class="o">=</span><span class="n">transforms</span><span class="p">,</span>
+            <span class="n">optimize_stack</span><span class="o">=</span><span class="n">optimize_stack</span><span class="p">,</span>
+            <span class="n">ignore_fast_mode</span><span class="o">=</span><span class="n">ignore_fast_mode</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">transforms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">transforms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">transforms</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Number of transforms to sample must be between 0 and the number of transforms&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">probs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">transforms</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Number of probabilities must be equal to the number of transforms&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probs</span> <span class="o">=</span> <span class="n">probs</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">return_torch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">as_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">scale_keypoints</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Applies randomly selected n transforms to the given data item</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : DataContainer</span>
+<span class="sd">            Data to be augmented</span>
+<span class="sd">        return_torch : bool</span>
+<span class="sd">            Whether to convert the result into a torch tensors</span>
+<span class="sd">        as_dict : bool</span>
+<span class="sd">            Whether to pool the results into a dict. See ``solt.core.DataContainer.to_dict``</span>
+<span class="sd">            for details.</span>
+<span class="sd">        scale_keypoints : bool</span>
+<span class="sd">            Whether to scale the keypoints into 0-1 range</span>
+<span class="sd">        normalize : bool</span>
+<span class="sd">            Whether to normalize the resulting tensor. If mean or std args are None,</span>
+<span class="sd">            ImageNet statistics will be used</span>
+<span class="sd">        mean : None or tuple of float or np.ndarray or torch.FloatTensor</span>
+<span class="sd">            Mean to subtract for the converted tensor</span>
+<span class="sd">        std : None or tuple of float or np.ndarray or torch.FloatTensor</span>
+<span class="sd">            Mean to subtract for the converted tensor</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        out : DataContainer</span>
+<span class="sd">            Result</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">BaseTransform</span><span class="o">.</span><span class="n">wrap_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">random_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">**</span><span class="mi">32</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="n">random_state</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span>
+
+            <span class="n">trfs</span> <span class="o">=</span> <span class="n">random_state</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">probs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimize_stack</span><span class="p">:</span>
+                <span class="n">trfs</span> <span class="o">=</span> <span class="p">[</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">trfs</span><span class="p">]</span>
+                <span class="n">trfs</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">optimize_transforms_stack</span><span class="p">(</span><span class="n">trfs</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">exec_stream</span><span class="p">(</span><span class="n">trfs</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimize_stack</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_torch</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">to_torch</span><span class="p">(</span>
+                <span class="n">as_dict</span><span class="o">=</span><span class="n">as_dict</span><span class="p">,</span>
+                <span class="n">scale_keypoints</span><span class="o">=</span><span class="n">scale_keypoints</span><span class="p">,</span>
+                <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">,</span>
+                <span class="n">mean</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span>
+                <span class="n">std</span><span class="o">=</span><span class="n">std</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

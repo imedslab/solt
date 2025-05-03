@@ -1,0 +1,652 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Augmenting Medical Images: Chest X-ray 14 dataset &mdash; solt v0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=0b1ce4df" />
+      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=683873e3"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Using SOLT for instance and semantic segmentation" href="DSBowl18_segmentation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            solt
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to solt’s documentation!</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">solt</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Basics_of_solt.html">Basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="Helen_faces.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> to augment the keypoints (landmarks)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DSBowl18_segmentation.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> for instance and semantic segmentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Augmenting Medical Images: Chest X-ray 14 dataset</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Loading-the-metadata-and-looking-for-images,-which-have-several-bboxes">Loading the metadata and looking for images, which have several bboxes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Visualizing-the-image">Visualizing the image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Creating-a-data-container-with-the-image,-keypoints-and-the-labels">Creating a data container with the image, keypoints and the labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Augmentation-stream">Augmentation stream</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Augmenting-a-Chest-X-ray">Augmenting a Chest X-ray</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">solt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Augmenting Medical Images: Chest X-ray 14 dataset</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Medical_Data_Augmentation_CXR14.nblink.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Augmenting-Medical-Images:-Chest-X-ray-14-dataset">
+<h1>Augmenting Medical Images: Chest X-ray 14 dataset<a class="headerlink" href="#Augmenting-Medical-Images:-Chest-X-ray-14-dataset" title="Link to this heading"></a></h1>
+<p>In this notebook, we will show how to easily use SOLT for object detection tasks (actually finding detection) in medical imaging. First, we will use a low-level API to show how to create bounding boxes using the keypoints and the labels classes.</p>
+<p>For our experiments, we will leverage the Chest X-ray 14 Dataset.</p>
+<p>Please, download the archive <code class="docutils literal notranslate"><span class="pre">images/images_001.tar.gz</span></code> from the NIH website <a class="reference external" href="https://nihcc.app.box.com/v/ChestXray-NIHCC/">https://nihcc.app.box.com/v/ChestXray-NIHCC/</a> and unpack it into <code class="docutils literal notranslate"><span class="pre">Data/CXR/images</span></code>. Please, also download the BBox annotations <code class="docutils literal notranslate"><span class="pre">BBox_List_2017.csv</span></code> into <code class="docutils literal notranslate"><span class="pre">Data/CXR/BBox_List_2017.csv</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>%matplotlib inline
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+import numpy as np
+import pandas as pd
+import os
+import glob
+import cv2
+
+import solt
+import solt.transforms as slt
+
+np.random.seed(1234)
+</pre></div>
+</div>
+</div>
+<section id="Loading-the-metadata-and-looking-for-images,-which-have-several-bboxes">
+<h2>Loading the metadata and looking for images, which have several bboxes<a class="headerlink" href="#Loading-the-metadata-and-looking-for-images,-which-have-several-bboxes" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>metadata = pd.read_csv(&#39;Data/CXR/BBox_List_2017.csv&#39;)
+metadata = metadata[metadata.columns[:-3]]
+metadata[&#39;x&#39;] = metadata[&#39;Bbox [x&#39;].copy()
+metadata[&#39;h&#39;] = metadata[&#39;h]&#39;].copy()
+metadata[&#39;finding&#39;] = metadata[&#39;Finding Label&#39;].copy()
+
+metadata.drop([&#39;Bbox [x&#39;], axis=1, inplace=True)
+metadata.drop([&#39;h]&#39;], axis=1, inplace=True)
+metadata.drop([&#39;Finding Label&#39;], axis=1, inplace=True)
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>metadata.head()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Image Index</th>
+      <th>y</th>
+      <th>w</th>
+      <th>x</th>
+      <th>h</th>
+      <th>finding</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>00013118_008.png</td>
+      <td>547.019217</td>
+      <td>86.779661</td>
+      <td>225.084746</td>
+      <td>79.186441</td>
+      <td>Atelectasis</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>00014716_007.png</td>
+      <td>131.543498</td>
+      <td>185.491525</td>
+      <td>686.101695</td>
+      <td>313.491525</td>
+      <td>Atelectasis</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>00029817_009.png</td>
+      <td>317.053115</td>
+      <td>155.118644</td>
+      <td>221.830508</td>
+      <td>216.949153</td>
+      <td>Atelectasis</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>00014687_001.png</td>
+      <td>494.951420</td>
+      <td>141.016949</td>
+      <td>726.237288</td>
+      <td>55.322034</td>
+      <td>Atelectasis</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>00017877_001.png</td>
+      <td>569.780787</td>
+      <td>200.677966</td>
+      <td>660.067797</td>
+      <td>78.101695</td>
+      <td>Atelectasis</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>img_list = glob.glob(os.path.join(&#39;Data&#39;, &#39;CXR&#39;, &#39;images&#39;, &#39;*.png&#39;))
+imgs_set = set(map(lambda x: x.split(&#39;/&#39;)[-1], img_list))
+metadata[&#39;img_present&#39;] = metadata.apply(lambda x: x[0] in imgs_set, 1)
+metadata = metadata[metadata.img_present == True]
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>for img_name, df in metadata.groupby(&#39;Image Index&#39;):
+    if df.shape[0] &gt; 1:
+        break
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>df
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Image Index</th>
+      <th>y</th>
+      <th>w</th>
+      <th>x</th>
+      <th>h</th>
+      <th>finding</th>
+      <th>img_present</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>202</th>
+      <td>00000732_005.png</td>
+      <td>464.000000</td>
+      <td>412.203390</td>
+      <td>427.932203</td>
+      <td>344.949153</td>
+      <td>Cardiomegaly</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>918</th>
+      <td>00000732_005.png</td>
+      <td>110.686823</td>
+      <td>172.942222</td>
+      <td>613.831111</td>
+      <td>103.537778</td>
+      <td>Pneumothorax</td>
+      <td>True</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="Visualizing-the-image">
+<h2>Visualizing the image<a class="headerlink" href="#Visualizing-the-image" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>img = cv2.imread(os.path.join(&#39;Data&#39;, &#39;CXR&#39;, &#39;images&#39;, img_name))
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig = plt.figure(figsize=(10, 10))
+ax = fig.add_subplot(1,1,1)
+ax.imshow(img, cmap=plt.cm.Greys_r)
+
+text_bbox = dict(facecolor=&#39;red&#39;, alpha=0.7, lw=0)
+for _, entry in df.iterrows():
+    ax.add_patch(Rectangle((entry.x, entry.y), entry.w, entry.h, fill=False, color=&#39;r&#39;, lw=2))
+    ax.text(entry.x+6, entry.y-15, entry.finding,fontsize=12, bbox=text_bbox)
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Medical_Data_Augmentation_CXR14_10_0.png" src="_images/Medical_Data_Augmentation_CXR14_10_0.png" />
+</div>
+</div>
+</section>
+<section id="Creating-a-data-container-with-the-image,-keypoints-and-the-labels">
+<h2>Creating a data container with the image, keypoints and the labels<a class="headerlink" href="#Creating-a-data-container-with-the-image,-keypoints-and-the-labels" title="Link to this heading"></a></h2>
+<p>We will encode Cardiomegaly as 0 and Pneumothorax as 1. In our case it is the first and the second rows respectively:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>df
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Image Index</th>
+      <th>y</th>
+      <th>w</th>
+      <th>x</th>
+      <th>h</th>
+      <th>finding</th>
+      <th>img_present</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>202</th>
+      <td>00000732_005.png</td>
+      <td>464.000000</td>
+      <td>412.203390</td>
+      <td>427.932203</td>
+      <td>344.949153</td>
+      <td>Cardiomegaly</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>918</th>
+      <td>00000732_005.png</td>
+      <td>110.686823</td>
+      <td>172.942222</td>
+      <td>613.831111</td>
+      <td>103.537778</td>
+      <td>Pneumothorax</td>
+      <td>True</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>In SOLT, we decided to not implement separate class of augmentations for bounding boxes. Instead, we implemented all teh transformations for keypoints and thus we can just convert the bboxes into 4 keypoints:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pts = df[[&#39;x&#39;, &#39;y&#39;, &#39;w&#39;, &#39;h&#39;]].values
+p1 = pts[:, :2].copy() # left top
+
+p2 = pts[:, :2].copy()  # right top
+p2[:, 0] += pts[:, 2]
+
+p3 = pts[:, :2].copy()  # right bottom
+p3[:, 0] +=  pts[:, 2]
+p3[:, 1] +=  pts[:, 3]
+
+p4 = pts[:, :2].copy()  # left bottom
+p4[:, 1] +=  pts[:, 3]
+
+
+cardiomegaly_kpts = solt.Keypoints(np.vstack((p1[0], p2[0], p3[0], p4[0])), img.shape[0], img.shape[1])
+pneumothorax_kpts = solt.Keypoints(np.vstack((p1[1], p2[1], p3[1], p4[1])), img.shape[0], img.shape[1])
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>cardiomegaly_kpts.data
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+array([[427.93220339, 464.        ],
+       [840.13559322, 464.        ],
+       [840.13559322, 808.94915254],
+       [427.93220339, 808.94915254]])
+</pre></div></div>
+</div>
+<p>Alright, now we were able to store the bbox as keypoints, we can create a data container</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>dc = solt.DataContainer((img, cardiomegaly_kpts, 0, pneumothorax_kpts, 1), &#39;IPLPL&#39;)
+</pre></div>
+</div>
+</div>
+<p>As you can see from the above cell, the DataContainer does not care about the order of the objects in it, thus, we just used the format:</p>
+<ul class="simple">
+<li><p>Image</p></li>
+<li><p>Keypoints</p></li>
+<li><p>Label</p></li>
+<li><p>Keypoints</p></li>
+<li><p>Label</p></li>
+</ul>
+<p>Now, let’s implement a simple augmentation pipeline.</p>
+</section>
+<section id="Augmentation-stream">
+<h2>Augmentation stream<a class="headerlink" href="#Augmentation-stream" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>stream = solt.Stream([
+    slt.Projection(
+            solt.Stream([
+                slt.Scale(range_x=(0.8, 1.1), p=1),
+                slt.Rotate(angle_range=(-90, 90), p=1),
+                slt.Shear(range_x=(-0.2, 0.2), range_y=None, p=0.7),
+        ]),
+        v_range=(1e-6, 3e-4), p=1),
+    # Various cropping and padding tricks
+    slt.Pad(1000, &#39;z&#39;),
+    slt.Crop(1000, crop_mode=&#39;c&#39;),
+    slt.Crop(950, crop_mode=&#39;r&#39;),
+    slt.Pad(1000, &#39;z&#39;),
+    # Intensity augmentations
+    slt.GammaCorrection(p=1, gamma_range=(0.5, 3)),
+    solt.SelectiveStream([
+        solt.SelectiveStream([
+            slt.SaltAndPepper(p=1, gain_range=0.01),
+            slt.Blur(p=0.5, blur_type=&#39;m&#39;, k_size=(11,)),
+        ]),
+        slt.Noise(p=1, gain_range=0.5),
+    ]),
+])
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Augmenting-a-Chest-X-ray">
+<h2>Augmenting a Chest X-ray<a class="headerlink" href="#Augmenting-a-Chest-X-ray" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>for i in range(10):
+    res = stream(dc, return_torch=False)
+    img_res, kp_c, lbl_c, kp_p, lbl_p = res.data
+    fig = plt.figure(figsize=(10, 10))
+
+    ax = fig.add_subplot(1,1,1)
+    ax.imshow(img_res, cmap=plt.cm.Greys_r)
+
+    for pts, cls in zip([kp_c.data, kp_p.data], [&#39;Cardiomegaly&#39;, &#39;Pneumothorax&#39;]):
+        text_bbox = dict(facecolor=&#39;red&#39;, alpha=0.7, lw=0)
+        # Let&#39;s clip the points so that they will not
+        # violate the image borders
+        pts[:, 0] = np.clip(pts[:, 0], 0, img_res.shape[1]-1)
+        pts[:, 1] = np.clip(pts[:, 1], 0, img_res.shape[0]-1)
+        x, y = pts[:, 0].min(), pts[:, 1].min()
+        w, h = pts[:, 0].max()-x, pts[:, 1].max()-y
+        ax.add_patch(Rectangle((x, y), w, h, fill=False, color=&#39;r&#39;, lw=2))
+        ax.text(x+6, y-15, cls, fontsize=12, bbox=text_bbox)
+    plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Medical_Data_Augmentation_CXR14_22_0.png" src="_images/Medical_Data_Augmentation_CXR14_22_0.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Medical_Data_Augmentation_CXR14_22_1.png" src="_images/Medical_Data_Augmentation_CXR14_22_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Medical_Data_Augmentation_CXR14_22_2.png" src="_images/Medical_Data_Augmentation_CXR14_22_2.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Medical_Data_Augmentation_CXR14_22_3.png" src="_images/Medical_Data_Augmentation_CXR14_22_3.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Medical_Data_Augmentation_CXR14_22_4.png" src="_images/Medical_Data_Augmentation_CXR14_22_4.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Medical_Data_Augmentation_CXR14_22_5.png" src="_images/Medical_Data_Augmentation_CXR14_22_5.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Medical_Data_Augmentation_CXR14_22_6.png" src="_images/Medical_Data_Augmentation_CXR14_22_6.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Medical_Data_Augmentation_CXR14_22_7.png" src="_images/Medical_Data_Augmentation_CXR14_22_7.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Medical_Data_Augmentation_CXR14_22_8.png" src="_images/Medical_Data_Augmentation_CXR14_22_8.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Medical_Data_Augmentation_CXR14_22_9.png" src="_images/Medical_Data_Augmentation_CXR14_22_9.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="DSBowl18_segmentation.html" class="btn btn-neutral float-left" title="Using SOLT for instance and semantic segmentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

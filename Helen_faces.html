@@ -1,0 +1,613 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Using SOLT to augment the keypoints (landmarks) &mdash; solt v0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=0b1ce4df" />
+      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=683873e3"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Using SOLT for instance and semantic segmentation" href="DSBowl18_segmentation.html" />
+    <link rel="prev" title="Basics of SOLT" href="Basics_of_solt.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            solt
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to solt’s documentation!</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">solt</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Basics_of_solt.html">Basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code></a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> to augment the keypoints (landmarks)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Loading-and-visualizing-the-image">Loading and visualizing the image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Wrapping-the-data-into-SOLT-format">Wrapping the data into <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Defining-a-simple-stream-and-testing-it">Defining a simple stream and testing it</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="DSBowl18_segmentation.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> for instance and semantic segmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Medical_Data_Augmentation_CXR14.html">Augmenting Medical Images: Chest X-ray 14 dataset</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">solt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> to augment the keypoints (landmarks)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Helen_faces.nblink.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Using-SOLT-to-augment-the-keypoints-(landmarks)">
+<h1>Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> to augment the keypoints (landmarks)<a class="headerlink" href="#Using-SOLT-to-augment-the-keypoints-(landmarks)" title="Link to this heading"></a></h1>
+<p>In this tutorial, we will shortly demonstrate how to use <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> with the landmarks data. For that, we will use the <code class="docutils literal notranslate"><span class="pre">Helen</span></code> dataset: <a class="reference external" href="http://www.ifp.illinois.edu/~vuongle2/helen/">http://www.ifp.illinois.edu/~vuongle2/helen/</a></p>
+<p>To run this notebook, please download annotations and test images, and place them into <code class="docutils literal notranslate"><span class="pre">Data/helen_annotations</span></code> and <code class="docutils literal notranslate"><span class="pre">Data/helen_test_images</span></code> respectively.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>%matplotlib inline
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import patches
+import cv2
+import os
+import glob
+import json
+
+np.random.seed(12345)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import solt
+import solt.transforms as slt
+</pre></div>
+</div>
+</div>
+<section id="Loading-and-visualizing-the-image">
+<h2>Loading and visualizing the image<a class="headerlink" href="#Loading-and-visualizing-the-image" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fname = &#39;3238436027_1.jpg&#39; # Let&#39;s just work with this particular image
+img = cv2.imread(os.path.join(&#39;Data&#39;, &#39;helen_test_images&#39;, fname))
+img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>kpts = None
+for annotation_fname in glob.glob(os.path.join(&#39;Data&#39;, &#39;helen_annotations&#39;, &#39;*.txt&#39;)):
+    with open(annotation_fname) as f:
+        if f.readline()[:-1] == fname.split(&#39;.&#39;)[0]:
+            ktps = []
+            for l in f:
+                tmp = l.split()
+                ktps.append([float(tmp[0]), float(tmp[2])])
+            break
+kpts = np.array(ktps)
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig = plt.figure(figsize=(7, 7))
+ax = fig.add_subplot(1,1,1)
+ax.imshow(img)
+for k in kpts:
+    ax.add_patch(patches.Circle(k, radius=2, color=&#39;r&#39;))
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_6_0.png" src="_images/Helen_faces_6_0.png" />
+</div>
+</div>
+</section>
+<section id="Wrapping-the-data-into-SOLT-format">
+<h2>Wrapping the data into <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> format<a class="headerlink" href="#Wrapping-the-data-into-SOLT-format" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Let&#39;s first wrap our keypoints into a keypoints container
+kpts_wrapped = solt.Keypoints(kpts, img.shape[0], img.shape[1])
+# Then, we should wrap the image and the created keypoints into a DataContainer
+dc = solt.DataContainer((img, kpts_wrapped), &#39;IP&#39;)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Defining-a-simple-stream-and-testing-it">
+<h2>Defining a simple stream and testing it<a class="headerlink" href="#Defining-a-simple-stream-and-testing-it" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>stream = solt.Stream([
+    slt.Rotate(angle_range=(-20, 20), p=1),
+    slt.Crop(512, crop_mode=&#39;r&#39;)
+])
+print(stream.to_yaml())
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+stream:
+  interpolation: null
+  optimize_stack: false
+  padding: null
+  transforms:
+  - rotate:
+      angle_range:
+      - -20
+      - 20
+      ignore_state: true
+      interpolation:
+      - bilinear
+      - inherit
+      p: 1
+      padding:
+      - z
+      - inherit
+  - crop:
+      crop_mode: r
+
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>for i in range(10):
+    res = stream(dc, return_torch=False)
+    img_res, kp_res = res.data
+
+    fig = plt.figure(figsize=(5, 5))
+    ax = fig.add_subplot(1,1,1)
+    ax.imshow(img_res)
+    for k in kp_res.data:
+        ax.add_patch(patches.Circle(k, radius=2, color=&#39;r&#39;))
+    plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_11_0.png" src="_images/Helen_faces_11_0.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_11_1.png" src="_images/Helen_faces_11_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_11_2.png" src="_images/Helen_faces_11_2.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_11_3.png" src="_images/Helen_faces_11_3.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_11_4.png" src="_images/Helen_faces_11_4.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_11_5.png" src="_images/Helen_faces_11_5.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_11_6.png" src="_images/Helen_faces_11_6.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_11_7.png" src="_images/Helen_faces_11_7.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_11_8.png" src="_images/Helen_faces_11_8.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_11_9.png" src="_images/Helen_faces_11_9.png" />
+</div>
+</div>
+<p>You may have noticed that the image size changes depending on the rotation angle. In fact, at this stage, we incorporated such behavior into <code class="docutils literal notranslate"><span class="pre">SOLT</span></code>. Let’s now define a more complicated pipeline.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>stream = solt.Stream([
+    slt.Projection(
+            solt.Stream([
+                slt.Scale(range_x=(0.5, 1.3), p=1),
+                slt.Rotate(angle_range=(-90, 90), p=1),
+                slt.Shear(range_x=(-0.5, 0.5), range_y=None, p=1),
+        ]),
+        v_range=(1e-6, 9e-4)),
+    slt.GammaCorrection(p=0.5, gamma_range=(0.5, 3)),
+    solt.SelectiveStream([
+        slt.Blur(p=0.5, blur_type=&#39;g&#39;, k_size=(11, 21, 31), gaussian_sigma=(1, 10)),
+        slt.Blur(p=0.5, blur_type=&#39;m&#39;, k_size=(11, 21, 31)),
+    ]),
+    solt.SelectiveStream([
+        slt.SaltAndPepper(p=1),
+        slt.Noise(p=1)
+    ]),
+    solt.SelectiveStream([
+        slt.Blur(p=0.5, blur_type=&#39;g&#39;, k_size=(11, 21, 31), gaussian_sigma=(1, 10)),
+        slt.Blur(p=0.5, blur_type=&#39;m&#39;, k_size=(11, 21, 31)),
+    ]),
+    slt.Pad(600, &#39;z&#39;),
+    slt.Crop(600, crop_mode=&#39;c&#39;),
+    slt.Crop(512, crop_mode=&#39;r&#39;)
+
+])
+print(stream.to_yaml())
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+stream:
+  interpolation: null
+  optimize_stack: false
+  padding: null
+  transforms:
+  - projection:
+      affine_transforms:
+        stream:
+          interpolation: null
+          optimize_stack: false
+          padding: null
+          transforms:
+          - scale:
+              ignore_state: true
+              interpolation:
+              - bilinear
+              - inherit
+              p: 1
+              range_x:
+              - 0.5
+              - 1.3
+              range_y: null
+              same: true
+          - rotate:
+              angle_range:
+              - -90
+              - 90
+              ignore_state: true
+              interpolation:
+              - bilinear
+              - inherit
+              p: 1
+              padding:
+              - z
+              - inherit
+          - shear:
+              ignore_state: true
+              interpolation:
+              - bilinear
+              - inherit
+              p: 1
+              padding:
+              - z
+              - inherit
+              range_x:
+              - -0.5
+              - 0.5
+              range_y:
+              - 0
+              - 0
+      ignore_state: true
+      interpolation:
+      - bilinear
+      - inherit
+      p: 0.5
+      padding:
+      - z
+      - inherit
+  - gamma_correction:
+      data_indices: null
+      gamma_range:
+      - 0.5
+      - 3
+      p: 0.5
+  - stream:
+      n: 1
+      optimize_stack: false
+      probs: null
+      transforms:
+      - blur:
+          data_indices: null
+          gaussian_sigma: &amp;id002
+          - 1
+          - 10
+          k_size: &amp;id001
+          - 11
+          - 21
+          - 31
+          p: 0.5
+      - blur:
+          data_indices: null
+          gaussian_sigma: &amp;id003
+          - 1
+          - 1
+          k_size: *id001
+          p: 0.5
+  - stream:
+      n: 1
+      optimize_stack: false
+      probs: null
+      transforms:
+      - salt_and_pepper:
+          data_indices: null
+          gain_range:
+          - 0
+          - 0.1
+          p: 1
+          salt_p:
+          - 0.5
+          - 0.5
+      - noise:
+          data_indices: null
+          gain_range:
+          - 0
+          - 0.1
+          p: 1
+  - stream:
+      n: 1
+      optimize_stack: false
+      probs: null
+      transforms:
+      - blur:
+          data_indices: null
+          gaussian_sigma: *id002
+          k_size: *id001
+          p: 0.5
+      - blur:
+          data_indices: null
+          gaussian_sigma: *id003
+          k_size: *id001
+          p: 0.5
+  - pad:
+      pad_to:
+      - 600
+      - 600
+      padding:
+      - z
+      - inherit
+  - crop:
+      crop_mode: c
+  - crop:
+      crop_mode: r
+
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>for i in range(10):
+    res = stream(dc, return_torch=False)
+    img_res, kp_res = res.data
+
+    fig = plt.figure(figsize=(5, 5))
+    ax = fig.add_subplot(1,1,1)
+    ax.imshow(img_res)
+    for k in kp_res.data:
+        ax.add_patch(patches.Circle(k, radius=4, color=&#39;r&#39;))
+    plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_14_0.png" src="_images/Helen_faces_14_0.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_14_1.png" src="_images/Helen_faces_14_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_14_2.png" src="_images/Helen_faces_14_2.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_14_3.png" src="_images/Helen_faces_14_3.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_14_4.png" src="_images/Helen_faces_14_4.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_14_5.png" src="_images/Helen_faces_14_5.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_14_6.png" src="_images/Helen_faces_14_6.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_14_7.png" src="_images/Helen_faces_14_7.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_14_8.png" src="_images/Helen_faces_14_8.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Helen_faces_14_9.png" src="_images/Helen_faces_14_9.png" />
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Basics_of_solt.html" class="btn btn-neutral float-left" title="Basics of SOLT" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="DSBowl18_segmentation.html" class="btn btn-neutral float-right" title="Using SOLT for instance and semantic segmentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

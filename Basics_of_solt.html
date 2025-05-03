@@ -1,0 +1,760 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basics of SOLT &mdash; solt v0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=0b1ce4df" />
+      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=683873e3"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Using SOLT to augment the keypoints (landmarks)" href="Helen_faces.html" />
+    <link rel="prev" title="solt.utils module" href="utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            solt
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to solt’s documentation!</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">solt</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Wrapping-the-data-into-containers">Wrapping the data into containers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Handling-the-keypoints">Handling the keypoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Applying-SOLT-transforms">Applying <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> transforms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Creating-the-data">Creating the data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Using-Dict-instead-of-a-DataContainer-(covers-99%-of-usecases)">Using Dict instead of a DataContainer (covers 99% of usecases)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Applying-the-transformations">Applying the transformations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Visualizing-the-results">Visualizing the results</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#Serializing-transforms-into-dict,-yaml-or-json">Serializing transforms into <code class="docutils literal notranslate"><span class="pre">dict</span></code>, <code class="docutils literal notranslate"><span class="pre">yaml</span></code> or <code class="docutils literal notranslate"><span class="pre">json</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Extending-with-own-transforms">Extending with own transforms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#More-details-about-serialization">More details about serialization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Summary">Summary</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Helen_faces.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> to augment the keypoints (landmarks)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DSBowl18_segmentation.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> for instance and semantic segmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Medical_Data_Augmentation_CXR14.html">Augmenting Medical Images: Chest X-ray 14 dataset</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">solt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Basics_of_solt.nblink.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Basics-of-SOLT">
+<h1>Basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code><a class="headerlink" href="#Basics-of-SOLT" title="Link to this heading"></a></h1>
+<p>In this short tutorial, you will get to know the core concepts behind the <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> library and also learn how to implement simple data augmentations by yourself.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>%matplotlib inline
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import patches
+import cv2
+import os
+import glob
+import json
+
+np.random.seed(12345)
+</pre></div>
+</div>
+</div>
+<p>Solt has several main modules:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">core</span></code> - Data Streaming classes. Base classes and other core elements</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transforms</span></code> - Transformations (data augmentations)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">utils</span></code> - Tools used in the librrary and also serialiation functionality</p></li>
+</ul>
+<p>The naming convention is in the cell below:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import solt.transforms as slt
+import solt.core as slc
+import solt.utils as slu
+</pre></div>
+</div>
+</div>
+<p>We note here that <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> has a convenient flat API structure:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import solt
+list(filter(lambda x: not x.startswith(&#39;_&#39;), dir(solt)))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;DataContainer&#39;,
+ &#39;Keypoints&#39;,
+ &#39;SelectiveStream&#39;,
+ &#39;Stream&#39;,
+ &#39;constants&#39;,
+ &#39;core&#39;,
+ &#39;from_dict&#39;,
+ &#39;from_json&#39;,
+ &#39;from_yaml&#39;,
+ &#39;transforms&#39;,
+ &#39;utils&#39;]
+</pre></div></div>
+</div>
+<p>In the cell above, we can see that the classess <code class="docutils literal notranslate"><span class="pre">DataContainer</span></code>, <code class="docutils literal notranslate"><span class="pre">Keypoints</span></code>, <code class="docutils literal notranslate"><span class="pre">Stream</span></code> and <code class="docutils literal notranslate"><span class="pre">SelectiveStream</span></code> are available in <code class="docutils literal notranslate"><span class="pre">solt</span></code>. This is done for the convenience of the user. For example, instead of using <code class="docutils literal notranslate"><span class="pre">solt.core.DataContainer</span></code>, the user can use <code class="docutils literal notranslate"><span class="pre">solt.DataContainer</span></code> or <code class="docutils literal notranslate"><span class="pre">solt.Stream</span></code> instead of <code class="docutils literal notranslate"><span class="pre">solt.core.Stream</span></code>. Given this, we sugget to use the following naming convention for simplicity:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import solt
+import solt.transforms as slt
+</pre></div>
+</div>
+</div>
+<section id="Wrapping-the-data-into-containers">
+<h2>Wrapping the data into containers<a class="headerlink" href="#Wrapping-the-data-into-containers" title="Link to this heading"></a></h2>
+<p>While taking a look at the other libraries, we found one particular disadvantage: the transforms do not understand the data and one needs to implement some hacks to deal with it. The best library that has specialized containers for different datatypes is <a class="reference external" href="https://github.com/aleju/imgaug">imgaug</a>, however, it is very slow.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">SOLT</span></code>, we created a <code class="docutils literal notranslate"><span class="pre">DataContainer</span></code> that wraps all your data into a single object. Furthermore, the DataContainer enables a possibility to apply the same transformation to multiple images (e.g. to a minibatch if images, an instance segmentation mask, a set of keypoints). What is needed is just the data and the specification whether it is an image (<code class="docutils literal notranslate"><span class="pre">I</span></code>), mask (<code class="docutils literal notranslate"><span class="pre">M</span></code>), keypoints (<code class="docutils literal notranslate"><span class="pre">P</span></code>), or labels (<code class="docutils literal notranslate"><span class="pre">L</span></code>). An example of creating the data container is given in the cell below:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Images must be in OpenCV format
+test_img_1 = np.zeros((5, 5, 3), dtype=np.uint8)
+dc = solt.DataContainer(test_img_1, &#39;I&#39;)
+</pre></div>
+</div>
+</div>
+<p>An alternative way of creating data containers is using a dictionary:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>dc_from_dict = solt.DataContainer.from_dict({&#39;image&#39;: test_img_1})
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>assert dc == dc_from_dict
+</pre></div>
+</div>
+</div>
+<p>When you have multiple data items, use tuple in <code class="docutils literal notranslate"><span class="pre">DataContainer</span></code> constructor. The number of elements in the tuple and the length of the format string must match:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Images must be in OpenCV format
+test_img_2 = np.zeros((5, 5, 3), dtype=np.uint8)
+test_img_3 = np.zeros((5, 5, 3), dtype=np.uint8)
+dc = solt.DataContainer((test_img_1, test_img_2, test_img_3), &#39;III&#39;)
+</pre></div>
+</div>
+</div>
+<p>In this case, you can also use <code class="docutils literal notranslate"><span class="pre">dict</span></code> API:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>dc_from_dict = solt.DataContainer.from_dict({&#39;images&#39;: [test_img_1, test_img_2, test_img_3]})
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>assert dc == dc_from_dict
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Handling-the-keypoints">
+<h2>Handling the keypoints<a class="headerlink" href="#Handling-the-keypoints" title="Link to this heading"></a></h2>
+<p>We found some difficulties when working with the other libraries that support keypoints (landmarks). One solution was to create a dedicated container for keypoints, which stores the information about the coordinate frame where those keypoints are located:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Creating fake data
+kpts_data = np.array([[0, 0], [0, 1], [1, 0], [2, 0]]).reshape((4, 2))
+# Saying the the keypoints need to be within a rectangle HxW, where H=3, W=4 in this case
+kpts = solt.Keypoints(kpts_data, 3, 4)
+# Now we can wrap these keypoints into a Data Container:
+dc = solt.DataContainer(kpts, &#39;P&#39;)
+</pre></div>
+</div>
+</div>
+<p>Please, note that there is no keypoint-specific <code class="docutils literal notranslate"><span class="pre">dict</span></code> API yet.</p>
+</section>
+<section id="Applying-SOLT-transforms">
+<h2>Applying <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> transforms<a class="headerlink" href="#Applying-SOLT-transforms" title="Link to this heading"></a></h2>
+<p>In <code class="docutils literal notranslate"><span class="pre">SOLT</span></code>, we implemented a large variety of transformations. We recommend to always use a <code class="docutils literal notranslate"><span class="pre">Stream</span></code> to perform the data augmentations. Let us define a simple stream with only one transform - <code class="docutils literal notranslate"><span class="pre">Flip</span></code>. This transform will flip the data around the given axis:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>stream = solt.Stream([
+    slt.Flip(p=1, axis=1)
+])
+</pre></div>
+</div>
+</div>
+<section id="Creating-the-data">
+<h3>Creating the data<a class="headerlink" href="#Creating-the-data" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Plese, note that the image must always have a channel dimension
+test_img_4 = np.array([[0, 0, 1],
+                       [0, 0, 1],
+                       [0, 0, 1]]).reshape(3, 3, 1)
+
+# Masks, however, should have only two dimensions
+test_mask_4 = np.array([[1, 0, 0],
+                        [1, 0, 0],
+                        [1, 0, 0]])
+
+dc = solt.DataContainer((test_img_4, test_mask_4), &#39;IM&#39;)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Using-Dict-instead-of-a-DataContainer-(covers-99%-of-usecases)">
+<h3>Using Dict instead of a DataContainer (covers 99% of usecases)<a class="headerlink" href="#Using-Dict-instead-of-a-DataContainer-(covers-99%-of-usecases)" title="Link to this heading"></a></h3>
+<p>By default, SOLT is designed to return <code class="docutils literal notranslate"><span class="pre">torch</span></code> tensors, normalize them, and subtract ImageNet mean. If we want SOLT to return a <code class="docutils literal notranslate"><span class="pre">solt.DataContainer</span></code>, we have to specify <code class="docutils literal notranslate"><span class="pre">return_torch=False</span></code> when calling the transforms:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>dc_res = stream({&#39;image&#39;: test_img_4, &#39;mask&#39;: test_mask_4}, return_torch=False)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>assert isinstance(dc_res, solt.DataContainer)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Applying-the-transformations">
+<h3>Applying the transformations<a class="headerlink" href="#Applying-the-transformations" title="Link to this heading"></a></h3>
+<p>Let’s continue using a previously created <code class="docutils literal notranslate"><span class="pre">solt.DataContainer</span></code></p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>dc_res = stream(dc, return_torch=False)
+</pre></div>
+</div>
+</div>
+<p>We can get access to the data in the container as follows:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>img_res, mask_res = dc_res.data
+</pre></div>
+</div>
+</div>
+<p>The format can also be retrieved:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>dc_res.data_format
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;IM&#39;
+</pre></div></div>
+</div>
+</section>
+<section id="Visualizing-the-results">
+<h3>Visualizing the results<a class="headerlink" href="#Visualizing-the-results" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots(2, 2, figsize=(8, 8))
+ax[0, 0].set_title(&#39;Original image&#39;)
+ax[0, 0].imshow(test_img_4.squeeze())
+
+ax[0, 1].set_title(&#39;Transformed image&#39;)
+ax[0, 1].imshow(img_res.squeeze())
+
+ax[1, 0].set_title(&#39;Original mask&#39;)
+ax[1, 0].imshow(test_mask_4)
+
+ax[1, 1].set_title(&#39;Transformed mask&#39;)
+ax[1, 1].imshow(mask_res)
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Basics_of_solt_37_0.png" src="_images/Basics_of_solt_37_0.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="Serializing-transforms-into-dict,-yaml-or-json">
+<h2>Serializing transforms into <code class="docutils literal notranslate"><span class="pre">dict</span></code>, <code class="docutils literal notranslate"><span class="pre">yaml</span></code> or <code class="docutils literal notranslate"><span class="pre">json</span></code><a class="headerlink" href="#Serializing-transforms-into-dict,-yaml-or-json" title="Link to this heading"></a></h2>
+<p>We found serialization of the augmentation pipelines to be an important challenge when running experiements. In <code class="docutils literal notranslate"><span class="pre">SOLT</span></code>, we developed the API that allows you to conveniently serialize the whole transformation stream into <code class="docutils literal notranslate"><span class="pre">dict</span></code>, <code class="docutils literal notranslate"><span class="pre">yaml</span></code> or <code class="docutils literal notranslate"><span class="pre">json</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>stream = solt.Stream([
+    slt.Flip(axis=1),
+    slt.Rotate(angle_range=(-90, 90)),
+])
+stream.to_dict()  # this converts the pipeline into a dict
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;optimize_stack&#39;: False,
+ &#39;interpolation&#39;: None,
+ &#39;padding&#39;: None,
+ &#39;transforms&#39;: [{&#39;flip&#39;: {&#39;p&#39;: 0.5, &#39;data_indices&#39;: None, &#39;axis&#39;: 1}},
+  {&#39;rotate&#39;: {&#39;p&#39;: 0.5,
+    &#39;padding&#39;: (&#39;z&#39;, &#39;inherit&#39;),
+    &#39;interpolation&#39;: (&#39;bilinear&#39;, &#39;inherit&#39;),
+    &#39;ignore_state&#39;: True,
+    &#39;angle_range&#39;: (-90, 90)}}]}
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(stream.to_json())  # to json
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{
+    &#34;stream&#34;: {
+        &#34;optimize_stack&#34;: false,
+        &#34;interpolation&#34;: null,
+        &#34;padding&#34;: null,
+        &#34;transforms&#34;: [
+            {
+                &#34;flip&#34;: {
+                    &#34;p&#34;: 0.5,
+                    &#34;data_indices&#34;: null,
+                    &#34;axis&#34;: 1
+                }
+            },
+            {
+                &#34;rotate&#34;: {
+                    &#34;p&#34;: 0.5,
+                    &#34;padding&#34;: [
+                        &#34;z&#34;,
+                        &#34;inherit&#34;
+                    ],
+                    &#34;interpolation&#34;: [
+                        &#34;bilinear&#34;,
+                        &#34;inherit&#34;
+                    ],
+                    &#34;ignore_state&#34;: true,
+                    &#34;angle_range&#34;: [
+                        -90,
+                        90
+                    ]
+                }
+            }
+        ]
+    }
+}
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(stream.to_yaml())
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+stream:
+  interpolation: null
+  optimize_stack: false
+  padding: null
+  transforms:
+  - flip:
+      axis: 1
+      data_indices: null
+      p: 0.5
+  - rotate:
+      angle_range:
+      - -90
+      - 90
+      ignore_state: true
+      interpolation:
+      - bilinear
+      - inherit
+      p: 0.5
+      padding:
+      - z
+      - inherit
+
+</pre></div></div>
+</div>
+</section>
+<section id="Extending-with-own-transforms">
+<h2>Extending with own transforms<a class="headerlink" href="#Extending-with-own-transforms" title="Link to this heading"></a></h2>
+<p>Let’s implement a simple transform that randomly zeroes one of the image corners. All transforms must be inherited from <code class="docutils literal notranslate"><span class="pre">solt.core.ImageTransform</span></code> or <code class="docutils literal notranslate"><span class="pre">solt.core.BaseTransform</span></code>. In this case, you do not need to worry about how to read and write the data from DataContainer, how to do serialization, etc. To fully understand the implementation details, please, follow the docstrings:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>class ImageCornerDropTransform(solt.core.ImageTransform):
+
+    serializable_name = &#39;corner_drop&#39;
+
+    def __init__(self, corner_size=None, p=None, data_indices=None):
+        &quot;&quot;&quot;Transform, which simply drops one of the image corners.
+
+
+        Here is the order of corners used:
+
+        01
+        23
+
+        Because this transform is only for images, let&#39;s use a parent class `ImageTransform` from
+        the module `base_transforms`.
+
+        p : None or float
+            Probability of using this transform.
+        data_indicies : tuple or None
+            Indices within a data container where this transform need to be applied.
+        &quot;&quot;&quot;
+        super(ImageCornerDropTransform, self).__init__(p=p, data_indices=data_indices)
+        if corner_size is None:
+            corner_size = 0
+        self.corner_size = corner_size
+
+    def sample_transform(self):
+        &quot;&quot;&quot;This method samples the parameters of the transform.
+
+        Having called this method once we can easily apply the same transformation to
+        every item within a data container.
+
+        &quot;&quot;&quot;
+        self.state_dict[&#39;corner&#39;] = np.random.randint(0, 4)
+
+    def _apply_img(self, img, item_settings):
+        &quot;&quot;&quot;Applies a transform to an image.
+
+        Every transform has the following set of methods, which are applied autimatically, depending on the data:
+        _apply_img
+        _apply_mask
+        _apply_labels
+        _apply_pts
+
+        Because this particular transform is a subclass of ImageTransform, then we just need to define the behavior for images.
+
+        &quot;&quot;&quot;
+        img = img.copy()
+        s = self.corner_size
+        if self.state_dict[&#39;corner&#39;] == 0:
+            img[:s, :s] = 0
+        elif self.state_dict[&#39;corner&#39;] == 1:
+            img[:s, -s:] = 0
+        elif self.state_dict[&#39;corner&#39;] == 2:
+            img[-s:, :s] = 0
+        elif self.state_dict[&#39;corner&#39;] == 3:
+            img[-s:, -s:] = 0
+
+        return img
+</pre></div>
+</div>
+</div>
+<p>We are not going to write any tests or do parameter checks for the transform here. To learn how this can be done, please, see the source code or the contributing guidelines.</p>
+<p>Once the transform is implemented, it can be used right away. Let’s create some data and apply this transform to it:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>test_img = np.zeros((10, 10, 1))
+test_img[:2, :2] = 1
+test_img[:2, -2:] = 1
+test_img[-2:, :2] = 1
+test_img[-2:, -2:] = 1
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>plt.imshow(test_img.squeeze())
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Basics_of_solt_46_0.png" src="_images/Basics_of_solt_46_0.png" />
+</div>
+</div>
+<p>Applying transform to drop at least 1 corner:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>trf = slc.Stream([ImageCornerDropTransform(p=1, corner_size=2)])
+
+fig, ax = plt.subplots(5, 5, figsize=(10, 10))
+for row in range(5):
+    for col in range(5):
+        dc_res = trf({&#39;image&#39;: test_img}, return_torch=False)
+        ax[row, col].imshow(dc_res.data[0].squeeze())
+        ax[row, col].set_xticks([])
+        ax[row, col].set_yticks([])
+plt.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Basics_of_solt_48_0.png" src="_images/Basics_of_solt_48_0.png" />
+</div>
+</div>
+<section id="More-details-about-serialization">
+<h3>More details about serialization<a class="headerlink" href="#More-details-about-serialization" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">SOLT</span></code> is using a pattern <code class="docutils literal notranslate"><span class="pre">registry</span></code> for serialization. Whenever a transform is inherited from <code class="docutils literal notranslate"><span class="pre">solt.core.BaseTransform</span></code> or <code class="docutils literal notranslate"><span class="pre">solt.core.Stream</span></code>, it gets added to the registry that tracks all the available transformations. It is quite easy to see what is stored in the registry:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>slc.Stream.registry
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;stream&#39;: solt.core._core.Stream,
+ &#39;flip&#39;: solt.transforms._transforms.Flip,
+ &#39;rotate&#39;: solt.transforms._transforms.Rotate,
+ &#39;rotate_90&#39;: solt.transforms._transforms.Rotate90,
+ &#39;shear&#39;: solt.transforms._transforms.Shear,
+ &#39;scale&#39;: solt.transforms._transforms.Scale,
+ &#39;translate&#39;: solt.transforms._transforms.Translate,
+ &#39;projection&#39;: solt.transforms._transforms.Projection,
+ &#39;pad&#39;: solt.transforms._transforms.Pad,
+ &#39;resize&#39;: solt.transforms._transforms.Resize,
+ &#39;crop&#39;: solt.transforms._transforms.Crop,
+ &#39;noise&#39;: solt.transforms._transforms.Noise,
+ &#39;cutout&#39;: solt.transforms._transforms.CutOut,
+ &#39;salt_and_pepper&#39;: solt.transforms._transforms.SaltAndPepper,
+ &#39;gamma_correction&#39;: solt.transforms._transforms.GammaCorrection,
+ &#39;contrast&#39;: solt.transforms._transforms.Contrast,
+ &#39;blur&#39;: solt.transforms._transforms.Blur,
+ &#39;hsv&#39;: solt.transforms._transforms.HSV,
+ &#39;brightness&#39;: solt.transforms._transforms.Brightness,
+ &#39;cvt_color&#39;: solt.transforms._transforms.CvtColor,
+ &#39;keypoints_jitter&#39;: solt.transforms._transforms.KeypointsJitter,
+ &#39;jpeg_compression&#39;: solt.transforms._transforms.JPEGCompression,
+ &#39;corner_drop&#39;: __main__.ImageCornerDropTransform}
+</pre></div></div>
+</div>
+<p>It can be seen that <code class="docutils literal notranslate"><span class="pre">corner_drop</span></code> has been added to the registry, which means we can also deserialize it later:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>yaml_str = &quot;&quot;&quot;
+stream:
+    transforms:
+    - rotate_90:
+        k: 2
+    - corner_drop:
+        corner_size: 2
+        p: 1
+&quot;&quot;&quot;
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>deserialized = solt.from_yaml(yaml_str)
+</pre></div>
+</div>
+</div>
+<p>Let’s check how the deserialized transform works:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots(5, 5, figsize=(10, 10))
+for row in range(5):
+    for col in range(5):
+        dc_res = deserialized({&#39;image&#39;: test_img}, return_torch=False)
+        ax[row, col].imshow(dc_res.data[0].squeeze())
+        ax[row, col].set_xticks([])
+        ax[row, col].set_yticks([])
+plt.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Basics_of_solt_56_0.png" src="_images/Basics_of_solt_56_0.png" />
+</div>
+</div>
+</section>
+<section id="Summary">
+<h3>Summary<a class="headerlink" href="#Summary" title="Link to this heading"></a></h3>
+<p>In this tutorial, we have overviewed the basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> and learned how to apply transformations to images. We have also learned how to serialize, deserialize and create own transforms.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="utils.html" class="btn btn-neutral float-left" title="solt.utils module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Helen_faces.html" class="btn btn-neutral float-right" title="Using SOLT to augment the keypoints (landmarks)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

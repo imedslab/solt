@@ -1,0 +1,300 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>solt &mdash; solt v0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=0b1ce4df" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=683873e3"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="solt.core" href="core.html" />
+    <link rel="prev" title="Welcome to solt’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            solt
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to solt’s documentation!</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">solt</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.html">solt.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html">solt.transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">solt.constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">solt.utils module</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Basics_of_solt.html">Basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="Helen_faces.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> to augment the keypoints (landmarks)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DSBowl18_segmentation.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> for instance and semantic segmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Medical_Data_Augmentation_CXR14.html">Augmenting Medical Images: Chest X-ray 14 dataset</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">solt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">solt</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="solt">
+<h1>solt<a class="headerlink" href="#solt" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="core.html">solt.core</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.html#solt.core.BaseTransform"><code class="docutils literal notranslate"><span class="pre">BaseTransform</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.BaseTransform.apply"><code class="docutils literal notranslate"><span class="pre">BaseTransform.apply()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.BaseTransform.sample_transform"><code class="docutils literal notranslate"><span class="pre">BaseTransform.sample_transform()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.BaseTransform.use_transform"><code class="docutils literal notranslate"><span class="pre">BaseTransform.use_transform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#solt.core.DataContainer"><code class="docutils literal notranslate"><span class="pre">DataContainer</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.DataContainer.from_dict"><code class="docutils literal notranslate"><span class="pre">DataContainer.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.DataContainer.to_torch"><code class="docutils literal notranslate"><span class="pre">DataContainer.to_torch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#solt.core.ImageTransform"><code class="docutils literal notranslate"><span class="pre">ImageTransform</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#solt.core.InterpolationPropertyHolder"><code class="docutils literal notranslate"><span class="pre">InterpolationPropertyHolder</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#solt.core.Keypoints"><code class="docutils literal notranslate"><span class="pre">Keypoints</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#solt.core.MatrixTransform"><code class="docutils literal notranslate"><span class="pre">MatrixTransform</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.MatrixTransform.correct_for_frame_change"><code class="docutils literal notranslate"><span class="pre">MatrixTransform.correct_for_frame_change()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.MatrixTransform.fuse_with"><code class="docutils literal notranslate"><span class="pre">MatrixTransform.fuse_with()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.MatrixTransform.sample_transform"><code class="docutils literal notranslate"><span class="pre">MatrixTransform.sample_transform()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.MatrixTransform.sample_transform_matrix"><code class="docutils literal notranslate"><span class="pre">MatrixTransform.sample_transform_matrix()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#solt.core.PaddingPropertyHolder"><code class="docutils literal notranslate"><span class="pre">PaddingPropertyHolder</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#solt.core.SelectiveStream"><code class="docutils literal notranslate"><span class="pre">SelectiveStream</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.SelectiveStream.serializable_name"><code class="docutils literal notranslate"><span class="pre">SelectiveStream.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#solt.core.Stream"><code class="docutils literal notranslate"><span class="pre">Stream</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.Stream.exec_stream"><code class="docutils literal notranslate"><span class="pre">Stream.exec_stream()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.Stream.optimize_transforms_stack"><code class="docutils literal notranslate"><span class="pre">Stream.optimize_transforms_stack()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.Stream.reset_interpolation"><code class="docutils literal notranslate"><span class="pre">Stream.reset_interpolation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.Stream.reset_padding"><code class="docutils literal notranslate"><span class="pre">Stream.reset_padding()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#solt.core.Stream.serializable_name"><code class="docutils literal notranslate"><span class="pre">Stream.serializable_name</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">solt.transforms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Blur"><code class="docutils literal notranslate"><span class="pre">Blur</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Blur.serializable_name"><code class="docutils literal notranslate"><span class="pre">Blur.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Brightness"><code class="docutils literal notranslate"><span class="pre">Brightness</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Brightness.serializable_name"><code class="docutils literal notranslate"><span class="pre">Brightness.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Contrast"><code class="docutils literal notranslate"><span class="pre">Contrast</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Contrast.serializable_name"><code class="docutils literal notranslate"><span class="pre">Contrast.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Crop"><code class="docutils literal notranslate"><span class="pre">Crop</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Crop.serializable_name"><code class="docutils literal notranslate"><span class="pre">Crop.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.CutOut"><code class="docutils literal notranslate"><span class="pre">CutOut</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.CutOut.serializable_name"><code class="docutils literal notranslate"><span class="pre">CutOut.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.CvtColor"><code class="docutils literal notranslate"><span class="pre">CvtColor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.CvtColor.serializable_name"><code class="docutils literal notranslate"><span class="pre">CvtColor.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Flip"><code class="docutils literal notranslate"><span class="pre">Flip</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Flip.serializable_name"><code class="docutils literal notranslate"><span class="pre">Flip.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.GammaCorrection"><code class="docutils literal notranslate"><span class="pre">GammaCorrection</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.GammaCorrection.serializable_name"><code class="docutils literal notranslate"><span class="pre">GammaCorrection.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.GridMask"><code class="docutils literal notranslate"><span class="pre">GridMask</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.GridMask.serializable_name"><code class="docutils literal notranslate"><span class="pre">GridMask.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.HSV"><code class="docutils literal notranslate"><span class="pre">HSV</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.HSV.serializable_name"><code class="docutils literal notranslate"><span class="pre">HSV.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.IntensityRemap"><code class="docutils literal notranslate"><span class="pre">IntensityRemap</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.IntensityRemap.serializable_name"><code class="docutils literal notranslate"><span class="pre">IntensityRemap.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.JPEGCompression"><code class="docutils literal notranslate"><span class="pre">JPEGCompression</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.JPEGCompression.serializable_name"><code class="docutils literal notranslate"><span class="pre">JPEGCompression.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.KeypointsJitter"><code class="docutils literal notranslate"><span class="pre">KeypointsJitter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.KeypointsJitter.serializable_name"><code class="docutils literal notranslate"><span class="pre">KeypointsJitter.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Noise"><code class="docutils literal notranslate"><span class="pre">Noise</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Noise.serializable_name"><code class="docutils literal notranslate"><span class="pre">Noise.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Pad"><code class="docutils literal notranslate"><span class="pre">Pad</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Pad.serializable_name"><code class="docutils literal notranslate"><span class="pre">Pad.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Projection"><code class="docutils literal notranslate"><span class="pre">Projection</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Projection.sample_transform_matrix"><code class="docutils literal notranslate"><span class="pre">Projection.sample_transform_matrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Projection.serializable_name"><code class="docutils literal notranslate"><span class="pre">Projection.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.RandomResizedCrop"><code class="docutils literal notranslate"><span class="pre">RandomResizedCrop</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.RandomResizedCrop.serializable_name"><code class="docutils literal notranslate"><span class="pre">RandomResizedCrop.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Resize"><code class="docutils literal notranslate"><span class="pre">Resize</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Resize.serializable_name"><code class="docutils literal notranslate"><span class="pre">Resize.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Rotate"><code class="docutils literal notranslate"><span class="pre">Rotate</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Rotate.sample_transform_matrix"><code class="docutils literal notranslate"><span class="pre">Rotate.sample_transform_matrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Rotate.serializable_name"><code class="docutils literal notranslate"><span class="pre">Rotate.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Rotate90"><code class="docutils literal notranslate"><span class="pre">Rotate90</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Rotate90.serializable_name"><code class="docutils literal notranslate"><span class="pre">Rotate90.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.SaltAndPepper"><code class="docutils literal notranslate"><span class="pre">SaltAndPepper</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.SaltAndPepper.serializable_name"><code class="docutils literal notranslate"><span class="pre">SaltAndPepper.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Scale"><code class="docutils literal notranslate"><span class="pre">Scale</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Scale.sample_transform_matrix"><code class="docutils literal notranslate"><span class="pre">Scale.sample_transform_matrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Scale.serializable_name"><code class="docutils literal notranslate"><span class="pre">Scale.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Shear"><code class="docutils literal notranslate"><span class="pre">Shear</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Shear.sample_transform_matrix"><code class="docutils literal notranslate"><span class="pre">Shear.sample_transform_matrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Shear.serializable_name"><code class="docutils literal notranslate"><span class="pre">Shear.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#solt.transforms.Translate"><code class="docutils literal notranslate"><span class="pre">Translate</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Translate.sample_transform_matrix"><code class="docutils literal notranslate"><span class="pre">Translate.sample_transform_matrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transforms.html#solt.transforms.Translate.serializable_name"><code class="docutils literal notranslate"><span class="pre">Translate.serializable_name</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="constants.html">solt.constants</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="constants.html#solt.constants.ALLOWED_BLURS"><code class="docutils literal notranslate"><span class="pre">ALLOWED_BLURS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html#solt.constants.ALLOWED_TYPES"><code class="docutils literal notranslate"><span class="pre">ALLOWED_TYPES</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html#solt.constants.ALLOWED_CROPS"><code class="docutils literal notranslate"><span class="pre">ALLOWED_CROPS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html#solt.constants.ALLOWED_PADDINGS"><code class="docutils literal notranslate"><span class="pre">ALLOWED_PADDINGS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html#solt.constants.ALLOWED_INTERPOLATIONS"><code class="docutils literal notranslate"><span class="pre">ALLOWED_INTERPOLATIONS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html#solt.constants.DTYPES_MAX"><code class="docutils literal notranslate"><span class="pre">DTYPES_MAX</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html#solt.constants.ALLOWED_COLOR_CONVERSIONS"><code class="docutils literal notranslate"><span class="pre">ALLOWED_COLOR_CONVERSIONS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">solt.utils module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#solt.utils.Serializable"><code class="docutils literal notranslate"><span class="pre">Serializable</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#solt.utils.Serializable.registry"><code class="docutils literal notranslate"><span class="pre">Serializable.registry</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#solt.utils.Serializable.serializable_name"><code class="docutils literal notranslate"><span class="pre">Serializable.serializable_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#solt.utils.Serializable.to_dict"><code class="docutils literal notranslate"><span class="pre">Serializable.to_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#solt.utils.Serializable.to_json"><code class="docutils literal notranslate"><span class="pre">Serializable.to_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#solt.utils.Serializable.to_yaml"><code class="docutils literal notranslate"><span class="pre">Serializable.to_yaml()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#solt.utils.from_dict"><code class="docutils literal notranslate"><span class="pre">from_dict()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#solt.utils.from_json"><code class="docutils literal notranslate"><span class="pre">from_json()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#solt.utils.from_yaml"><code class="docutils literal notranslate"><span class="pre">from_yaml()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#solt.utils.img_shape_checker"><code class="docutils literal notranslate"><span class="pre">img_shape_checker()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#solt.utils.validate_numeric_range_parameter"><code class="docutils literal notranslate"><span class="pre">validate_numeric_range_parameter()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#solt.utils.validate_parameter"><code class="docutils literal notranslate"><span class="pre">validate_parameter()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to solt’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core.html" class="btn btn-neutral float-right" title="solt.core" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

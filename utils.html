@@ -1,0 +1,334 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>solt.utils module &mdash; solt v0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=0b1ce4df" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=683873e3"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Basics of SOLT" href="Basics_of_solt.html" />
+    <link rel="prev" title="solt.constants" href="constants.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            solt
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to solt’s documentation!</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">solt</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.html">solt.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html">solt.transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">solt.constants</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">solt.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#solt.utils.Serializable"><code class="docutils literal notranslate"><span class="pre">Serializable</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#solt.utils.Serializable.registry"><code class="docutils literal notranslate"><span class="pre">Serializable.registry</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#solt.utils.Serializable.serializable_name"><code class="docutils literal notranslate"><span class="pre">Serializable.serializable_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#solt.utils.Serializable.to_dict"><code class="docutils literal notranslate"><span class="pre">Serializable.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#solt.utils.Serializable.to_json"><code class="docutils literal notranslate"><span class="pre">Serializable.to_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#solt.utils.Serializable.to_yaml"><code class="docutils literal notranslate"><span class="pre">Serializable.to_yaml()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#solt.utils.from_dict"><code class="docutils literal notranslate"><span class="pre">from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#solt.utils.from_json"><code class="docutils literal notranslate"><span class="pre">from_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#solt.utils.from_yaml"><code class="docutils literal notranslate"><span class="pre">from_yaml()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#solt.utils.img_shape_checker"><code class="docutils literal notranslate"><span class="pre">img_shape_checker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#solt.utils.validate_numeric_range_parameter"><code class="docutils literal notranslate"><span class="pre">validate_numeric_range_parameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#solt.utils.validate_parameter"><code class="docutils literal notranslate"><span class="pre">validate_parameter()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Basics_of_solt.html">Basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="Helen_faces.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> to augment the keypoints (landmarks)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DSBowl18_segmentation.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> for instance and semantic segmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Medical_Data_Augmentation_CXR14.html">Augmenting Medical Images: Chest X-ray 14 dataset</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">solt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">solt</a></li>
+      <li class="breadcrumb-item active">solt.utils module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-solt.utils">
+<span id="solt-utils-module"></span><h1>solt.utils module<a class="headerlink" href="#module-solt.utils" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.utils.Serializable">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">solt.utils.</span></span><span class="sig-name descname"><span class="pre">Serializable</span></span><a class="reference internal" href="_modules/solt/utils/_utils.html#Serializable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.utils.Serializable" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.utils.Serializable.registry">
+<span class="sig-name descname"><span class="pre">registry</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'blur':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Blur'&gt;,</span> <span class="pre">'brightness':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Brightness'&gt;,</span> <span class="pre">'contrast':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Contrast'&gt;,</span> <span class="pre">'crop':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Crop'&gt;,</span> <span class="pre">'cutout':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.CutOut'&gt;,</span> <span class="pre">'cvt_color':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.CvtColor'&gt;,</span> <span class="pre">'flip':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Flip'&gt;,</span> <span class="pre">'gamma_correction':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.GammaCorrection'&gt;,</span> <span class="pre">'gridmask':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.GridMask'&gt;,</span> <span class="pre">'hsv':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.HSV'&gt;,</span> <span class="pre">'intensity_remap':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.IntensityRemap'&gt;,</span> <span class="pre">'jpeg_compression':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.JPEGCompression'&gt;,</span> <span class="pre">'keypoints_jitter':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.KeypointsJitter'&gt;,</span> <span class="pre">'noise':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Noise'&gt;,</span> <span class="pre">'pad':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Pad'&gt;,</span> <span class="pre">'projection':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Projection'&gt;,</span> <span class="pre">'random_resized_crop':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.RandomResizedCrop'&gt;,</span> <span class="pre">'resize':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Resize'&gt;,</span> <span class="pre">'rotate':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Rotate'&gt;,</span> <span class="pre">'rotate_90':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Rotate90'&gt;,</span> <span class="pre">'salt_and_pepper':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.SaltAndPepper'&gt;,</span> <span class="pre">'scale':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Scale'&gt;,</span> <span class="pre">'selective_stream':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.core._core.SelectiveStream'&gt;,</span> <span class="pre">'shear':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Shear'&gt;,</span> <span class="pre">'stream':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.core._core.Stream'&gt;,</span> <span class="pre">'translate':</span> <span class="pre">&lt;class</span> <span class="pre">'solt.transforms._transforms.Translate'&gt;}</span></em><a class="headerlink" href="#solt.utils.Serializable.registry" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.utils.Serializable.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#solt.utils.Serializable.serializable_name" title="Link to this definition"></a></dt>
+<dd><p>How the class should be stored in the registry. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default), the transform is not added.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="solt.utils.Serializable.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/utils/_utils.html#Serializable.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.utils.Serializable.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Method returns a dict, describing the object sufficiently enough to reconstruct it
+back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>out</strong> – OrderedDict, ready for json serialization.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="solt.utils.Serializable.to_json">
+<span class="sig-name descname"><span class="pre">to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/utils/_utils.html#Serializable.to_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.utils.Serializable.to_json" title="Link to this definition"></a></dt>
+<dd><p>Writes a Serializable object into a json file. If the filename is None,
+then this function returns a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>pathlib.Path</em></a><em> or </em><em>None</em>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – Serialized object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="solt.utils.Serializable.to_yaml">
+<span class="sig-name descname"><span class="pre">to_yaml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/utils/_utils.html#Serializable.to_yaml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.utils.Serializable.to_yaml" title="Link to this definition"></a></dt>
+<dd><p>Writes a Serializable object into a file. If the filename is None,
+then this function just returns a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>pathlib.Path</em></a><em> or </em><em>None</em>) – Path to the .yaml file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – Serialized object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="solt.utils.from_dict">
+<span class="sig-prename descclassname"><span class="pre">solt.utils.</span></span><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transforms</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/utils/_utils.html#from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.utils.from_dict" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Deserializes the transformations stored in a dict.</dt><dd><p>Supports deserialization of Streams only.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>transforms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Transforms</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – An instance of solt.core.Stream.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core.html#solt.core.Stream" title="solt.core.Stream">solt.core.Stream</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="solt.utils.from_json">
+<span class="sig-prename descclassname"><span class="pre">solt.utils.</span></span><span class="sig-name descname"><span class="pre">from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/utils/_utils.html#from_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.utils.from_json" title="Link to this definition"></a></dt>
+<dd><p>Allows to deserialize transforms from a json file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>s</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>pathlib.Path</em></a>) – Json string or path. Path can be stored as a string or as a pathlib object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>s</strong> – A serializable object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#solt.utils.Serializable" title="solt.utils.Serializable">Serializable</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="solt.utils.from_yaml">
+<span class="sig-prename descclassname"><span class="pre">solt.utils.</span></span><span class="sig-name descname"><span class="pre">from_yaml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/utils/_utils.html#from_yaml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.utils.from_yaml" title="Link to this definition"></a></dt>
+<dd><p>Allows to deserialize transforms from a yaml file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>s</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>pathlib.Path</em></a>) – Path to the yaml object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>s</strong> – A serializable object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#solt.utils.Serializable" title="solt.utils.Serializable">Serializable</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="solt.utils.img_shape_checker">
+<span class="sig-prename descclassname"><span class="pre">solt.utils.</span></span><span class="sig-name descname"><span class="pre">img_shape_checker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/utils/_utils.html#img_shape_checker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.utils.img_shape_checker" title="Link to this definition"></a></dt>
+<dd><p>Decorator to ensure that the image has always 3 dimensions: WxHC</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>method</strong> (<em>_apply_img method</em><em> of </em><a class="reference internal" href="core.html#solt.core.BaseTransform" title="solt.core.BaseTransform"><em>BaseTransform</em></a>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – Result</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>method of a class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="solt.utils.validate_numeric_range_parameter">
+<span class="sig-prename descclassname"><span class="pre">solt.utils.</span></span><span class="sig-name descname"><span class="pre">validate_numeric_range_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/utils/_utils.html#validate_numeric_range_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.utils.validate_numeric_range_parameter" title="Link to this definition"></a></dt>
+<dd><p>Validates the range-type parameter, e.g. angle in Random Rotation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em> or </em><em>None</em>) – The value of the parameter</p></li>
+<li><p><strong>default_val</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><em>object</em></a>) – Default value of the parameter if it is None.</p></li>
+<li><p><strong>min_val</strong> (<em>None</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Check whether the parameter is greater or equal than this. Optional.</p></li>
+<li><p><strong>max_val</strong> (<em>None</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Check whether the parameter is less or equal than this. Optional.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – Parameter value, passed all the checks.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="solt.utils.validate_parameter">
+<span class="sig-prename descclassname"><span class="pre">solt.utils.</span></span><span class="sig-name descname"><span class="pre">validate_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_modes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basic_type=&lt;class</span> <span class="pre">'str'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heritable=True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/utils/_utils.html#validate_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.utils.validate_parameter" title="Link to this definition"></a></dt>
+<dd><p>Validates the parameter and wraps it into a tuple with the
+inheritance option (if parameter is not a tuple already).
+In this case the parameter will become a tuple (parameter, ‘inherit’),
+which will indicate that the stream settings will override this parameter.
+In case if the parameter is already a tuple specified as parameter=(value, ‘strict’), then the parameter
+will not be overrided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><em>object</em></a>) – The value of the parameter</p></li>
+<li><p><strong>allowed_modes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.13)"><em>set</em></a>) – Allowed values for the parameter</p></li>
+<li><p><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><em>object</em></a>) – Default value to substitute if the parameter is None</p></li>
+<li><p><strong>basic_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><em>type</em></a>) – Type of the parameter.</p></li>
+<li><p><strong>heritable</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – Whether to check for heretability option.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – New parameter value wrapped into a tuple.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="constants.html" class="btn btn-neutral float-left" title="solt.constants" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Basics_of_solt.html" class="btn btn-neutral float-right" title="Basics of SOLT" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

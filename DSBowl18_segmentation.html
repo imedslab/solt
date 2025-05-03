@@ -1,0 +1,354 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Using SOLT for instance and semantic segmentation &mdash; solt v0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=0b1ce4df" />
+      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=683873e3"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Augmenting Medical Images: Chest X-ray 14 dataset" href="Medical_Data_Augmentation_CXR14.html" />
+    <link rel="prev" title="Using SOLT to augment the keypoints (landmarks)" href="Helen_faces.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            solt
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to solt’s documentation!</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">solt</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Basics_of_solt.html">Basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="Helen_faces.html">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> to augment the keypoints (landmarks)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> for instance and semantic segmentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Loading-the-data">Loading the data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Defining-a-pipeline">Defining a pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Augmentation-results">Augmentation results</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Medical_Data_Augmentation_CXR14.html">Augmenting Medical Images: Chest X-ray 14 dataset</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">solt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> for instance and semantic segmentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/DSBowl18_segmentation.nblink.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Using-SOLT-for-instance-and-semantic-segmentation">
+<h1>Using <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> for instance and semantic segmentation<a class="headerlink" href="#Using-SOLT-for-instance-and-semantic-segmentation" title="Link to this heading"></a></h1>
+<p>In this tutorial, we will shortly demonstrate how to use <code class="docutils literal notranslate"><span class="pre">SOLT</span></code> in instance and semenatic segmentation tasks.</p>
+<p>To run this notebook, please download train images from Kaggle Data Science Bowl’18 page, and place them into <code class="docutils literal notranslate"><span class="pre">Data/ds_bowl_stage_1</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>%matplotlib inline
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import patches
+import cv2
+import os
+import glob
+import json
+
+np.random.seed(12345)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import solt
+import solt.transforms as slt
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def get_masks(img_fname):
+    img_id = img_fname.split(os.path.sep)[3]
+    masks_fnames = glob.glob(os.path.join(&#39;Data&#39;, &#39;ds_bowl_stage_1&#39;,&#39;stage1_train&#39;, img_id, &#39;masks&#39;, &#39;*.png&#39;))
+    masks = []
+    for msk_fname in masks_fnames:
+        masks.append(cv2.imread(msk_fname, 0))
+    return masks
+
+def vis_img_instances(img, masks):
+    m = np.zeros((masks[0].shape), dtype=int)
+    for j, msk in enumerate(masks):
+        m[msk == 255]=(j+1)
+
+    fig = plt.figure(figsize=(6,6))
+    ax = fig.add_subplot(1,1,1)
+    ax.imshow(img)
+    ax.imshow(np.ma.masked_array(m, m==0), cmap=&#39;nipy_spectral&#39;, alpha=0.8)
+    plt.show()
+</pre></div>
+</div>
+</div>
+<section id="Loading-the-data">
+<h2>Loading the data<a class="headerlink" href="#Loading-the-data" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[41]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>imgs_fnames = glob.glob(os.path.join(&#39;Data&#39;, &#39;ds_bowl_stage_1&#39;,&#39;stage1_train&#39;, &#39;*&#39;, &#39;images&#39;, &#39;*.png&#39;))
+fname = imgs_fnames[213]
+masks = get_masks(fname)
+img = cv2.imread(fname)
+img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+vis_img_instances(img, masks)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/DSBowl18_segmentation_5_0.png" src="_images/DSBowl18_segmentation_5_0.png" />
+</div>
+</div>
+</section>
+<section id="Defining-a-pipeline">
+<h2>Defining a pipeline<a class="headerlink" href="#Defining-a-pipeline" title="Link to this heading"></a></h2>
+<p>In case if we want to augment every instance for such models as Mask-RCNN, we easily do it using a DataContainer</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[45]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>stream = solt.Stream([
+    slt.Rotate(angle_range=(-90, 90), p=1, interpolation=&#39;bicubic&#39;),
+    slt.Pad(200),
+    slt.Crop(200, crop_mode=&#39;c&#39;),
+    slt.Crop(192, crop_mode=&#39;r&#39;)
+])
+print(stream.to_yaml())
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+stream:
+  interpolation: null
+  optimize_stack: false
+  padding: null
+  transforms:
+  - rotate:
+      angle_range:
+      - -90
+      - 90
+      ignore_state: true
+      interpolation:
+      - bicubic
+      - inherit
+      p: 1
+      padding:
+      - z
+      - inherit
+  - pad:
+      pad_to:
+      - 200
+      - 200
+      padding:
+      - z
+      - inherit
+  - crop:
+      crop_mode: c
+  - crop:
+      crop_mode: r
+
+</pre></div></div>
+</div>
+</section>
+<section id="Augmentation-results">
+<h2>Augmentation results<a class="headerlink" href="#Augmentation-results" title="Link to this heading"></a></h2>
+<p>In the example below, we use all the masks in the augmentation process because of the instance segmentation problem. Here, we will also demonstrate the power of the dict API:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[47]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>for i in range(10):
+    res_dc = stream({&#39;image&#39;: img, &#39;masks&#39;: masks}, return_torch=False)
+    img_res = res_dc.data[0]
+    masks_res = res_dc.data[1:]
+    vis_img_instances(img_res, masks_res)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/DSBowl18_segmentation_9_0.png" src="_images/DSBowl18_segmentation_9_0.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/DSBowl18_segmentation_9_1.png" src="_images/DSBowl18_segmentation_9_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/DSBowl18_segmentation_9_2.png" src="_images/DSBowl18_segmentation_9_2.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/DSBowl18_segmentation_9_3.png" src="_images/DSBowl18_segmentation_9_3.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/DSBowl18_segmentation_9_4.png" src="_images/DSBowl18_segmentation_9_4.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/DSBowl18_segmentation_9_5.png" src="_images/DSBowl18_segmentation_9_5.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/DSBowl18_segmentation_9_6.png" src="_images/DSBowl18_segmentation_9_6.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/DSBowl18_segmentation_9_7.png" src="_images/DSBowl18_segmentation_9_7.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/DSBowl18_segmentation_9_8.png" src="_images/DSBowl18_segmentation_9_8.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/DSBowl18_segmentation_9_9.png" src="_images/DSBowl18_segmentation_9_9.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Helen_faces.html" class="btn btn-neutral float-left" title="Using SOLT to augment the keypoints (landmarks)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Medical_Data_Augmentation_CXR14.html" class="btn btn-neutral float-right" title="Augmenting Medical Images: Chest X-ray 14 dataset" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
