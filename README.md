@@ -1,7 +1,7 @@
 ![slide](doc/source/_static/logo.png)
 --------------------------------------------------------------------------------
 [![PyPI version](https://badge.fury.io/py/solt.svg)](https://badge.fury.io/py/solt)
-[![CI](https://github.com/imedslab/solt/actions/workflows/ci.yaml/badge.svg?branch=master&event=push)](https://github.com/imedslab/solt/actions/workflows/ci.yaml)
+[![CI/CD Pipeline](https://github.com/imedslab/solt/actions/workflows/prod-release.yaml/badge.svg)](https://github.com/imedslab/solt/actions/workflows/prod-release.yaml)
 [![codecov](https://codecov.io/gh/imedslab/solt/branch/master/graph/badge.svg?token=tEqWMIZSrW)](https://codecov.io/gh/imedslab/solt)
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md)
 [![DOI](https://zenodo.org/badge/143310844.svg)](https://zenodo.org/badge/latestdoi/143310844)
