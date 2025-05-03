@@ -35,7 +35,7 @@ jobs:
         run: |
           pip install --index-url https://download.pytorch.org/whl/cpu torch==2.6.0
           pip install -r ci/requirements.txt
-          pip install .
+          pip install . --no-deps
 
       - name: Run tests
         run: pytest tests --cov solt --cov-report=xml --junitxml=./junit.xml
