@@ -7,8 +7,8 @@ on:
     types: [published]
 
 jobs:
-  test-on-all-push:
-    name: Test on Master Branch
+  test-all:
+    name: Test Master Branch
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     strategy:
@@ -55,7 +55,7 @@ jobs:
   build-and-publish:
     name: Build and Publish to PyPI
     runs-on: ubuntu-latest
-    needs: test-on-release
+    needs: test-all
     if: github.event_name == 'release'
     environment:
       name: pypi
