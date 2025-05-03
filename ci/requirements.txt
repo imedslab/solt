@@ -9,4 +9,3 @@ pytest-pep8==1.0.6
 pytest-lazy-fixture==0.6.3
 numpy>=2.0.0
 scipy>=1.13.0
-torchvision>=0.21.0

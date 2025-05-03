@@ -33,7 +33,7 @@ jobs:
 
       - name: Install PyTorch and dependencies
         run: |
-          pip install --index-url https://download.pytorch.org/whl/cpu torch==2.6.0
+          pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
           pip install -r ci/requirements.txt
           pip install . --no-deps
 
