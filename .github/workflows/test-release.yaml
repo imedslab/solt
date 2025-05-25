@@ -75,9 +75,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade wheel build
       
-      - name: Update project name temporarily for TestPyPI
+      - name: Set name and version for TestPyPI
         run: |
+          VERSION="${{ github.event.inputs.tag || github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
           sed -i "s/name=\"solt\"/name=\"solt-test\"/" setup.py
+          sed -i "s/version=\"[^\"]*\"/version=\"$VERSION\"/" setup.py
       
       - name: Build package
         run: python -m build
