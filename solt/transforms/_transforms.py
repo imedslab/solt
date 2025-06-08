@@ -1287,9 +1287,10 @@ class Brightness(ImageTransform):
     serializable_name = "brightness"
     """How the class should be stored in the registry"""
 
-    def __init__(self, brightness_range=None, data_indices=None, p=0.5):
+    def __init__(self, brightness_range=None, mean_threshold=150.0, data_indices=None, p=0.5):
         super(Brightness, self).__init__(p=p, data_indices=data_indices)
         self.brightness_range = validate_numeric_range_parameter(brightness_range, self._default_range)
+        self.mean_threshold = mean_threshold
 
     def sample_transform(self, data):
         brightness_fact = random.uniform(self.brightness_range[0], self.brightness_range[1])
@@ -1299,7 +1300,17 @@ class Brightness(ImageTransform):
 
     @img_shape_checker
     def _apply_img(self, img: np.ndarray, settings: dict):
-        return cv2.LUT(img, self.state_dict["LUT"])
+        mean_intensity = img.mean()
+
+        if mean_intensity >= self.mean_threshold:
+            return cv2.LUT(img, self.state_dict["LUT"])
+
+        contrast = img.std()
+        contrast = max(contrast, 1e-6)
+        adjustment = self.state_dict["brightness_fact"] * (mean_intensity / contrast)
+        lut = np.arange(256, dtype=np.float32) + adjustment
+        lut = np.clip(lut, 0, 255).astype(np.uint8)
+        return cv2.LUT(img, lut)
 
 
 class IntensityRemap(ImageTransform):
