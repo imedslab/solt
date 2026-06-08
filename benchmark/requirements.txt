@@ -3,5 +3,5 @@ augmentor==0.2.8
 pillow-simd==7.0.0.post3
 pytablewriter
 solt==0.1.9
-torch==2.2.0
+torch==2.7.0
 torchvision===0.5.0
