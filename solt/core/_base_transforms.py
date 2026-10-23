@@ -126,7 +126,7 @@ class BaseTransform(Serializable, metaclass=ABCMeta):
             result.append(tmp_item)
             settings[i] = item_settings
 
-        return DataContainer(data=tuple(result), fmt="".join(types))
+        return DataContainer(data=tuple(result), fmt="".join(types), transform_settings=settings)
 
     @staticmethod
     def wrap_data(data):

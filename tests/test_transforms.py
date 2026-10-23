@@ -9,6 +9,7 @@ import pytest
 import solt.core as slc
 
 import solt.transforms as slt
+import solt.utils as slu
 from solt.constants import ALLOWED_INTERPOLATIONS, ALLOWED_PADDINGS
 
 from .fixtures import *
@@ -1381,7 +1382,7 @@ def test_different_interpolations_per_item_per_transform(img_6x6, transform_sett
 
     interp = ALLOWED_INTERPOLATIONS["bilinear"]
     if transform_settings is not None:
-        interp = ALLOWED_INTERPOLATIONS[transform_settings[0]["interpolation"][0]]
+        interp = ALLOWED_INTERPOLATIONS[transform_settings[0]["interpolation"]]
     assert np.array_equal(
         cv2.resize(img_6x6, (10, 15), interpolation=interp).reshape(15, 10, 1),
         dc_res.data[0],
@@ -1525,3 +1526,77 @@ def test_gridmask_rotate_raises_error_when_wrong(rotate):
 def test_gridmask_rotate_raises_error_when_wrong_tuple(rotate):
     with pytest.raises(TypeError):
         slt.GridMask(rotate=rotate, p=1)
+
+
+@pytest.mark.parametrize("resize_to", [(16, 12), 20, None])
+@pytest.mark.parametrize("mask_shape", [(40, 30), (40, 30, 5)])
+def test_random_resized_crop_img_mask(resize_to, mask_shape):
+    img = np.random.randint(0, 255, (40, 30, 3), dtype=np.uint8)
+    mask = np.random.randint(0, 3, mask_shape, dtype=np.uint8)
+    trf = slt.RandomResizedCrop(resize_to=resize_to)
+
+    res = trf(slc.DataContainer((img, mask), "IM"))
+    img_res, mask_res = res.data
+
+    w_crop, h_crop = trf.state_dict["crop_to"]
+    y, x = trf.state_dict["y"], trf.state_dict["x"]
+    expected_img = img[y : y + h_crop, x : x + w_crop]
+    expected_mask = mask[y : y + h_crop, x : x + w_crop]
+    if resize_to is not None:
+        expected_img = cv2.resize(expected_img, trf.resize_to, interpolation=cv2.INTER_LINEAR)
+        expected_mask = cv2.resize(expected_mask, trf.resize_to, interpolation=cv2.INTER_NEAREST)
+
+    assert np.array_equal(img_res, expected_img)
+    assert np.array_equal(mask_res, expected_mask)
+    assert img_res.shape[:2] == mask_res.shape[:2]
+    assert mask_res.dtype == mask.dtype
+
+
+def test_random_resized_crop_uses_item_interpolation():
+    mask = np.zeros((40, 40), dtype=np.float32)
+    mask[10:30, 10:30] = 1
+    trf = slt.RandomResizedCrop(resize_to=(17, 17), scale=(1, 1), ratio=(1, 1))
+
+    res_nearest = trf(slc.DataContainer((mask,), "M")).data[0]
+    res_bilinear = trf(slc.DataContainer((mask,), "M", {0: {"interpolation": "bilinear"}})).data[0]
+
+    assert set(np.unique(res_nearest)) == {0, 1}
+    assert np.array_equal(res_bilinear, cv2.resize(mask, (17, 17), interpolation=cv2.INTER_LINEAR))
+
+
+def test_random_resized_crop_custom_scale_and_ratio():
+    img = np.random.randint(0, 255, (40, 40, 3), dtype=np.uint8)
+    trf = slt.RandomResizedCrop(resize_to=None, scale=(1, 1), ratio=(1, 1))
+    res = trf(slc.DataContainer((img,), "I"))
+
+    assert trf.scale == (1, 1)
+    assert trf.ratio == (1, 1)
+    assert np.array_equal(res.data[0], img)
+
+
+@pytest.mark.parametrize(
+    "scale, ratio, expected_error",
+    [
+        ((0.5, 1.5), None, ValueError),
+        ((-0.1, 1.0), None, ValueError),
+        ((0.9, 0.5), None, ValueError),
+        (None, (0, 1), ValueError),
+        (None, (2, 1), ValueError),
+        (0.5, None, TypeError),
+        (None, (1, 2, 3), ValueError),
+    ],
+)
+def test_random_resized_crop_wrong_scale_or_ratio(scale, ratio, expected_error):
+    with pytest.raises(expected_error):
+        slt.RandomResizedCrop(resize_to=32, scale=scale, ratio=ratio)
+
+
+def test_random_resized_crop_serialization():
+    trf = slt.RandomResizedCrop(resize_to=(32, 24), scale=(0.5, 1.0), ratio=(0.5, 2.0), interpolation="bicubic")
+    trf_restored = slu.from_yaml(slc.Stream([trf]).to_yaml()).transforms[0]
+
+    assert isinstance(trf_restored, slt.RandomResizedCrop)
+    assert tuple(trf_restored.resize_to) == (32, 24)
+    assert tuple(trf_restored.scale) == (0.5, 1.0)
+    assert tuple(trf_restored.ratio) == (0.5, 2.0)
+    assert trf_restored.interpolation[0] == "bicubic"

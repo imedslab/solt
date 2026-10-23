@@ -1635,7 +1635,7 @@ class RandomResizedCrop(BaseTransform, InterpolationPropertyHolder):
     ----------
     resize_to : tuple or int or None
         Size of the crop ``(width_new, height_new)``. If ``int``, then a square crop will be made.
-    scale : tuple of flat or None
+    scale : tuple of float or None
         Range of size of the origin size cropped. If None, then default Imagenet values are used -- ``(0.08, 1.0)``.
     ratio : tuple of float or None
         Range of the aspect ratio. If None, then default Imagenet values are used -- ``(3 / 4., 4 / 3.)``.
@@ -1648,10 +1648,10 @@ class RandomResizedCrop(BaseTransform, InterpolationPropertyHolder):
     def __init__(self, resize_to, scale=None, ratio=None, interpolation="bilinear"):
         BaseTransform.__init__(self, p=1)
         InterpolationPropertyHolder.__init__(self, interpolation=interpolation)
-        if scale is None:
-            self.scale = (0.08, 1.0)
-        if ratio is None:
-            self.ratio = (0.75, 1.3333333333333333)
+        self.scale = validate_numeric_range_parameter(scale, (0.08, 1.0), min_val=0, max_val=1)
+        self.ratio = validate_numeric_range_parameter(ratio, (0.75, 1.3333333333333333), min_val=0)
+        if self.ratio[0] == 0:
+            raise ValueError("Aspect ratio must be positive!")
         if resize_to is not None:
             if not isinstance(resize_to, (int, tuple, list)):
                 raise TypeError("Argument crop_to has an incorrect type!")
@@ -1713,15 +1713,11 @@ class RandomResizedCrop(BaseTransform, InterpolationPropertyHolder):
             }
         )
 
-    def __crop_img_or_mask(self, img_mask):
-        return img_mask[
+    def _apply_img_or_mask(self, img: np.ndarray, settings: dict):
+        img = img[
             self.state_dict["y"] : self.state_dict["y"] + self.state_dict["crop_to"][1],
             self.state_dict["x"] : self.state_dict["x"] + self.state_dict["crop_to"][0],
         ]
-
-    @img_shape_checker
-    def _apply_img(self, img: np.ndarray, settings: dict):
-        img = self.__crop_img_or_mask(img)
         if self.resize_to is None:
             return img
         interp = ALLOWED_INTERPOLATIONS[self.interpolation[0]]
@@ -1730,8 +1726,12 @@ class RandomResizedCrop(BaseTransform, InterpolationPropertyHolder):
 
         return cv2.resize(img, self.resize_to, interpolation=interp)
 
+    @img_shape_checker
+    def _apply_img(self, img: np.ndarray, settings: dict):
+        return self._apply_img_or_mask(img, settings)
+
     def _apply_mask(self, mask: np.ndarray, settings: dict):
-        return self.__crop_img_or_mask(mask)
+        return self._apply_img_or_mask(mask, settings)
 
     def _apply_labels(self, labels, settings: dict):
         return labels

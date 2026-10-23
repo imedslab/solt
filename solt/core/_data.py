@@ -54,46 +54,32 @@ class DataContainer(object):
         if transform_settings is not None:
             if not isinstance(transform_settings, dict):
                 raise TypeError
+            if not set(transform_settings).issubset(range(len(data))):
+                raise ValueError
         else:
             transform_settings = {}
 
-        # Element-wise settings
-        # If no settings provided for certain items, they will be created
+        # Element-wise settings. They are parsed into a new dict, so that the caller's dict stays untouched
+        # and can be re-used. If no settings provided for certain items, they will be created
+        parsed_settings = {}
         for idx in range(len(data)):
-            if idx not in transform_settings:
-                transform_settings[idx] = {}
+            item_settings = transform_settings.get(idx, {})
+            if not isinstance(item_settings, dict):
+                raise TypeError
+            item_settings = dict(item_settings)
 
             if fmt[idx] == "I" or fmt[idx] == "M":
                 val = ("nearest", "strict") if fmt[idx] == "M" else None
-                if "interpolation" not in transform_settings[idx]:
-                    transform_settings[idx]["interpolation"] = validate_parameter(
-                        val, ALLOWED_INTERPOLATIONS, "bilinear", str, True
-                    )
-                else:
-                    transform_settings[idx]["interpolation"] = validate_parameter(
-                        (transform_settings[idx]["interpolation"], "strict"),
-                        ALLOWED_INTERPOLATIONS,
-                        "bilinear",
-                        str,
-                        True,
-                    )
-
-                if "padding" not in transform_settings[idx]:
-                    transform_settings[idx]["padding"] = validate_parameter(None, ALLOWED_PADDINGS, "z", str, True)
-                else:
-                    transform_settings[idx]["padding"] = validate_parameter(
-                        (transform_settings[idx]["padding"], "strict"),
-                        ALLOWED_PADDINGS,
-                        "z",
-                        str,
-                        True,
-                    )
+                item_settings["interpolation"] = self._parse_item_setting(
+                    item_settings, "interpolation", ALLOWED_INTERPOLATIONS, "bilinear", val
+                )
+                item_settings["padding"] = self._parse_item_setting(item_settings, "padding", ALLOWED_PADDINGS, "z")
             else:
-                if "interpolation" in transform_settings[idx] or "padding" in transform_settings[idx]:
+                if "interpolation" in item_settings or "padding" in item_settings:
                     raise TypeError
 
-        if len(data) != len(transform_settings):
-            raise ValueError
+            parsed_settings[idx] = item_settings
+        transform_settings = parsed_settings
 
         for t in fmt:
             if t not in ALLOWED_TYPES:
@@ -107,6 +93,23 @@ class DataContainer(object):
         self.__imagenet_std = torch.tensor((0.229, 0.224, 0.225)).view(3, 1, 1)
 
         self.validate()
+
+    @staticmethod
+    def _parse_item_setting(item_settings, name, allowed_modes, default_value, value_if_missing=None):
+        """
+        Parses a single item-wise setting, e.g. interpolation.
+
+        A plain value (e.g. ``'bilinear'``) is set by the user for this very item, so it becomes strict.
+        An already parsed value (e.g. ``('bilinear', 'inherit')``), which comes from another ``DataContainer``,
+        is kept as is.
+        """
+        if name not in item_settings:
+            return validate_parameter(value_if_missing, allowed_modes, default_value, str, True)
+
+        value = item_settings[name]
+        if not isinstance(value, (tuple, list)):
+            value = (value, "strict")
+        return validate_parameter(value, allowed_modes, default_value, str, True)
 
     def validate(self):
         prev_h = None
@@ -297,7 +300,9 @@ class DataContainer(object):
                 not_as_dict.append(img)
 
             elif f == "M":
-                mask = torch.from_numpy(el).squeeze().unsqueeze(0).float()
+                # HxW -> 1xHxW, HxWxC -> CxHxW
+                el = el[np.newaxis] if el.ndim == 2 else el.transpose((2, 0, 1))
+                mask = torch.from_numpy(np.ascontiguousarray(el)).float()
                 res_dict["masks"].append(mask)
                 not_as_dict.append(mask)
             elif f == "P":

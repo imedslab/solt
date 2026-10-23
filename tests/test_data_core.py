@@ -543,6 +543,67 @@ def test_interpolation_or_padding_settings_for_labels_or_keypoints(setting):
         slc.DataContainer(data=(kpts,), fmt="P", transform_settings={0: setting})
 
 
+def test_transform_settings_are_not_modified_and_can_be_reused(img_5x5, mask_5x5):
+    settings = {1: {"interpolation": "bilinear"}}
+    for _ in range(2):
+        dc = slc.DataContainer((img_5x5, mask_5x5), "IM", settings)
+        assert dc.transform_settings[1]["interpolation"] == ("bilinear", "strict")
+    assert settings == {1: {"interpolation": "bilinear"}}
+
+
+def test_transform_settings_accept_already_parsed_settings(img_5x5, mask_5x5):
+    dc = slc.DataContainer((img_5x5, mask_5x5), "IM", {0: {"padding": "r"}, 1: {"interpolation": "bilinear"}})
+    dc_copy = slc.DataContainer(dc.data, dc.data_format, dc.transform_settings)
+    assert dc_copy.transform_settings == dc.transform_settings
+
+
+@pytest.mark.parametrize(
+    "ppl",
+    [
+        slt.Flip(p=1),
+        slt.Rotate(angle_range=(30, 30), p=1),
+        slc.Stream([slt.Rotate(angle_range=(30, 30), p=1), slt.Flip(p=1), slt.Rotate(angle_range=(30, 30), p=1)]),
+    ],
+)
+def test_transform_settings_are_kept_after_transforms(img_5x5, mask_5x5, ppl):
+    dc = slc.DataContainer((img_5x5, mask_5x5), "IM", {0: {"padding": "r"}, 1: {"interpolation": "bilinear"}})
+    dc_res = ppl(dc, return_torch=False) if isinstance(ppl, slc.Stream) else ppl(dc)
+    assert dc_res.transform_settings == dc.transform_settings
+
+
+def test_transform_settings_are_used_by_subsequent_transforms_in_stream():
+    mask = np.zeros((9, 9), dtype=np.float32)
+    mask[3:6, 3:6] = 1
+    rotate = slt.Rotate(angle_range=(30, 30), p=1)
+    settings = {0: {"interpolation": "bilinear"}}
+
+    dc_res = slc.Stream([rotate, rotate])(slc.DataContainer((mask,), "M", settings), return_torch=False)
+    expected = rotate(rotate(slc.DataContainer((mask,), "M", settings)))
+
+    assert np.array_equal(dc_res.data[0], expected.data[0])
+    # Bilinear interpolation produces values between 0 and 1, nearest would not
+    assert np.any((dc_res.data[0] > 0) & (dc_res.data[0] < 1))
+
+
+@pytest.mark.parametrize(
+    "mask_shape, expected_shape",
+    [
+        ((3, 4), (1, 3, 4)),
+        ((3, 4, 1), (1, 3, 4)),
+        ((3, 4, 5), (5, 3, 4)),
+        ((1, 4), (1, 1, 4)),
+        ((3, 1), (1, 3, 1)),
+    ],
+)
+def test_mask_to_torch_shape(mask_shape, expected_shape):
+    mask = np.random.rand(*mask_shape).astype(np.float32)
+    res = slc.DataContainer((mask,), "M").to_torch(as_dict=True)["mask"]
+    assert tuple(res.shape) == expected_shape
+    assert isinstance(res, torch.FloatTensor)
+    expected = mask[np.newaxis] if mask.ndim == 2 else mask.transpose((2, 0, 1))
+    assert np.array_equal(res.numpy(), expected)
+
+
 @pytest.mark.parametrize("ignore_state", [True, False])
 @pytest.mark.parametrize("pipeline", [True, False])
 def test_matrix_transforms_state_reset(img_5x5, ignore_state, pipeline):
