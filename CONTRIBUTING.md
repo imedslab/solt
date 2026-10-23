@@ -1,16 +1,30 @@
 # Contribution Guidelines
 
 ## Setting up the environment
-You need to make sure that you have the right setup. Install anaconda, and you can use the following script
-to setup your environment:
+The project is managed with [uv](https://docs.astral.sh/uv/). Install it first
+(e.g. `curl -LsSf https://astral.sh/uv/install.sh | sh` or `brew install uv`), then run:
 
 ```
-conda create -q -y -n solt_test_env python=3.11 pandoc
-source activate solt_test_env
-pip install -r ci/requirements.txt
-pip install pre-commit
-pre-commit install
-pip install -e .
+uv sync
+uv run pre-commit install
+```
+
+`uv sync` creates a virtual environment in `.venv`, installs `solt` in editable mode together with
+the `dev` dependency group (tests and linters), and resolves exactly the versions pinned in `uv.lock`.
+Prefix commands with `uv run` (e.g. `uv run pytest tests`) or activate the environment with
+`source .venv/bin/activate`.
+
+To use a specific Python version, pass it explicitly, e.g. `uv sync --python 3.11`.
+
+If you change dependencies in `pyproject.toml`, run `uv lock` and commit the updated `uv.lock`.
+
+### Building the documentation
+The docs need [pandoc](https://pandoc.org/installing.html) installed on your system
+(`brew install pandoc` or `sudo apt-get install pandoc`). Then:
+
+```
+uv sync --group docs
+cd doc && uv run make html
 ```
 
 ## Contributing
@@ -20,11 +34,16 @@ pip install -e .
 3. Make sure that your codecoverage is 100%. The criteria for merging into master is
 that all of the tests pass and that the codecoverage is 100%.
 
+To run the tests with coverage:
+```
+uv run pytest tests --cov solt
+```
+
 Before commiting commiting, execute these actions:
 ```
 git add .
-black --config=black.toml .  
-pre-commit
+uv run black --config=black.toml .
+uv run pre-commit
 ```
 
 If everything is alright, this will be the expected output:

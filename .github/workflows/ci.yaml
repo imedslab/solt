@@ -2,9 +2,9 @@ name: CI (Test & Lint)
 
 on:
   push:
-    branches: [master]
+    branches: [master, dev]
   pull_request:
-    branches: [master]
+    branches: [master, dev]
 
 jobs:
   test-all:
@@ -19,31 +19,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python-version }}
+          enable-cache: true
 
-      - name: Update pip
-        run: python -m pip install --upgrade pip
-
-      - name: Install wheel and build tools
-        run: python -m pip install --upgrade wheel build
-
-      - name: Install PyTorch and dependencies
-        run: |
-          pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-          pip install -r ci/requirements.txt
-          pip install . --no-deps
+      - name: Install dependencies
+        run: uv sync --locked
 
       - name: Run tests
-        run: pytest tests --cov solt --cov-report=xml --junitxml=./junit.xml
+        run: uv run pytest tests --cov solt --cov-report=xml --junitxml=./junit.xml
 
       - name: Check code formatting
-        run: black --config=black.toml --check .
+        run: uv run black --config=black.toml --check .
 
       - name: Run flake8 linter
-        run: flake8
+        run: uv run flake8
 
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}

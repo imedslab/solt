@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "solt"
+dynamic = ["version"]
+description = "Optimized data augmentation library for Deep Learning"
+readme = { text = """Data augmentation library for Deep Learning, which supports images, segmentation masks, labels and keypoints.
+Furthermore, SOLT is fast and has OpenCV in its backend.
+Full auto-generated docs and examples are available here: https://imedslab.github.io/solt/.
+""", content-type = "text/plain" }
+authors = [{ name = "Aleksei Tiulpin", email = "aleksei.tiulpin@oulu.fi" }]
+license = { text = "MIT license" }
+keywords = ["data augmentations", "deep learning"]
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+]
+dependencies = [
+    "numpy>=2.0.0",
+    "scipy>=1.13.0",
+    "opencv-python-headless>=4.6.0.66",
+    "torch>=2.6.0",
+    "torchvision>=0.21.0",
+    "pyyaml>=6.0.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/imedslab/solt"
+Documentation = "https://imedslab.github.io/solt/"
+
+[dependency-groups]
+dev = [
+    "black>=24.3.0",
+    "coverage==6.4.1",
+    "flake8>=4.0.1",
+    "pre-commit",
+    "pytest==7.1.2",
+    "pytest-cov==3.0.0",
+    "pytest-lazy-fixture==0.6.3",
+]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "nbsphinx",
+    "nbsphinx-link",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+# CPU-only PyTorch wheels on Linux/Windows; macOS wheels come from PyPI.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform != 'darwin'" }]
+torchvision = [{ index = "pytorch-cpu", marker = "sys_platform != 'darwin'" }]
+
+[tool.setuptools.dynamic]
+version = { attr = "solt.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["solt*"]

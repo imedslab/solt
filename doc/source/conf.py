@@ -31,7 +31,7 @@ author = "Aleksei Tiulpin"
 # The short X.Y version
 version = "v0.2"
 # The full version, including alpha/beta/rc tags
-release = "v0.2.0"
+release = "v0.2.2"
 
 
 # -- General configuration ---------------------------------------------------

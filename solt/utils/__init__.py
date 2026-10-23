@@ -4,7 +4,6 @@ from ._utils import img_shape_checker
 from ._utils import Serializable
 from ._utils import from_dict, from_json, from_yaml
 
-
 __all__ = [
     "from_json",
     "from_dict",

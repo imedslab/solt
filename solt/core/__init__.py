@@ -10,7 +10,6 @@ from ._base_transforms import (
 )
 from ._data import DataContainer, Keypoints
 
-
 __all__ = [
     "Stream",
     "SelectiveStream",
