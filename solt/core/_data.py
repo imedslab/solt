@@ -287,6 +287,9 @@ class DataContainer(object):
                 if el.dtype == np.uint16:
                     scale = 65535.0
                     el = el.astype(np.float32)
+                if el.ndim == 2:
+                    # HxW (grayscale) -> HxWx1
+                    el = el[:, :, np.newaxis]
                 img = torch.from_numpy(el.transpose((2, 0, 1))).div(scale)
                 if normalize:
                     if mean is None or std is None:

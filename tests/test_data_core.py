@@ -585,6 +585,22 @@ def test_transform_settings_are_used_by_subsequent_transforms_in_stream():
     assert np.any((dc_res.data[0] > 0) & (dc_res.data[0] < 1))
 
 
+@pytest.mark.parametrize("dtype, scale", [(np.uint8, 255.0), (np.uint16, 65535.0)])
+@pytest.mark.parametrize("normalize", [False, True])
+def test_grayscale_image_without_channel_axis_to_torch(dtype, scale, normalize):
+    img = np.random.randint(0, 255, (3, 4)).astype(dtype)
+    res = slc.DataContainer((img,), "I").to_torch(normalize=normalize, mean=(0.5,), std=(0.5,))
+    res_with_axis = slc.DataContainer((img[:, :, np.newaxis],), "I").to_torch(
+        normalize=normalize, mean=(0.5,), std=(0.5,)
+    )
+
+    assert tuple(res.shape) == (1, 3, 4)
+    assert isinstance(res, torch.FloatTensor)
+    assert torch.equal(res, res_with_axis)
+    if not normalize:
+        assert np.allclose(res[0].numpy(), img / scale)
+
+
 @pytest.mark.parametrize(
     "mask_shape, expected_shape",
     [
