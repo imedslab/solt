@@ -5,6 +5,8 @@ import pytest
 import sys, inspect
 import torch
 
+from pytest_lazy_fixtures import lf
+
 from .fixtures import *
 
 
@@ -21,11 +23,11 @@ def class_accepts(obj, parameter):
 
 
 def filter_trfs(trfs, parameter):
-    return filter(lambda t: class_accepts(t, parameter), trfs)
+    return [t for t in trfs if class_accepts(t, parameter)]
 
 
 def filter_trfs_subclass(trfs, superclass):
-    return filter(lambda t: issubclass(t, superclass), trfs)
+    return [t for t in trfs if issubclass(t, superclass)]
 
 
 all_trfs_solt = get_transforms_solt()
@@ -115,8 +117,8 @@ def test_transform_returns_original_data_if_not_in_specified_indices(trf, img_3x
 @pytest.mark.parametrize(
     "img_1,img_2",
     [
-        (pytest.lazy_fixture("img_2x2"), pytest.lazy_fixture("img_6x6")),
-        (pytest.lazy_fixture("img_3x3"), pytest.lazy_fixture("img_3x4")),
+        (lf("img_2x2"), lf("img_6x6")),
+        (lf("img_3x3"), lf("img_3x4")),
     ],
 )
 def test_data_dep_trf_raises_value_error_when_imgs_are_of_different_size(img_1, img_2):
@@ -156,9 +158,7 @@ def test_wrap_data_throws_a_type_error_when_unknown_type(data):
         slc.BaseTransform.wrap_data(data)
 
 
-@pytest.mark.parametrize(
-    "img", [pytest.lazy_fixture("img_2x2"), pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("img_7x7")]
-)
+@pytest.mark.parametrize("img", [lf("img_2x2"), lf("img_5x5"), lf("img_7x7")])
 def test_data_container_wraps_correctly(img):
     dc1 = slc.DataContainer(img, "I")
     dc2 = slc.DataContainer(img, "I")
@@ -167,7 +167,7 @@ def test_data_container_wraps_correctly(img):
 
 
 @pytest.mark.parametrize("return_torch", [False, True])
-@pytest.mark.parametrize("trf", filter(lambda t: not issubclass(t, (slt.HSV, slt.RandomResizedCrop)), all_trfs_solt))
+@pytest.mark.parametrize("trf", [t for t in all_trfs_solt if not issubclass(t, (slt.HSV, slt.RandomResizedCrop))])
 def test_transforms_return_torch(img_3x3, trf, return_torch):
     if "p" in inspect.getfullargspec(trf.__init__):
         trf: slc.BaseTransform = trf(p=1)

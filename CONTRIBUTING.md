@@ -14,9 +14,17 @@ the `dev` dependency group (tests and linters), and resolves exactly the version
 Prefix commands with `uv run` (e.g. `uv run pytest tests`) or activate the environment with
 `source .venv/bin/activate`.
 
-To use a specific Python version, pass it explicitly, e.g. `uv sync --python 3.11`.
+SOLT supports Python 3.12 and newer. To use a specific Python version, pass it explicitly,
+e.g. `uv sync --python 3.12`.
 
 If you change dependencies in `pyproject.toml`, run `uv lock` and commit the updated `uv.lock`.
+To upgrade all the locked versions, run `uv lock --upgrade`. The lower bounds in `pyproject.toml` are
+tested in CI as well; to check them locally, run in a copy of the repository (it rewrites `uv.lock`):
+
+```
+uv sync --resolution lowest-direct --python 3.12
+uv run --no-sync pytest tests
+```
 
 ### Building the documentation
 The docs need [pandoc](https://pandoc.org/installing.html) installed on your system
@@ -26,6 +34,14 @@ The docs need [pandoc](https://pandoc.org/installing.html) installed on your sys
 uv sync --group docs
 cd doc && uv run make html
 ```
+
+### Running the example notebooks
+```
+uv sync --group notebooks
+uv run jupyter lab notebooks/
+```
+
+All the notebooks except `Basics_of_solt.ipynb` need datasets in `notebooks/Data`.
 
 ## Contributing
 

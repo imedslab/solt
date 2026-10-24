@@ -13,28 +13,26 @@ Full auto-generated docs and examples are available here: https://imedslab.githu
 authors = [{ name = "Aleksei Tiulpin", email = "aleksei.tiulpin@oulu.fi" }]
 license = { text = "MIT license" }
 keywords = ["data augmentations", "deep learning"]
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: MacOS",
     "Operating System :: POSIX :: Linux",
 ]
 dependencies = [
-    "numpy>=2.0.0",
-    "scipy>=1.13.0",
-    "opencv-python-headless>=4.6.0.66",
-    "torch>=2.6.0",
-    "torchvision>=0.21.0",
-    "pyyaml>=6.0.2",
+    "numpy>=2.4.0",
+    "scipy>=1.17.0",
+    "opencv-python-headless>=4.13.0.90",
+    "torch>=2.9.0",
+    "torchvision>=0.24.0",
+    "pyyaml>=6.0.3",
 ]
 
 [project.urls]
@@ -43,19 +41,24 @@ Documentation = "https://imedslab.github.io/solt/"
 
 [dependency-groups]
 dev = [
-    "black>=24.3.0",
-    "coverage==6.4.1",
-    "flake8>=4.0.1",
-    "pre-commit",
-    "pytest==7.1.2",
-    "pytest-cov==3.0.0",
-    "pytest-lazy-fixture==0.6.3",
+    "black>=26.10.1",
+    "flake8>=7.4.1",
+    "pre-commit>=4.7.0",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "pytest-lazy-fixtures>=1.4.1",
 ]
 docs = [
-    "sphinx",
-    "sphinx-rtd-theme",
-    "nbsphinx",
-    "nbsphinx-link",
+    "sphinx>=8.2.0",
+    "sphinx-rtd-theme>=3.1.0",
+    "nbsphinx>=0.9.8",
+    "nbsphinx-link>=1.4.1",
+]
+# Running the example notebooks: uv run --group notebooks jupyter lab notebooks/
+notebooks = [
+    "jupyterlab>=4.6.4",
+    "matplotlib>=3.11.2",
+    "pandas>=3.1.0",
 ]
 
 [tool.uv]

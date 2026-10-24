@@ -12,6 +12,8 @@ import solt.transforms as slt
 import solt.utils as slu
 from solt.constants import ALLOWED_INTERPOLATIONS, ALLOWED_PADDINGS, DTYPES_MAX
 
+from pytest_lazy_fixtures import lf
+
 from .fixtures import *
 from .utils import gen_gs_img_black_edge
 
@@ -472,30 +474,30 @@ def _verify_resize_img_to_arbitrary_size(img, mask, resize_to):
 @pytest.mark.parametrize(
     "img, mask, resize_to",
     [
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("mask_6x6"), (20, 20)),
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("mask_6x6"), 20),
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("mask_6x6"), (3, 3)),
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("mask_6x6"), 3),
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("mask_6x6"), (5, 5)),
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("mask_6x6"), 5),
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("mask_6x6"), (4, 4)),
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("mask_6x6"), 4),
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("mask_6x6"), (7, 6)),
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("mask_6x6"), (5, 7)),
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("mask_6x6"), 6),
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("mask_6x6"), (2, 3)),
-        (pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("mask_5x5"), (20, 20)),
-        (pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("mask_5x5"), 20),
-        (pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("mask_5x5"), (3, 3)),
-        (pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("mask_5x5"), 3),
-        (pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("mask_5x5"), (5, 5)),
-        (pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("mask_5x5"), 5),
-        (pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("mask_5x5"), (4, 4)),
-        (pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("mask_5x5"), 4),
-        (pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("mask_5x5"), (7, 6)),
-        (pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("mask_5x5"), (5, 7)),
-        (pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("mask_5x5"), 6),
-        (pytest.lazy_fixture("img_5x5"), pytest.lazy_fixture("mask_5x5"), (2, 3)),
+        (lf("img_6x6"), lf("mask_6x6"), (20, 20)),
+        (lf("img_6x6"), lf("mask_6x6"), 20),
+        (lf("img_6x6"), lf("mask_6x6"), (3, 3)),
+        (lf("img_6x6"), lf("mask_6x6"), 3),
+        (lf("img_6x6"), lf("mask_6x6"), (5, 5)),
+        (lf("img_6x6"), lf("mask_6x6"), 5),
+        (lf("img_6x6"), lf("mask_6x6"), (4, 4)),
+        (lf("img_6x6"), lf("mask_6x6"), 4),
+        (lf("img_6x6"), lf("mask_6x6"), (7, 6)),
+        (lf("img_6x6"), lf("mask_6x6"), (5, 7)),
+        (lf("img_6x6"), lf("mask_6x6"), 6),
+        (lf("img_6x6"), lf("mask_6x6"), (2, 3)),
+        (lf("img_5x5"), lf("mask_5x5"), (20, 20)),
+        (lf("img_5x5"), lf("mask_5x5"), 20),
+        (lf("img_5x5"), lf("mask_5x5"), (3, 3)),
+        (lf("img_5x5"), lf("mask_5x5"), 3),
+        (lf("img_5x5"), lf("mask_5x5"), (5, 5)),
+        (lf("img_5x5"), lf("mask_5x5"), 5),
+        (lf("img_5x5"), lf("mask_5x5"), (4, 4)),
+        (lf("img_5x5"), lf("mask_5x5"), 4),
+        (lf("img_5x5"), lf("mask_5x5"), (7, 6)),
+        (lf("img_5x5"), lf("mask_5x5"), (5, 7)),
+        (lf("img_5x5"), lf("mask_5x5"), 6),
+        (lf("img_5x5"), lf("mask_5x5"), (2, 3)),
     ],
 )
 def test_resize_img_to_arbitrary_size(img, mask, resize_to):
@@ -1282,8 +1284,8 @@ def test_intensity_remap_values():
 @pytest.mark.parametrize(
     "img, expected",
     [
-        (pytest.lazy_fixture("img_3x3"), does_not_raise()),
-        (pytest.lazy_fixture("img_3x3_rgb"), pytest.raises(ValueError)),
+        (lf("img_3x3"), does_not_raise()),
+        (lf("img_3x3_rgb"), pytest.raises(ValueError)),
     ],
 )
 def test_intensity_remap_channels(img, expected):
@@ -1297,10 +1299,10 @@ def test_intensity_remap_channels(img, expected):
 @pytest.mark.parametrize(
     "img, dtype, expected",
     [
-        (pytest.lazy_fixture("img_3x3"), np.int8, pytest.raises(ValueError)),
-        (pytest.lazy_fixture("img_3x3"), np.uint16, pytest.raises(ValueError)),
-        (pytest.lazy_fixture("img_3x3"), float, pytest.raises(ValueError)),
-        (pytest.lazy_fixture("img_3x3"), np.bool_, pytest.raises(ValueError)),
+        (lf("img_3x3"), np.int8, pytest.raises(ValueError)),
+        (lf("img_3x3"), np.uint16, pytest.raises(ValueError)),
+        (lf("img_3x3"), float, pytest.raises(ValueError)),
+        (lf("img_3x3"), np.bool_, pytest.raises(ValueError)),
     ],
 )
 def test_intensity_remap_dtypes(img, dtype, expected):
@@ -1314,12 +1316,12 @@ def test_intensity_remap_dtypes(img, dtype, expected):
 @pytest.mark.parametrize(
     "mode, img, expected",
     [
-        ("none", pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("img_6x6")),
-        ("none", pytest.lazy_fixture("img_6x6_rgb"), pytest.lazy_fixture("img_6x6_rgb")),
-        ("gs2rgb", pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("img_6x6_rgb")),
-        # ("gs2rgb", pytest.lazy_fixture("img_6x6_rgb"), pytest.lazy_fixture("img_6x6_rgb")),
-        # ("rgb2gs", pytest.lazy_fixture("img_6x6_rgb"), pytest.lazy_fixture("img_6x6")),
-        # ("rgb2gs", pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("img_6x6")),
+        ("none", lf("img_6x6"), lf("img_6x6")),
+        ("none", lf("img_6x6_rgb"), lf("img_6x6_rgb")),
+        ("gs2rgb", lf("img_6x6"), lf("img_6x6_rgb")),
+        # ("gs2rgb", lf("img_6x6_rgb"), lf("img_6x6_rgb")),
+        # ("rgb2gs", lf("img_6x6_rgb"), lf("img_6x6")),
+        # ("rgb2gs", lf("img_6x6"), lf("img_6x6")),
     ],
 )
 def test_cvt_color_returns_expected_results(mode, img, expected):
@@ -1332,8 +1334,8 @@ def test_cvt_color_returns_expected_results(mode, img, expected):
 @pytest.mark.parametrize(
     "img, expected",
     [
-        (pytest.lazy_fixture("img_6x6_rgb"), pytest.lazy_fixture("img_6x6_rgb")),
-        (pytest.lazy_fixture("img_6x6"), pytest.lazy_fixture("img_6x6")),
+        (lf("img_6x6_rgb"), lf("img_6x6_rgb")),
+        (lf("img_6x6"), lf("img_6x6")),
     ],
 )
 def test_cvtcolor_keeps_dimensions(img, expected):
@@ -1411,12 +1413,12 @@ def test_different_interpolations_per_item_per_transform(img_6x6, transform_sett
 @pytest.mark.parametrize(
     "img, expected, cut_size",
     [
-        (pytest.lazy_fixture("img_7x7"), np.zeros((7, 7, 1), dtype=np.uint8), 7),
-        (pytest.lazy_fixture("img_6x6"), np.zeros((6, 6, 1), dtype=np.uint8), 6),
-        (pytest.lazy_fixture("img_6x6_rgb"), np.zeros((6, 6, 3), dtype=np.uint8), 6),
-        (pytest.lazy_fixture("img_7x7"), np.zeros((7, 7, 1), dtype=np.uint8), 1.0),
-        (pytest.lazy_fixture("img_6x6"), np.zeros((6, 6, 1), dtype=np.uint8), 1.0),
-        (pytest.lazy_fixture("img_6x6_rgb"), np.zeros((6, 6, 3), dtype=np.uint8), 1.0),
+        (lf("img_7x7"), np.zeros((7, 7, 1), dtype=np.uint8), 7),
+        (lf("img_6x6"), np.zeros((6, 6, 1), dtype=np.uint8), 6),
+        (lf("img_6x6_rgb"), np.zeros((6, 6, 3), dtype=np.uint8), 6),
+        (lf("img_7x7"), np.zeros((7, 7, 1), dtype=np.uint8), 1.0),
+        (lf("img_6x6"), np.zeros((6, 6, 1), dtype=np.uint8), 1.0),
+        (lf("img_6x6_rgb"), np.zeros((6, 6, 3), dtype=np.uint8), 1.0),
     ],
 )
 def test_cutout_blacks_out_image(img, expected, cut_size):
