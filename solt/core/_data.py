@@ -591,6 +591,9 @@ class BoundingBoxes(object):
 
         if labels is not None:
             labels = np.asarray(labels)
+            if labels.size == 0 and labels.dtype == np.float64:
+                # An empty list has no type, the labels of objects are integers
+                labels = labels.astype(np.int64)
             if labels.shape != (boxes.shape[0],):
                 raise ValueError("There must be one label per bounding box!")
 

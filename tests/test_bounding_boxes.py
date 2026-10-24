@@ -323,3 +323,37 @@ def test_bounding_boxes_comparison():
     assert bboxes != slc.BoundingBoxes(BOXES, H, W + 1, labels=[1, 2])
     assert bboxes != slc.BoundingBoxes(BOXES, H, W)
     assert slc.BoundingBoxes(BOXES, H, W) == slc.BoundingBoxes(BOXES, H, W)
+
+
+@pytest.fixture(
+    params=[
+        ([], torch.int64),
+        ((), torch.int64),
+        (np.array([], dtype=np.int32), torch.int64),
+        (np.array([], dtype=np.uint8), torch.int64),
+        (np.array([], dtype=str), list),
+    ],
+    ids=["list", "tuple", "int32_array", "uint8_array", "str_array"],
+)
+def empty_labels(request):
+    return request.param
+
+
+def test_bounding_boxes_without_objects_to_torch(empty_labels):
+    labels, expected_type = empty_labels
+    bboxes = slc.BoundingBoxes(np.zeros((0, 4)), H, W, labels=labels)
+    target = slc.DataContainer((bboxes,), "B").to_torch(as_dict=True)["bboxes"]
+    assert target["boxes"].shape == (0, 4)
+    if expected_type is list:
+        assert target["labels"] == []
+    else:
+        assert target["labels"].dtype == expected_type
+        assert target["labels"].shape == (0,)
+
+
+def test_all_boxes_dropped_keep_integer_labels():
+    img = np.zeros((100, 100, 3), dtype=np.uint8)
+    bboxes = slc.BoundingBoxes([[10, 10, 30, 30]], 100, 100, labels=[3])
+    res = slc.Stream([slt.Crop(crop_to=50, crop_mode="rb")])({"image": img, "bboxes": bboxes}, normalize=False)
+    assert res["bboxes"]["boxes"].shape == (0, 4)
+    assert res["bboxes"]["labels"].dtype == torch.int64
