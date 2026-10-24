@@ -8,7 +8,9 @@ import copy
 import random
 
 from solt.utils import Serializable
-from ._data import DataContainer
+import numbers
+
+from ._data import BoundingBoxes, DataContainer
 
 
 class Stream(Serializable):
@@ -55,6 +57,19 @@ class Stream(Serializable):
         Whether the transforms may modify the input arrays in place. Transforms do not copy the data unless
         necessary, e.g. ``CutOut`` writes into the image it receives, and ``Crop`` returns a view. If ``False``, the
         stream copies the input data once before applying the transforms, so the original arrays stay unchanged.
+    max_bbox_area_loss : float or None
+        Bounding boxes are dropped (with their labels), if their area at the end of the stream is smaller than at its
+        start by more than this fraction. ``0.9`` by default, i.e. the boxes, which lost more than 90% of their area,
+        e.g. by cropping or downscaling, are dropped. ``None`` disables this check.
+    max_bbox_outside : float or None
+        Bounding boxes are dropped (with their labels), if more than this fraction of their area is outside the image
+        at the end of the stream. ``0.5`` by default. ``None`` disables this check.
+
+    Notes
+    -----
+    The transforms move the bounding boxes without clipping them. At the end, the stream clips the boxes to the image
+    and drops the ones, which exceed ``max_bbox_area_loss`` or ``max_bbox_outside``. Nested streams leave this to the
+    outermost one.
 
     """
 
@@ -71,6 +86,8 @@ class Stream(Serializable):
         ignore_fast_mode=False,
         shuffle=False,
         in_place=True,
+        max_bbox_area_loss=0.9,
+        max_bbox_outside=0.5,
     ):
         super(Stream, self).__init__()
 
@@ -82,6 +99,8 @@ class Stream(Serializable):
                 raise TypeError("Unknown transform type found in the Stream!")
         self.shuffle = shuffle
         self.in_place = in_place
+        self.max_bbox_area_loss = Stream._validate_fraction(max_bbox_area_loss, "max_bbox_area_loss")
+        self.max_bbox_outside = Stream._validate_fraction(max_bbox_outside, "max_bbox_outside")
         self.optimize_stack = optimize_stack
         self.interpolation = interpolation
         self.padding = padding
@@ -189,7 +208,10 @@ class Stream(Serializable):
         """
 
         data = self.wrap_data(data)
-        res: DataContainer = Stream.exec_stream(self.transforms, data, self.optimize_stack, self.shuffle)
+        bboxes = [item for item, t, _ in data if t == "B"]
+        res: DataContainer = self._apply(data)
+        if bboxes:
+            res = self.filter_bboxes(bboxes, res)
 
         if return_torch:
             return res.to_torch(
@@ -237,6 +259,81 @@ class Stream(Serializable):
         if len(transforms_stack) > 0:
             transforms_stack[-1].correct_transform()
         return transforms_stack
+
+    @staticmethod
+    def _validate_fraction(value, name):
+        if value is None:
+            return None
+        if not isinstance(value, numbers.Real) or isinstance(value, bool):
+            raise TypeError(f"{name} must be a number or None!")
+        if not 0 <= value <= 1:
+            raise ValueError(f"{name} must be between 0 and 1!")
+        return value
+
+    def _apply(self, data):
+        """
+        Applies the transforms of the stream to a data container, without the final processing of ``__call__``.
+
+        Parameters
+        ----------
+        data : DataContainer
+            Data to be augmented
+
+        Returns
+        -------
+        out : DataContainer
+            Result
+
+        """
+        return Stream.exec_stream(self.transforms, data, self.optimize_stack, self.shuffle)
+
+    def filter_bboxes(self, bboxes_before, data):
+        """
+        Clips the bounding boxes to the image, and drops the ones, which exceed ``max_bbox_area_loss`` or
+        ``max_bbox_outside``, together with their labels.
+
+        Parameters
+        ----------
+        bboxes_before : list of BoundingBoxes
+            Bounding boxes of the data container before the transforms, in the same order.
+        data : DataContainer
+            Data container after the transforms.
+
+        Returns
+        -------
+        out : DataContainer
+            Data container with the clipped and filtered bounding boxes.
+
+        """
+        items = []
+        bboxes_before = iter(bboxes_before)
+        for item, t, _ in data:
+            if t == "B":
+                item = self._filter_bboxes(next(bboxes_before), item)
+            items.append(item)
+        return DataContainer(tuple(items), data.data_format, data.transform_settings)
+
+    def _filter_bboxes(self, before, after):
+        boxes = after.data
+        clipped = boxes.copy()
+        clipped[:, [0, 2]] = np.clip(clipped[:, [0, 2]], 0, after.width)
+        clipped[:, [1, 3]] = np.clip(clipped[:, [1, 3]], 0, after.height)
+        areas, clipped_areas = after.areas(), BoundingBoxes(clipped, after.height, after.width).areas()
+
+        keep = np.ones(len(after), dtype=bool)
+        if self.max_bbox_area_loss is not None:
+            keep &= clipped_areas >= (1 - self.max_bbox_area_loss) * before.areas()
+        if self.max_bbox_outside is not None:
+            # Boxes without an area are outside if clipping moves them
+            outside = np.where(
+                areas > 0,
+                1 - clipped_areas / np.where(areas > 0, areas, 1),
+                np.any(clipped != boxes, axis=1).astype(float),
+            )
+            keep &= outside <= self.max_bbox_outside
+
+        labels = None if after.labels is None else after.labels[keep]
+        return BoundingBoxes(clipped[keep], after.height, after.width, labels=labels)
 
     def wrap_data(self, data):
         """
@@ -295,7 +392,8 @@ class Stream(Serializable):
                 else:
                     data = trf.apply(data)
             elif isinstance(trf, Stream):
-                data = trf(data, return_torch=False)
+                # Nested streams leave the final processing, e.g. of the bounding boxes, to the outermost stream
+                data = trf._apply(trf.wrap_data(data))
             else:
                 raise TypeError("Unknown transform type found in the Stream!")
         return data
@@ -318,6 +416,8 @@ class SelectiveStream(Stream):
         optimize_stack=False,
         ignore_fast_mode=False,
         in_place=True,
+        max_bbox_area_loss=0.9,
+        max_bbox_outside=0.5,
     ):
         """
         Constructor.
@@ -337,12 +437,18 @@ class SelectiveStream(Stream):
             Whether to ignore the fast mode. This option enables full geometric transforms.
         in_place : bool
             Whether the transforms may modify the input arrays in place. See ``Stream``.
+        max_bbox_area_loss : float or None
+            Maximal fraction of the area, which the bounding boxes may lose. See ``Stream``.
+        max_bbox_outside : float or None
+            Maximal fraction of the area of the bounding boxes outside the image. See ``Stream``.
         """
         super(SelectiveStream, self).__init__(
             transforms=transforms,
             optimize_stack=optimize_stack,
             ignore_fast_mode=ignore_fast_mode,
             in_place=in_place,
+            max_bbox_area_loss=max_bbox_area_loss,
+            max_bbox_outside=max_bbox_outside,
         )
         if transforms is None:
             transforms = []
@@ -354,45 +460,21 @@ class SelectiveStream(Stream):
         self.n = n
         self.probs = probs
 
-    def __call__(
-        self,
-        data,
-        return_torch=True,
-        as_dict=True,
-        scale_keypoints=True,
-        normalize=True,
-        mean=None,
-        std=None,
-    ):
+    def _apply(self, data):
         """
-        Applies randomly selected n transforms to the given data item
+        Applies randomly selected n transforms to the given data container.
 
         Parameters
         ----------
         data : DataContainer
             Data to be augmented
-        return_torch : bool
-            Whether to convert the result into a torch tensors
-        as_dict : bool
-            Whether to pool the results into a dict. See ``solt.core.DataContainer.to_dict``
-            for details.
-        scale_keypoints : bool
-            Whether to scale the keypoints into 0-1 range
-        normalize : bool
-            Whether to normalize the resulting tensor. If mean or std args are None,
-            ImageNet statistics will be used
-        mean : None or tuple of float or np.ndarray or torch.FloatTensor
-            Mean to subtract for the converted tensor
-        std : None or tuple of float or np.ndarray or torch.FloatTensor
-            Mean to subtract for the converted tensor
 
         Returns
         -------
         out : DataContainer
             Result
-        """
-        data = self.wrap_data(data)
 
+        """
         if len(self.transforms) > 0:
             random_state = np.random.RandomState(random.randint(0, 2**32 - 1))
             if isinstance(self.n, tuple):
@@ -405,14 +487,4 @@ class SelectiveStream(Stream):
                 trfs = [copy.deepcopy(x) for x in trfs]
                 trfs = Stream.optimize_transforms_stack(trfs, data)
             data = Stream.exec_stream(trfs, data, self.optimize_stack)
-
-        if return_torch:
-            return data.to_torch(
-                as_dict=as_dict,
-                scale_keypoints=scale_keypoints,
-                normalize=normalize,
-                mean=mean,
-                std=std,
-            )
-
         return data

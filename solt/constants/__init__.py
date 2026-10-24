@@ -9,7 +9,7 @@ Constants module
 
     Defines the allowed types to be stored in a DataCantainer. Can be
     ``'I'`` - image, ``'M'`` - mask, ``'D'`` - distance map (e.g. signed distance field),
-    ``'L'`` - labels, ``'P'`` - Keypoints.
+    ``'L'`` - labels, ``'P'`` - Keypoints, ``'B'`` - bounding boxes.
 
 .. data:: ALLOWED_CROPS
 

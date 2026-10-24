@@ -8,13 +8,14 @@ from ._base_transforms import (
     InterpolationPropertyHolder,
     ImageTransform,
 )
-from ._data import DataContainer, Keypoints
+from ._data import BoundingBoxes, DataContainer, Keypoints
 
 __all__ = [
     "Stream",
     "SelectiveStream",
     "DataContainer",
     "Keypoints",
+    "BoundingBoxes",
     "BaseTransform",
     "MatrixTransform",
     "PaddingPropertyHolder",

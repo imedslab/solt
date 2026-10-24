@@ -153,10 +153,13 @@ class DataContainer(object):
                 if obj.ndim not in (2, 3):
                     raise ValueError("Distance maps must be HxW or HxWxC arrays!")
 
+            if t == "B" and not isinstance(obj, BoundingBoxes):
+                raise TypeError("Bounding boxes must be stored in a BoundingBoxes object!")
+
             if t in ("M", "I", "D"):
                 h = obj.shape[0]
                 w = obj.shape[1]
-            elif t == "P":
+            elif t == "P" or t == "B":
                 h = obj.height
                 w = obj.width
             elif t == "L":
@@ -193,6 +196,9 @@ class DataContainer(object):
                 data.append(item.copy())
             elif t == "P":
                 data.append(Keypoints(item.data.copy(), item.height, item.width))
+            elif t == "B":
+                labels = None if item.labels is None else item.labels.copy()
+                data.append(BoundingBoxes(item.data.copy(), item.height, item.width, labels=labels))
             else:
                 data.append(copy.copy(item))
         return DataContainer(tuple(data), self.data_format, self.transform_settings)
@@ -218,13 +224,14 @@ class DataContainer(object):
         ``image`` data will be stored first. Subsequently, multiple images under the key ``images``
         will be stored. The same applies to masks (first ``mask`` and then ``masks``),
         distance maps (``distance_map`` and ``distance_maps``), labels (``label`` and ``labels``),
-        and the keypoints (``keypoints`` and ``keypoints_array``).
+        the keypoints (``keypoints`` and ``keypoints_array``) and the bounding boxes (``bboxes`` and
+        ``bboxes_array``). The bounding boxes must be stored in ``solt.core.BoundingBoxes`` objects.
         You must use ``solt.data.KeyPoints`` object here. Labels will always be stored last.
 
         For example, if the input ``dict`` looks like this: ``d = {'label': l1, 'image': i1, 'mask': m1}`` or
         ``d = {'mask': m1, 'image': i1, 'label': l1}``, the ``DataContainer`` will convert this
         into ``sld.DataContainer((i1, m1, l1), 'IML')``. The order of the types is images, masks, distance maps,
-        keypoints and labels.
+        keypoints, bounding boxes and labels.
 
         More complex case:
 
@@ -283,6 +290,12 @@ class DataContainer(object):
         if "keypoints_array" in data:
             dc_content.extend(data["keypoints_array"])
             dc_format.extend("P" * len(data["keypoints_array"]))
+        if "bboxes" in data:
+            dc_content.append(data["bboxes"])
+            dc_format.append("B")
+        if "bboxes_array" in data:
+            dc_content.extend(data["bboxes_array"])
+            dc_format.extend("B" * len(data["bboxes_array"]))
         if "label" in data:
             dc_content.append(data["label"])
             dc_format.append("L")
@@ -329,7 +342,9 @@ class DataContainer(object):
             Whether to return the result as a dictionary. If a single item is present, then the singular naming
             will be used. If plural, then the plural will be used. The items will be stored and
             sorted a similar manner to the method ``from_dict``: images, masks, distance maps, keypoints_array,
-            and labels.
+            bounding boxes and labels. Bounding boxes become dicts with ``boxes`` (``Nx4`` ``float32`` tensor in the
+            VOC format, in pixels) and ``labels`` (``int64`` tensor for integer labels), the target format of the
+            detection models of torchvision.
             The same applies to a singular case/
         scale_keypoints : bool
             Whether to scale keypoints to 0-1 range. ``True`` by default.
@@ -345,6 +360,7 @@ class DataContainer(object):
             "masks": list(),
             "distance_maps": list(),
             "keypoints_array": list(),
+            "bboxes_array": list(),
             "labels": list(),
         }
         not_as_dict = []
@@ -382,6 +398,18 @@ class DataContainer(object):
                     landmarks[:, 1] /= el.height - 1
                 res_dict["keypoints_array"].append(landmarks)
                 not_as_dict.append(landmarks)
+            elif f == "B":
+                # The target format of the detection models of torchvision
+                target = {"boxes": torch.from_numpy(el.data.astype(np.float32))}
+                if el.labels is not None:
+                    if np.issubdtype(el.labels.dtype, np.integer) or np.issubdtype(el.labels.dtype, np.bool_):
+                        target["labels"] = torch.from_numpy(el.labels.astype(np.int64))
+                    elif np.issubdtype(el.labels.dtype, np.floating):
+                        target["labels"] = torch.from_numpy(el.labels)
+                    else:
+                        target["labels"] = el.labels.tolist()
+                res_dict["bboxes_array"].append(target)
+                not_as_dict.append(target)
             elif f == "L":
                 res_dict["labels"].append(el)
                 not_as_dict.append(el)
@@ -414,6 +442,11 @@ class DataContainer(object):
             res["keypoints"] = res_dict["keypoints_array"][0]
         elif len(res_dict["keypoints_array"]) > 1:
             res["keypoints_array"] = res_dict["keypoints_array"]
+
+        if len(res_dict["bboxes_array"]) == 1:
+            res["bboxes"] = res_dict["bboxes_array"][0]
+        elif len(res_dict["bboxes_array"]) > 1:
+            res["bboxes_array"] = res_dict["bboxes_array"]
 
         if len(res_dict["labels"]) == 1:
             res["label"] = res_dict["labels"][0]
@@ -508,3 +541,136 @@ class Keypoints(object):
         data_equal = np.array_equal(self.data, other.data)
 
         return dim_equal and data_equal
+
+
+class BoundingBoxes(object):
+    """
+    Bounding boxes, optionally with a label for every box.
+
+    The boxes are stored in the VOC format: ``x_min, y_min, x_max, y_max``, in continuous pixel coordinates,
+    i.e. the image spans ``[0, width] x [0, height]``, and the pixel ``i`` covers ``[i, i + 1)``.
+    The transforms move the corners of the boxes, and the result is the box enclosing the transformed corners.
+    ``Stream`` clips the boxes to the image and drops the ones, which became too small (see ``Stream``).
+    The labels of the dropped boxes are dropped as well.
+
+    Parameters
+    ----------
+    boxes : numpy.ndarray or list
+        Boxes ``Nx4`` in the format ``fmt``.
+    height : int
+        Height of the coordinate frame.
+    width : int
+        Width of the coordinate frame.
+    fmt : str
+        Format of ``boxes``: ``'voc'`` (``x_min, y_min, x_max, y_max``), ``'coco'`` (``x_min, y_min, width,
+        height``), ``'cxcywh'`` (``x_center, y_center, width, height``) or ``'yolo'`` (``x_center, y_center, width,
+        height``, as fractions of the image size).
+    labels : numpy.ndarray or list or None
+        Labels of the boxes, one per box.
+
+    """
+
+    FORMATS = ("voc", "coco", "cxcywh", "yolo")
+
+    def __init__(self, boxes=None, height=None, width=None, fmt="voc", labels=None):
+        if fmt not in self.FORMATS:
+            raise ValueError(f"Unknown format of bounding boxes: {fmt}. Allowed: {self.FORMATS}")
+        for size in (height, width):
+            if not isinstance(size, numbers.Real) or size <= 0:
+                raise ValueError("Height and width of bounding boxes must be positive numbers!")
+
+        boxes = np.zeros((0, 4)) if boxes is None else np.array(boxes, dtype=float)
+        if boxes.size == 0:
+            boxes = boxes.reshape((0, 4))
+        if boxes.ndim != 2 or boxes.shape[1] != 4:
+            raise ValueError("Bounding boxes must be an Nx4 array!")
+
+        boxes = BoundingBoxes._to_voc(boxes, fmt, height, width)
+        if np.any(boxes[:, 2] < boxes[:, 0]) or np.any(boxes[:, 3] < boxes[:, 1]):
+            raise ValueError("Bounding boxes must have x_max >= x_min and y_max >= y_min!")
+
+        if labels is not None:
+            labels = np.asarray(labels)
+            if labels.shape != (boxes.shape[0],):
+                raise ValueError("There must be one label per bounding box!")
+
+        self.__data = boxes
+        self.__height = height
+        self.__width = width
+        self.__labels = labels
+
+    @staticmethod
+    def _to_voc(boxes, fmt, height, width):
+        boxes = boxes.copy()
+        if fmt == "yolo":
+            boxes[:, [0, 2]] *= width
+            boxes[:, [1, 3]] *= height
+        if fmt == "coco":
+            boxes[:, 2:] += boxes[:, :2]
+        elif fmt in ("cxcywh", "yolo"):
+            centers, sizes = boxes[:, :2].copy(), boxes[:, 2:].copy()
+            boxes[:, :2] = centers - sizes / 2
+            boxes[:, 2:] = centers + sizes / 2
+        return boxes
+
+    def to(self, fmt):
+        """
+        Returns the boxes in a given format.
+
+        Parameters
+        ----------
+        fmt : str
+            ``'voc'``, ``'coco'``, ``'cxcywh'`` or ``'yolo'``.
+
+        Returns
+        -------
+        out : numpy.ndarray
+            Boxes ``Nx4``
+
+        """
+        if fmt not in self.FORMATS:
+            raise ValueError(f"Unknown format of bounding boxes: {fmt}. Allowed: {self.FORMATS}")
+        boxes = self.__data.copy()
+        if fmt == "voc":
+            return boxes
+        sizes = boxes[:, 2:] - boxes[:, :2]
+        if fmt == "coco":
+            return np.hstack([boxes[:, :2], sizes])
+        res = np.hstack([boxes[:, :2] + sizes / 2, sizes])
+        if fmt == "yolo":
+            res[:, [0, 2]] /= self.__width
+            res[:, [1, 3]] /= self.__height
+        return res
+
+    def areas(self):
+        """Areas of the boxes in pixels."""
+        return (self.__data[:, 2] - self.__data[:, 0]) * (self.__data[:, 3] - self.__data[:, 1])
+
+    @property
+    def data(self):
+        """Boxes ``Nx4`` in the VOC format."""
+        return self.__data
+
+    @property
+    def labels(self):
+        return self.__labels
+
+    @property
+    def height(self):
+        return self.__height
+
+    @property
+    def width(self):
+        return self.__width
+
+    def __len__(self):
+        return self.__data.shape[0]
+
+    def __eq__(self, other):
+        if not isinstance(other, BoundingBoxes):
+            return False
+        if (self.height, self.width) != (other.height, other.width) or not np.array_equal(self.data, other.data):
+            return False
+        if self.labels is None or other.labels is None:
+            return self.labels is None and other.labels is None
+        return np.array_equal(self.labels, other.labels)

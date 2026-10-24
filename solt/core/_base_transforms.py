@@ -6,7 +6,7 @@ import numpy as np
 
 from solt.utils import Serializable
 from solt.constants import ALLOWED_INTERPOLATIONS, ALLOWED_PADDINGS
-from ._data import DataContainer, Keypoints
+from ._data import BoundingBoxes, DataContainer, Keypoints
 from solt.utils import (
     distance_map_border,
     distance_map_handler,
@@ -116,6 +116,8 @@ class BaseTransform(Serializable, metaclass=ABCMeta):
                     tmp_item = self._apply_distance_map(item, item_settings)
                 elif t == "P":  # Points
                     tmp_item = self._apply_pts(item, item_settings)
+                elif t == "B":  # Bounding boxes
+                    tmp_item = self._apply_bboxes(item, item_settings)
                 elif t == "L":  # Labels
                     tmp_item = self._apply_labels(item, item_settings)
             else:
@@ -123,7 +125,7 @@ class BaseTransform(Serializable, metaclass=ABCMeta):
                     tmp_item = item.copy()
                 elif t == "L":
                     tmp_item = copy.copy(item)
-                elif t == "P":
+                elif t == "P" or t == "B":
                     tmp_item = copy.copy(item)
 
             types.append(t)
@@ -259,6 +261,34 @@ class BaseTransform(Serializable, metaclass=ABCMeta):
         """
         raise NotImplementedError(f"{self.__class__.__name__} does not support distance maps!")
 
+    def _apply_bboxes(self, bboxes: BoundingBoxes, settings: dict):
+        """
+        Method, which determines the transform's behaviour when it is applied to bounding boxes.
+
+        The corners of the boxes are transformed as keypoints, and the result is the box enclosing the transformed
+        corners. The boxes are neither clipped nor dropped here, ``Stream`` does it at the end.
+
+        Parameters
+        ----------
+        bboxes : BoundingBoxes
+            Bounding boxes to be augmented
+        settings : dict
+            Item-wise settings
+
+        Returns
+        -------
+        out : BoundingBoxes
+            Result
+
+        """
+        boxes = bboxes.data
+        corners = np.stack([boxes[:, [0, 1]], boxes[:, [2, 1]], boxes[:, [2, 3]], boxes[:, [0, 3]]], axis=1)
+        # Keypoints are the centres of pixels, while the coordinates of the boxes are continuous
+        pts = self._apply_pts(Keypoints(corners.reshape(-1, 2) - 0.5, bboxes.height, bboxes.width), settings)
+        corners = pts.data.reshape(-1, 4, 2) + 0.5
+        boxes = np.concatenate([corners.min(axis=1), corners.max(axis=1)], axis=1)
+        return BoundingBoxes(boxes, pts.height, pts.width, labels=bboxes.labels)
+
     @abstractmethod
     def _apply_labels(self, labels, settings: np.ndarray):
         """
@@ -311,6 +341,9 @@ class ImageTransform(BaseTransform):
 
     def _apply_pts(self, pts: Keypoints, settings: dict):
         return pts
+
+    def _apply_bboxes(self, bboxes: BoundingBoxes, settings: dict):
+        return bboxes
 
     def _apply_labels(self, labels, settings: dict):
         return labels

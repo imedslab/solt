@@ -186,7 +186,9 @@ def test_stream_serializes_all_args_are_set():
     assert "transforms" in serialized
     assert "shuffle" in serialized
     assert "in_place" in serialized
-    assert len(serialized) == 7
+    assert "max_bbox_area_loss" in serialized
+    assert "max_bbox_outside" in serialized
+    assert len(serialized) == 9
 
     trfs = serialized["transforms"]
     for i, el in enumerate(trfs):
