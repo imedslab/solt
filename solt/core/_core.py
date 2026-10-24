@@ -392,8 +392,12 @@ class Stream(Serializable):
                 else:
                     data = trf.apply(data)
             elif isinstance(trf, Stream):
-                # Nested streams leave the final processing, e.g. of the bounding boxes, to the outermost stream
-                data = trf._apply(trf.wrap_data(data))
+                if type(trf).__call__ is Stream.__call__:
+                    # Nested streams leave the final processing, e.g. of the bounding boxes, to the outermost stream
+                    data = trf._apply(trf.wrap_data(data))
+                else:
+                    # A stream with its own __call__ must still run its logic
+                    data = trf(data, return_torch=False)
             else:
                 raise TypeError("Unknown transform type found in the Stream!")
         return data

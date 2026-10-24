@@ -959,3 +959,37 @@ def test_selective_stream_optimize_stack_applies_all_selected_transforms(commuti
         stream = slc.SelectiveStream(commuting_matrix_transforms(), n=2, optimize_stack=True)
         res = stream(slc.DataContainer((keypoints_frame,), "P"), return_torch=False).data[0]
         np.testing.assert_allclose(res.data, expected.data, atol=1e-6)
+
+
+class _StreamWithCustomCall(slc.Stream):
+    """A user stream, which overrides __call__ (the way SelectiveStream used to be implemented)."""
+
+    def __call__(self, data, return_torch=True, **kwargs):
+        data = slc.BaseTransform.wrap_data(data)
+        img = data.data[0]
+        return slc.DataContainer((img + 1,), "I")
+
+
+class _StreamWithCustomApply(slc.Stream):
+    def _apply(self, data):
+        return slc.DataContainer((data.data[0] + 1,), "I")
+
+
+@pytest.fixture(
+    params=[
+        (lambda: _StreamWithCustomCall(), 1),
+        (lambda: _StreamWithCustomApply(), 1),
+        (lambda: slc.Stream([slt.Brightness(brightness_range=(1, 1), p=1)]), 1),
+        (lambda: slc.SelectiveStream([slt.Brightness(brightness_range=(1, 1), p=1)]), 1),
+    ],
+    ids=["custom_call", "custom_apply", "stream", "selective_stream"],
+)
+def nested_stream(request):
+    return request.param
+
+
+def test_nested_streams_run_their_own_logic(nested_stream):
+    make_stream, increment = nested_stream
+    img = np.full((4, 4, 1), 10, dtype=np.uint8)
+    res = slc.Stream([make_stream()])({"image": img}, return_torch=False).data[0]
+    assert np.all(res == 10 + increment)
