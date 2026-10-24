@@ -2142,3 +2142,62 @@ def test_resize_keep_ar_landscape_keeps_orientation(height_first, expected_hw):
     dc = slc.DataContainer((np.zeros((100, 200, 3), np.uint8),), "I")
     res = slt.Resize(resize_to=50, keep_ar=True, height_first=height_first)(dc).data[0]
     assert res.shape[:2] == expected_hw
+
+
+@pytest.fixture(params=[np.uint8, np.uint16], ids=["uint8", "uint16"])
+def cvt_dtype(request):
+    return request.param
+
+
+@pytest.fixture(params=[1, 2, 3, 4], ids=lambda c: f"{c}ch")
+def cvt_n_channels(request):
+    return request.param
+
+
+@pytest.fixture(params=[True, False], ids=["keep_dim", "no_keep_dim"])
+def cvt_keep_dim(request):
+    return request.param
+
+
+@pytest.fixture
+def cvt_img(cvt_n_channels, cvt_dtype):
+    rng = np.random.default_rng(42)
+    return rng.integers(0, np.iinfo(cvt_dtype).max, size=(6, 7, cvt_n_channels), endpoint=True).astype(cvt_dtype)
+
+
+@pytest.fixture
+def cvt_mask():
+    return (np.arange(42).reshape(6, 7) % 3).astype(np.uint8)
+
+
+def _cvt_expected(mode, img, keep_dim):
+    n_channels = img.shape[-1]
+    if mode == "none":
+        return img
+    if n_channels not in (1, 3):
+        return None
+    if mode == "gs2rgb":
+        return np.dstack((img, img, img)) if n_channels == 1 else img
+    if n_channels == 1:
+        return img
+    gs = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    return np.dstack((gs, gs, gs)) if keep_dim else gs[:, :, None]
+
+
+@pytest.mark.parametrize("mode", ["none", "gs2rgb", "rgb2gs"])
+def test_cvt_color_values_and_mask_for_channel_counts(mode, cvt_img, cvt_mask, cvt_keep_dim):
+    img_orig = cvt_img.copy()
+    mask_orig = cvt_mask.copy()
+    expected = _cvt_expected(mode, img_orig, cvt_keep_dim)
+    trf = slt.CvtColor(mode=mode, keep_dim=cvt_keep_dim)
+    dc = slc.DataContainer((cvt_img, cvt_mask), "IM")
+    if expected is None:
+        with pytest.raises(ValueError, match="1 or 3 channels"):
+            trf(dc, return_torch=False)
+        return
+    dc_res = trf(dc, return_torch=False)
+    res_img, res_mask = dc_res.data
+    assert res_img.dtype == cvt_img.dtype
+    np.testing.assert_array_equal(res_img, expected)
+    np.testing.assert_array_equal(res_mask, mask_orig)
+    np.testing.assert_array_equal(cvt_img, img_orig)

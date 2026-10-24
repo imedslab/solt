@@ -1608,6 +1608,7 @@ class CvtColor(ImageTransform):
                 if not self.keepdim:
                     return res
                 return np.dstack((res, res, res))
+        raise ValueError(f"CvtColor supports images with 1 or 3 channels, got {img.shape[-1]} channels")
 
 
 class KeypointsJitter(BaseTransform):
