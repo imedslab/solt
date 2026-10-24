@@ -484,7 +484,8 @@ class SelectiveStream(Stream):
 
             trfs = random_state.choice(self.transforms, n, replace=False, p=self.probs)
             if self.optimize_stack:
+                # The optimization fuses the transforms into the first one, so the selected ones are copied.
+                # exec_stream optimizes them, so this must happen only once.
                 trfs = [copy.deepcopy(x) for x in trfs]
-                trfs = Stream.optimize_transforms_stack(trfs, data)
             data = Stream.exec_stream(trfs, data, self.optimize_stack)
         return data

@@ -922,3 +922,40 @@ def test_stream_without_shuffle_keeps_the_order_of_transforms():
         log.clear()
         stream({"image": np.zeros((4, 4, 1), dtype=np.uint8)}, return_torch=False)
         assert log == [0, 1, 2, 3]
+
+
+# Pairs of matrix transforms, whose order does not matter, so that SelectiveStream can apply them in any order.
+# Factories, since the transforms keep their state.
+_COMMUTING_MATRIX_TRANSFORMS = {
+    "two_translations": lambda: [
+        slt.Translate(range_x=(10, 10), range_y=(0, 0), p=1),
+        slt.Translate(range_x=(0, 0), range_y=(-7, -7), p=1),
+    ],
+    "rotation_and_uniform_scaling": lambda: [
+        slt.Rotate(angle_range=(30, 30), p=1),
+        slt.Scale(range_x=(1.3, 1.3), p=1),
+    ],
+    "two_rotations": lambda: [slt.Rotate(angle_range=(30, 30), p=1), slt.Rotate(angle_range=(60, 60), p=1)],
+}
+
+
+@pytest.fixture(params=list(_COMMUTING_MATRIX_TRANSFORMS), ids=list(_COMMUTING_MATRIX_TRANSFORMS))
+def commuting_matrix_transforms(request):
+    return _COMMUTING_MATRIX_TRANSFORMS[request.param]
+
+
+@pytest.fixture(params=[(41, 51), (40, 50)], ids=["odd_size", "even_size"])
+def keypoints_frame(request):
+    h, w = request.param
+    return slc.Keypoints(np.array([[25.0, 10.0], [5.0, 30.0], [20.0, 20.0]]), h, w)
+
+
+def test_selective_stream_optimize_stack_applies_all_selected_transforms(commuting_matrix_transforms, keypoints_frame):
+    expected = slc.Stream(commuting_matrix_transforms(), optimize_stack=True)(
+        slc.DataContainer((keypoints_frame,), "P"), return_torch=False
+    ).data[0]
+    for seed in range(5):
+        random.seed(seed)
+        stream = slc.SelectiveStream(commuting_matrix_transforms(), n=2, optimize_stack=True)
+        res = stream(slc.DataContainer((keypoints_frame,), "P"), return_torch=False).data[0]
+        np.testing.assert_allclose(res.data, expected.data, atol=1e-6)
