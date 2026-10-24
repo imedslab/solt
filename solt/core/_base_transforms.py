@@ -562,8 +562,19 @@ class MatrixTransform(BaseTransform, InterpolationPropertyHolder, PaddingPropert
         # If we imagine that the image edges are a rectangle, we can rotate it around the origin
         # to obtain the new coordinate frame
         h_new, w_new = MatrixTransform.recompute_coordinate_frame(transform_matrix, width, height)
-        transform_matrix[0, -1] += w_new // 2 - origin[0]
-        transform_matrix[1, -1] += h_new // 2 - origin[1]
+        if np.allclose(transform_matrix[2], [0, 0, 1]):
+            # An affine transform keeps the origin in the centre of the new frame
+            transform_matrix[0, -1] += w_new // 2 - origin[0]
+            transform_matrix[1, -1] += h_new // 2 - origin[1]
+        else:
+            # A projective transform does not keep the image symmetric around the origin, so the warped image is moved
+            # to the top left corner of the new frame. The shift is applied after the transform: adding it to the
+            # matrix would be divided by the perspective term, which differs over the image.
+            coord_frame = np.array([[0, 0, 1], [0, height, 1], [width, height, 1], [width, 0, 1]], dtype=float)
+            warped = transform_matrix @ coord_frame.T
+            warped = warped[:2] / warped[2]
+            shift = np.array([[1, 0, -warped[0].min()], [0, 1, -warped[1].min()], [0, 0, 1]])
+            transform_matrix = shift @ transform_matrix
 
         return transform_matrix, w_new, h_new
 

@@ -2585,3 +2585,76 @@ def test_random_resized_crop_keeps_labels(rrc_fallback_case, rrc_resize_to):
 
     assert res.data[1] is labels
     assert res.data[2] == 7
+
+
+class _FixedProjection(slt.Projection):
+    """Projection with fixed components of the perspective (vx, vy), which can have different signs."""
+
+    serializable_name = None
+
+    def __init__(self, vx, vy):
+        super().__init__(v_range=(0, 0), p=1)
+        self.v = (vx, vy)
+
+    def sample_transform_matrix(self, data):
+        super().sample_transform_matrix(data)
+        self.state_dict["transform_matrix"][2, :2] = self.v
+
+
+@pytest.fixture(
+    params=[(1e-3, 1e-3), (-1e-3, -1e-3), (2e-3, 2e-3), (-1e-3, 1e-3), (1.5e-3, -5e-4)],
+    ids=["positive", "negative", "strong", "mixed_signs", "mixed_signs_2"],
+)
+def projection_v(request):
+    return request.param
+
+
+@pytest.fixture(params=[(200, 300), (300, 200), (151, 151)], ids=["landscape", "portrait", "square_odd"])
+def projection_shape(request):
+    return request.param
+
+
+@pytest.fixture(params=["projection_alone", "fused_after_rotation"])
+def projection_pipeline(request):
+    return request.param
+
+
+def test_projection_frame_contains_the_warped_image(projection_v, projection_shape, projection_pipeline):
+    h, w = projection_shape
+    # Pixel centres of the corners, and blobs a bit inside of them
+    corners = np.array([[0.0, 0.0], [w - 1, 0.0], [w - 1, h - 1], [0.0, h - 1]])
+    inner = np.array([[8.0, 8.0], [w - 9, 8.0], [w - 9, h - 9], [8.0, h - 9]])
+    img = np.zeros((h, w), dtype=np.float32)
+    # Small blobs: the centroid of a blob moves from the warped centre with the nonlinearity of the perspective
+    for x, y in inner:
+        cv2.circle(img, (int(x), int(y)), 1, 1.0, -1)
+
+    projection = _FixedProjection(*projection_v)
+    if projection_pipeline == "projection_alone":
+        stream = slc.Stream([projection])
+    else:
+        stream = slc.Stream([slt.Rotate(angle_range=(10, 10), p=1), projection], optimize_stack=True)
+
+    kpts = slc.Keypoints(np.vstack([corners, inner]), h, w)
+    dc = slc.DataContainer((img, kpts), "MP", {0: {"interpolation": "bilinear"}})
+    img_res, kpts_res = stream(dc, return_torch=False).data
+    h_new, w_new = img_res.shape[:2]
+
+    warped_corners = kpts_res.data[:4]
+    # The frame contains the warped image (the edges of the corner pixels are half a pixel further)
+    assert np.all(warped_corners >= -1)
+    assert np.all(warped_corners[:, 0] <= w_new) and np.all(warped_corners[:, 1] <= h_new)
+    # The frame is tight: the image touches its left and top borders
+    assert warped_corners[:, 0].min() <= 1 and warped_corners[:, 1].min() <= 1
+    # The content near every corner is still in the image, where the keypoints are
+    for point in kpts_res.data[4:]:
+        np.testing.assert_allclose(_blob_centroid(img_res, point), point, atol=0.3)
+
+
+def _blob_centroid(img, point, radius=6):
+    x0, y0 = int(round(point[0])), int(round(point[1]))
+    ys, xs = np.mgrid[: img.shape[0], : img.shape[1]]
+    near = (np.abs(xs - x0) <= radius) & (np.abs(ys - y0) <= radius)
+    weights = img * near
+    assert weights.sum() > 0, f"no image content around the keypoint {point}"
+    return np.array([(xs * weights).sum(), (ys * weights).sum()]) / weights.sum()
