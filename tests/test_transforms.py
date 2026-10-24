@@ -1767,3 +1767,51 @@ def test_cutout_random_size_serialization():
     restored = slu.from_yaml(slc.Stream([trf]).to_yaml()).transforms[0]
     assert tuple(map(tuple, restored.cutout_size)) == ((2, 6), (0, 4))
     assert tuple(restored.n_cuts) == (1, 3)
+
+
+def _expected_brightness(img, shift):
+    lut = np.clip(np.arange(0, 256) + shift, 0, 255).astype(np.uint8)
+    return lut[img]
+
+
+@pytest.mark.parametrize("value, factor", [(100, 0.2), (50, 0.2), (200, -0.5), (240, 0.3)])
+def test_brightness_relative_to_mean_constant_image(value, factor):
+    img = np.full((8, 8, 3), value, dtype=np.uint8)
+    trf = slt.Brightness(brightness_range=(factor, factor), relative=True, p=1)
+    res = trf(slc.DataContainer((img,), "I")).data[0]
+    np.testing.assert_array_equal(res, _expected_brightness(img, factor * value))
+
+
+def test_brightness_relative_to_mean():
+    img = np.random.default_rng(0).integers(0, 200, (16, 16, 3), dtype=np.uint8)
+    trf = slt.Brightness(brightness_range=(0.1, 0.1), relative=True, p=1)
+    res = trf(slc.DataContainer((img,), "I")).data[0]
+    np.testing.assert_array_equal(res, _expected_brightness(img, 0.1 * img.mean()))
+
+
+def test_brightness_relative_uses_the_mean_of_every_image():
+    dark = np.full((8, 8, 1), 40, dtype=np.uint8)
+    bright = np.full((8, 8, 1), 160, dtype=np.uint8)
+    trf = slt.Brightness(brightness_range=(0.25, 0.25), relative=True, p=1)
+    dark_res, bright_res = trf(slc.DataContainer((dark, bright), "II")).data
+    assert np.all(dark_res == 50)
+    assert np.all(bright_res == 200)
+
+
+def test_brightness_absolute_by_default():
+    img = np.random.default_rng(0).integers(0, 255, (16, 16, 3), dtype=np.uint8)
+    trf = slt.Brightness(brightness_range=(20, 20), p=1)
+    assert trf.relative is False
+    res = trf(slc.DataContainer((img,), "I")).data[0]
+    np.testing.assert_array_equal(res, _expected_brightness(img, 20))
+
+
+def test_brightness_relative_serialization():
+    trf = slu.from_yaml(slc.Stream([slt.Brightness(brightness_range=(-0.1, 0.2), relative=True)]).to_yaml())
+    assert trf.transforms[0].relative is True
+
+
+@pytest.mark.parametrize("relative", [1, "yes", None])
+def test_brightness_relative_must_be_bool(relative):
+    with pytest.raises(TypeError):
+        slt.Brightness(brightness_range=(0.1, 0.2), relative=relative)

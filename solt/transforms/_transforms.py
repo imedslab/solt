@@ -1353,6 +1353,10 @@ class Brightness(ImageTransform):
         Probability of applying this transform,
     brightness_range: tuple or None
         brightness_range shift range. If None, then ``brightness_range=(0, 0)``.
+    relative : bool
+        Whether the shift is relative to the mean intensity of the image. If ``True``, the values of
+        ``brightness_range`` are fractions of the mean, e.g. ``(-0.2, 0.2)`` changes the brightness by up to 20% of
+        the mean intensity of every image. ``False`` by default.
     data_indices : tuple or None
         Indices of the images within the data container to which this transform needs to be applied.
         Every element within the tuple must be integer numbers.
@@ -1365,18 +1369,30 @@ class Brightness(ImageTransform):
     serializable_name = "brightness"
     """How the class should be stored in the registry"""
 
-    def __init__(self, brightness_range=None, data_indices=None, p=0.5):
+    def __init__(self, brightness_range=None, data_indices=None, p=0.5, relative=False):
         super(Brightness, self).__init__(p=p, data_indices=data_indices)
+        if not isinstance(relative, bool):
+            raise TypeError("Argument relative must be bool!")
         self.brightness_range = validate_numeric_range_parameter(brightness_range, self._default_range)
+        self.relative = relative
+
+    @staticmethod
+    def _lut(shift, contrast=1.0):
+        """Look-up table of the linear intensity change ``x * contrast + shift``."""
+        lut = np.arange(0, 256) * contrast + shift
+        return np.clip(lut, 0, 255).astype("uint8")
 
     def sample_transform(self, data):
         brightness_fact = random.uniform(self.brightness_range[0], self.brightness_range[1])
-        lut = np.arange(0, 256) + brightness_fact
-        lut = np.clip(lut, 0, 255).astype("uint8")
-        self.state_dict = {"brightness_fact": brightness_fact, "LUT": lut}
+        self.state_dict = {"brightness_fact": brightness_fact}
+        if not self.relative:
+            # The shift does not depend on the image
+            self.state_dict["LUT"] = Brightness._lut(brightness_fact)
 
     @img_shape_checker
     def _apply_img(self, img: np.ndarray, settings: dict):
+        if self.relative:
+            return cv2.LUT(img, Brightness._lut(self.state_dict["brightness_fact"] * img.mean()))
         return cv2.LUT(img, self.state_dict["LUT"])
 
 
