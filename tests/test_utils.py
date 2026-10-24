@@ -185,7 +185,8 @@ def test_stream_serializes_all_args_are_set():
     assert "optimize_stack" in serialized
     assert "transforms" in serialized
     assert "shuffle" in serialized
-    assert len(serialized) == 6
+    assert "in_place" in serialized
+    assert len(serialized) == 7
 
     trfs = serialized["transforms"]
     for i, el in enumerate(trfs):

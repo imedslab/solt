@@ -51,6 +51,10 @@ class Stream(Serializable):
         Whether to ignore the fast mode. This option enables full geometric transforms.
     shuffle : bool
         Whether to shuffle the transforms before applying them.
+    in_place : bool
+        Whether the transforms may modify the input arrays in place. Transforms do not copy the data unless
+        necessary, e.g. ``CutOut`` writes into the image it receives, and ``Crop`` returns a view. If ``False``, the
+        stream copies the input data once before applying the transforms, so the original arrays stay unchanged.
 
     """
 
@@ -66,6 +70,7 @@ class Stream(Serializable):
         optimize_stack=False,
         ignore_fast_mode=False,
         shuffle=False,
+        in_place=True,
     ):
         super(Stream, self).__init__()
 
@@ -76,6 +81,7 @@ class Stream(Serializable):
             if not isinstance(trf, BaseTransform) and not isinstance(trf, Stream):
                 raise TypeError("Unknown transform type found in the Stream!")
         self.shuffle = shuffle
+        self.in_place = in_place
         self.optimize_stack = optimize_stack
         self.interpolation = interpolation
         self.padding = padding
@@ -182,6 +188,7 @@ class Stream(Serializable):
 
         """
 
+        data = self.wrap_data(data)
         res: DataContainer = Stream.exec_stream(self.transforms, data, self.optimize_stack)
 
         if return_torch:
@@ -230,6 +237,26 @@ class Stream(Serializable):
         if len(transforms_stack) > 0:
             transforms_stack[-1].correct_transform()
         return transforms_stack
+
+    def wrap_data(self, data):
+        """
+        Wraps the data into a ``DataContainer``, and copies it if the stream must not modify the input arrays.
+
+        Parameters
+        ----------
+        data : DataContainer or dict or numpy.ndarray
+            Data to be augmented
+
+        Returns
+        -------
+        out : DataContainer
+            Data to apply the transforms to
+
+        """
+        data = BaseTransform.wrap_data(data)
+        if not self.in_place:
+            data = data.copy()
+        return data
 
     @staticmethod
     def exec_stream(transforms, data, optimize_stack, shuffle=False):
@@ -287,6 +314,7 @@ class SelectiveStream(Stream):
         probs=None,
         optimize_stack=False,
         ignore_fast_mode=False,
+        in_place=True,
     ):
         """
         Constructor.
@@ -302,11 +330,16 @@ class SelectiveStream(Stream):
             Probabilities of the transforms to sample. If None, the transforms will be sampled uniformly.
         optimize_stack : bool
             Whether to execute stack optimization for augmentations.
+        ignore_fast_mode : bool
+            Whether to ignore the fast mode. This option enables full geometric transforms.
+        in_place : bool
+            Whether the transforms may modify the input arrays in place. See ``Stream``.
         """
         super(SelectiveStream, self).__init__(
             transforms=transforms,
             optimize_stack=optimize_stack,
             ignore_fast_mode=ignore_fast_mode,
+            in_place=in_place,
         )
         if transforms is None:
             transforms = []
@@ -355,7 +388,7 @@ class SelectiveStream(Stream):
         out : DataContainer
             Result
         """
-        data = BaseTransform.wrap_data(data)
+        data = self.wrap_data(data)
 
         if len(self.transforms) > 0:
             random_state = np.random.RandomState(random.randint(0, 2**32 - 1))

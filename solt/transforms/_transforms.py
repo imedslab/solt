@@ -764,6 +764,10 @@ class Crop(BaseTransform):
     --------
     solt.constants.ALLOWED_CROPS
 
+    Notes
+    -----
+    To avoid copying, the cropped images, masks and distance maps are views of the input arrays.
+
     """
 
     serializable_name = "crop"
@@ -936,6 +940,11 @@ class CutOut(ImageTransform):
         If None, then the transform will be applied to all the images withing the DataContainer.
     p : float
         Probability of applying this transform.
+
+    Notes
+    -----
+    To avoid copying, the transform modifies the image it receives in place. If the input image must stay unchanged,
+    e.g. because it is cached or augmented several times, use ``Stream(..., in_place=False)`` or pass a copy.
     """
 
     serializable_name = "cutout"
@@ -1590,6 +1599,11 @@ class GridMask(ImageTransform):
         If None, then the transform will be applied to all the images withing the DataContainer.
     p : float
         Probability of applying this transform.
+
+    Notes
+    -----
+    To avoid copying, the transform modifies the image it receives in place. If the input image must stay unchanged,
+    e.g. because it is cached or augmented several times, use ``Stream(..., in_place=False)`` or pass a copy.
     """
 
     serializable_name = "gridmask"

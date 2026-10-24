@@ -1,3 +1,4 @@
+import copy
 import numbers
 
 import numpy as np
@@ -174,6 +175,27 @@ class DataContainer(object):
                     raise ValueError("Coordinate frames within DataContainer do not match (width)!")
 
         return prev_h, prev_w
+
+    def copy(self):
+        """
+        Returns a copy of the container, in which all the arrays are copied as well. Transforms may modify the
+        arrays in place, so a copy keeps the original data unchanged.
+
+        Returns
+        -------
+        out : DataContainer
+            Copy of the container
+
+        """
+        data = []
+        for item, t, _ in self:
+            if t in ("I", "M", "D"):
+                data.append(item.copy())
+            elif t == "P":
+                data.append(Keypoints(item.data.copy(), item.height, item.width))
+            else:
+                data.append(copy.copy(item))
+        return DataContainer(tuple(data), self.data_format, self.transform_settings)
 
     @property
     def data_format(self):
