@@ -697,14 +697,15 @@ class Resize(BaseTransform, InterpolationPropertyHolder):
     Parameters
     ----------
     resize_to : list or tuple or int or None
-        Target size ``(width_new, height_new)``.
+        Target size ``(width_new, height_new)``. If ``int``, the output is square, unless ``keep_ar`` is ``True``.
     interpolation : str
         Interpolation type.
     keep_ar : bool
-        Whether or not to keep the aspect ratio for non-squared images.
+        Whether or not to keep the aspect ratio for non-squared images. Only used when ``resize_to`` is an ``int``.
     height_first : bool
-        In non-squared images, this will resize the height and will compute the width using the
-        original aspect ration if ``keep_ar`` is ``True``.
+        Used only if ``keep_ar`` is ``True`` and ``resize_to`` is an ``int``. If ``True``, the height is resized to
+        ``resize_to`` and the width is computed from the original aspect ratio. If ``False``, the width is resized
+        to ``resize_to`` and the height is computed from the original aspect ratio.
 
     See also
     --------
@@ -731,12 +732,11 @@ class Resize(BaseTransform, InterpolationPropertyHolder):
         # Handling the non-square case
         if isinstance(resize_to, int):
             if h != w and self.keep_ar:
+                # resize_to is (width, height)
                 if self.height_first:
-                    scale_factor = float(w) / float(h)
-                    resize_to = (self.resize_to, int(self.resize_to * scale_factor))
+                    resize_to = (int(self.resize_to * w / h), self.resize_to)
                 else:
-                    scale_factor = float(h) / float(w)
-                    resize_to = (int(scale_factor * self.resize_to), self.resize_to)
+                    resize_to = (self.resize_to, int(self.resize_to * h / w))
             else:
                 resize_to = (resize_to, resize_to)
 

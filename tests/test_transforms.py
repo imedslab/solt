@@ -2085,3 +2085,60 @@ def test_fused_rotate_90_transforms_all_data_types(rotate90_item, rotate90_k):
         slc.DataContainer((item,), fmt), return_torch=False
     ).data[0]
     np.testing.assert_allclose(_as_array(res), _as_array(expected), atol=1e-4)
+
+
+@pytest.fixture(params=[(100, 200), (200, 100), (60, 60), (7, 13), (13, 7)], ids=lambda s: f"hw{s[0]}x{s[1]}")
+def resize_keep_ar_hw(request):
+    return request.param
+
+
+@pytest.fixture(params=[True, False], ids=["height_first", "width_first"])
+def resize_height_first(request):
+    return request.param
+
+
+@pytest.fixture(params=[50, 5, (30, 40), [9, 4]], ids=lambda r: f"to{r}")
+def resize_keep_ar_to(request):
+    return request.param
+
+
+@pytest.fixture
+def resize_keep_ar_expected_hw(resize_keep_ar_hw, resize_height_first, resize_keep_ar_to):
+    h, w = resize_keep_ar_hw
+    if not isinstance(resize_keep_ar_to, int):
+        # keep_ar is ignored when the target size (width, height) is given explicitly
+        return resize_keep_ar_to[1], resize_keep_ar_to[0]
+    if h == w:
+        return resize_keep_ar_to, resize_keep_ar_to
+    if resize_height_first:
+        return resize_keep_ar_to, int(resize_keep_ar_to * w / h)
+    return int(resize_keep_ar_to * h / w), resize_keep_ar_to
+
+
+def test_resize_keep_ar_targets_follow_the_image(
+    resize_keep_ar_hw, resize_height_first, resize_keep_ar_to, resize_keep_ar_expected_hw
+):
+    h, w = resize_keep_ar_hw
+    exp_h, exp_w = resize_keep_ar_expected_hw
+    img = np.zeros((h, w, 3), np.uint8)
+    mask = np.zeros((h, w), np.uint8)
+    dmap = np.full((h, w), 10.0, np.float32)
+    kpts_data = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1], [0, h - 1], [w // 2, h // 3]])
+    kpts = slc.Keypoints(kpts_data, h, w)
+    dc = slc.DataContainer((img, mask, dmap, kpts), "IMDP")
+
+    res = slt.Resize(resize_to=resize_keep_ar_to, keep_ar=True, height_first=resize_height_first)(dc).data
+
+    assert res[0].shape == (exp_h, exp_w, 3)
+    assert res[1].shape == (exp_h, exp_w)
+    assert res[2].shape == (exp_h, exp_w)
+    np.testing.assert_allclose(res[2], 10 * np.sqrt(exp_w / w * exp_h / h), rtol=1e-5)
+    assert (res[3].height, res[3].width) == (exp_h, exp_w)
+    np.testing.assert_allclose(res[3].data, slt.Resize.resize_points(kpts_data, exp_w / w, exp_h / h))
+
+
+@pytest.mark.parametrize("height_first, expected_hw", [(True, (50, 100)), (False, (25, 50))])
+def test_resize_keep_ar_landscape_keeps_orientation(height_first, expected_hw):
+    dc = slc.DataContainer((np.zeros((100, 200, 3), np.uint8),), "I")
+    res = slt.Resize(resize_to=50, keep_ar=True, height_first=height_first)(dc).data[0]
+    assert res.shape[:2] == expected_hw
