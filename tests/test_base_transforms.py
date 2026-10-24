@@ -205,8 +205,6 @@ def _make_data(trf_cls):
     mask = (rng.random((32, 32)) > 0.5).astype(np.uint8)
     dmap = rng.random((32, 32)).astype(np.float32)
     kpts = slc.Keypoints(np.array([[5.0, 5.0], [20.0, 10.0]]), 32, 32)
-    if trf_cls is slt.RandomResizedCrop:
-        return (img, mask, dmap), "IMD"
     return (img, mask, dmap, kpts), "IMDP"
 
 

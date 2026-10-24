@@ -1900,4 +1900,15 @@ class RandomResizedCrop(BaseTransform, InterpolationPropertyHolder):
         return labels
 
     def _apply_pts(self, pts: Keypoints, settings: dict):
-        raise NotImplementedError("Made for images only at this stage")
+        crop_w, crop_h = self.state_dict["crop_to"]
+        pts_data = pts.data.astype(float)
+        pts_data[:, 0] -= self.state_dict["x"]
+        pts_data[:, 1] -= self.state_dict["y"]
+        if self.resize_to is None:
+            return Keypoints(pts_data, crop_h, crop_w)
+
+        # Keypoints are the centres of pixels, the same as in Resize
+        new_w, new_h = self.resize_to
+        pts_data[:, 0] = (pts_data[:, 0] + 0.5) * new_w / crop_w - 0.5
+        pts_data[:, 1] = (pts_data[:, 1] + 0.5) * new_h / crop_h - 0.5
+        return Keypoints(pts_data, new_h, new_w)

@@ -1906,3 +1906,40 @@ def test_resize_keypoints_follow_the_image(resize_to, interpolation):
 
     assert kpts_res.data.dtype == np.float64
     np.testing.assert_allclose(kpts_res.data[0], _centroid(img_res[..., 0]), atol=0.05)
+
+
+@pytest.mark.parametrize("resize_to", [(32, 32), (50, 20), None])
+def test_random_resized_crop_keypoints(resize_to):
+    h, w = 60, 64
+    kpts = slc.Keypoints(np.array([[10.0, 20.0], [40.5, 33.25]]), h, w)
+    img = np.zeros((h, w, 1), dtype=np.uint8)
+    random.seed(0)
+    for _ in range(10):
+        trf = slt.RandomResizedCrop(resize_to=resize_to)
+        img_res, kpts_res = trf(slc.DataContainer((img, kpts), "IP")).data
+
+        (crop_w, crop_h), x, y = trf.state_dict["crop_to"], trf.state_dict["x"], trf.state_dict["y"]
+        new_w, new_h = resize_to if resize_to is not None else (crop_w, crop_h)
+        expected = kpts.data - (x, y)
+        expected[:, 0] = (expected[:, 0] + 0.5) * new_w / crop_w - 0.5
+        expected[:, 1] = (expected[:, 1] + 0.5) * new_h / crop_h - 0.5
+
+        np.testing.assert_allclose(kpts_res.data, expected)
+        assert (kpts_res.height, kpts_res.width) == img_res.shape[:2] == (new_h, new_w)
+
+
+def test_random_resized_crop_keypoints_follow_the_image():
+    h, w, cx, cy = 80, 80, 40.3, 39.6
+    img = _blob(h, w, cx, cy).astype(np.float32)[..., np.newaxis]
+    kpts = slc.Keypoints(np.array([[cx, cy]]), h, w)
+    random.seed(0)
+    checked = 0
+    for _ in range(30):
+        trf = slt.RandomResizedCrop(resize_to=(48, 48), scale=(0.5, 1.0))
+        img_res, kpts_res = trf(slc.DataContainer((img, kpts), "IP")).data
+        (crop_w, crop_h), x, y = trf.state_dict["crop_to"], trf.state_dict["x"], trf.state_dict["y"]
+        # Only crops, which contain the whole blob, have a meaningful centroid
+        if x + 10 < cx < x + crop_w - 10 and y + 10 < cy < y + crop_h - 10:
+            np.testing.assert_allclose(kpts_res.data[0], _centroid(img_res[..., 0]), atol=0.1)
+            checked += 1
+    assert checked > 5
