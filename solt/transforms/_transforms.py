@@ -935,10 +935,13 @@ class CutOut(ImageTransform):
 
     Parameters
     ----------
-    cutout_size : tuple or int or float or None
-        The size of the cutout. If None, then it is equal to 2.
+    cutout_size : tuple or int or float
+        The size of the cutout ``(width, height)``. If ``int`` or ``float``, then the cutout is a square.
+        ``int`` values are in pixels, and ``float`` values are fractions of the image size. Each of the width and
+        the height can also be a range ``(min, max)``, from which the size of every cutout is sampled, e.g.
+        ``((4, 16), (4, 16))``. By default, it is 2.
     n_cuts: int or tuple of int
-        Number of cutouts to make. By default, it is 1.
+        Number of cutouts to make. If tuple ``(min, max)``, then it is sampled from this range. By default, it is 1.
     data_indices : tuple or None
         Indices of the images within the data container to which this transform needs to be applied.
         Every element within the tuple must be integer numbers.
@@ -957,59 +960,87 @@ class CutOut(ImageTransform):
 
     def __init__(self, cutout_size=2, n_cuts=1, data_indices=None, p=0.5):
         super(CutOut, self).__init__(p=p, data_indices=data_indices)
-        if not isinstance(cutout_size, (int, tuple, list, float)):
-            raise TypeError("Cutout size is of an incorrect type!")
-
-        if not isinstance(n_cuts, int):
-            raise TypeError("Incorrect n_cuts type")
-
-        if n_cuts < 0:
-            raise ValueError("Cannot make less than 0 cutouts")
-
         if isinstance(cutout_size, list):
             cutout_size = tuple(cutout_size)
-
-        if isinstance(cutout_size, tuple):
-            if not isinstance(cutout_size[0], (int, float)) or not isinstance(cutout_size[1], (int, float)):
-                raise TypeError("Cutout size must be a tuple of int or float")
-
         if isinstance(cutout_size, (int, float)):
             cutout_size = (cutout_size, cutout_size)
-        if not isinstance(cutout_size[0], type(cutout_size[1])):
+        if not isinstance(cutout_size, tuple):
+            raise TypeError("Cutout size is of an incorrect type!")
+        if len(cutout_size) != 2:
+            raise ValueError("Cutout size must be (width, height)!")
+        cutout_size = tuple(CutOut._validate_size(size) for size in cutout_size)
+        if CutOut._size_type(cutout_size[0]) is not CutOut._size_type(cutout_size[1]):
             raise TypeError("CutOut sizes must be of the same type")
+
+        if isinstance(n_cuts, list):
+            n_cuts = tuple(n_cuts)
+        if isinstance(n_cuts, tuple):
+            if len(n_cuts) != 2 or not all(isinstance(n, int) for n in n_cuts):
+                raise TypeError("Range of n_cuts must be a tuple of two int!")
+            if n_cuts[0] > n_cuts[1]:
+                raise ValueError("Range of n_cuts must be (min, max)!")
+        elif not isinstance(n_cuts, int):
+            raise TypeError("Incorrect n_cuts type")
+        if min(n_cuts) < 0 if isinstance(n_cuts, tuple) else n_cuts < 0:
+            raise ValueError("Cannot make less than 0 cutouts")
 
         self.cutout_size = cutout_size
         self.n_cuts = n_cuts
 
+    @staticmethod
+    def _validate_size(size):
+        """Validates the width or the height of a cutout: a number or a range (min, max) of numbers."""
+        if isinstance(size, list):
+            size = tuple(size)
+        if isinstance(size, tuple):
+            if len(size) != 2:
+                raise ValueError("Range of a cutout size must be (min, max)!")
+            if not all(isinstance(s, (int, float)) for s in size) or not isinstance(size[0], type(size[1])):
+                raise TypeError("Range of a cutout size must be two int or two float!")
+            if size[0] < 0 or size[0] > size[1]:
+                raise ValueError("Range of a cutout size must be (min, max) of non-negative numbers!")
+        elif not isinstance(size, (int, float)):
+            raise TypeError("Cutout size must be int or float, or a range of them")
+        return size
+
+    @staticmethod
+    def _size_type(size):
+        return type(size[0]) if isinstance(size, tuple) else type(size)
+
+    @staticmethod
+    def _sample_size(size, image_size):
+        """Cutout size in pixels. Random numbers are drawn only for a range."""
+        if isinstance(size, tuple):
+            if isinstance(size[0], int):
+                return random.randint(size[0], size[1])
+            return int(random.uniform(size[0], size[1]) * image_size)
+        if isinstance(size, float):
+            return int(size * image_size)
+        return size
+
     def sample_transform(self, data: DataContainer):
         h, w = super(CutOut, self).sample_transform(data)
-        if isinstance(self.cutout_size[0], float):
-            cut_size_x = int(self.cutout_size[0] * w)
-        else:
-            cut_size_x = self.cutout_size[0]
-
-        if isinstance(self.cutout_size[1], float):
-            cut_size_y = int(self.cutout_size[1] * h)
-        else:
-            cut_size_y = self.cutout_size[1]
-
-        if cut_size_x > w or cut_size_y > h:
+        max_sizes = [s[1] if isinstance(s, tuple) else s for s in self.cutout_size]
+        max_size_x, max_size_y = [int(s * dim) if isinstance(s, float) else s for s, dim in zip(max_sizes, (w, h))]
+        if max_size_x > w or max_size_y > h:
             raise ValueError("Cutout size is too large!")
 
-        self.state_dict["x"] = list()
-        self.state_dict["y"] = list()
-        self.state_dict["cut_size_x"] = cut_size_x
-        self.state_dict["cut_size_y"] = cut_size_y
-        for _ in range(self.n_cuts):
+        n_cuts = random.randint(*self.n_cuts) if isinstance(self.n_cuts, tuple) else self.n_cuts
+        for key in ("x", "y", "cut_size_x", "cut_size_y"):
+            self.state_dict[key] = list()
+        for _ in range(n_cuts):
+            cut_size_x = CutOut._sample_size(self.cutout_size[0], w)
+            cut_size_y = CutOut._sample_size(self.cutout_size[1], h)
+            self.state_dict["cut_size_x"].append(cut_size_x)
+            self.state_dict["cut_size_y"].append(cut_size_y)
             self.state_dict["x"].append(int(random.random() * (w - cut_size_x)))
             self.state_dict["y"].append(int(random.random() * (h - cut_size_y)))
 
     def __cutout_img(self, img):
-        for x, y in zip(self.state_dict["x"], self.state_dict["y"]):
-            img[
-                y : y + self.state_dict["cut_size_y"],
-                x : x + self.state_dict["cut_size_x"],
-            ] = 0
+        for x, y, cut_size_x, cut_size_y in zip(
+            self.state_dict["x"], self.state_dict["y"], self.state_dict["cut_size_x"], self.state_dict["cut_size_y"]
+        ):
+            img[y : y + cut_size_y, x : x + cut_size_x] = 0
         return img
 
     @img_shape_checker

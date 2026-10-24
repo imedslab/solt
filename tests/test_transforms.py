@@ -1675,3 +1675,95 @@ def test_crop_wrong_mode(crop_mode):
 def test_crop_mode_serialization(crop_mode):
     trf = slu.from_yaml(slc.Stream([slt.Crop(crop_to=4, crop_mode=crop_mode)]).to_yaml()).transforms[0]
     assert trf.crop_mode == crop_mode
+
+
+def _cutout_rectangle(img):
+    """Width and height of the single blacked out rectangle in an image of ones."""
+    ys, xs = np.nonzero(img[..., 0] == 0)
+    return xs.max() - xs.min() + 1, ys.max() - ys.min() + 1
+
+
+@pytest.mark.parametrize(
+    "cutout_size, w_range, h_range",
+    [
+        (((2, 6), (3, 5)), (2, 6), (3, 5)),
+        (((0.1, 0.3), (0.2, 0.4)), (4, 12), (8, 16)),
+        ((4, (3, 5)), (4, 4), (3, 5)),
+    ],
+)
+def test_cutout_random_size(cutout_size, w_range, h_range):
+    random.seed(0)
+    sizes = set()
+    for _ in range(100):
+        img = np.ones((40, 40, 1), dtype=np.uint8)
+        res = slt.CutOut(cutout_size=cutout_size, p=1)(slc.DataContainer((img,), "I")).data[0]
+        w, h = _cutout_rectangle(res)
+        assert w_range[0] <= w <= w_range[1]
+        assert h_range[0] <= h <= h_range[1]
+        sizes.add((w, h))
+    assert len(sizes) > 1
+
+
+def test_cutout_sizes_are_sampled_per_cut():
+    random.seed(0)
+    trf = slt.CutOut(cutout_size=((2, 10), (2, 10)), n_cuts=5, p=1)
+    trf(slc.DataContainer((np.ones((40, 40, 1), dtype=np.uint8),), "I"))
+    sizes = list(zip(trf.state_dict["cut_size_x"], trf.state_dict["cut_size_y"]))
+    assert len(sizes) == 5
+    assert len(set(sizes)) > 1
+
+
+def test_cutout_random_number_of_cuts():
+    random.seed(0)
+    n_cuts = set()
+    for _ in range(50):
+        trf = slt.CutOut(cutout_size=2, n_cuts=(1, 4), p=1)
+        trf(slc.DataContainer((np.ones((40, 40, 1), dtype=np.uint8),), "I"))
+        assert 1 <= len(trf.state_dict["x"]) <= 4
+        n_cuts.add(len(trf.state_dict["x"]))
+    assert n_cuts == {1, 2, 3, 4}
+
+
+def test_cutout_fixed_size_keeps_the_random_sequence():
+    # A fixed size must not draw random numbers, so that seeded pipelines give the same results as before
+    random.seed(0)
+    trf = slt.CutOut(cutout_size=(3, 4), n_cuts=2, p=1)
+    trf(slc.DataContainer((np.ones((20, 20, 1), dtype=np.uint8),), "I"))
+    random.seed(0)
+    random.random()  # Whether to apply the transform
+    expected = [int(random.random() * 17), int(random.random() * 16), int(random.random() * 17), int(random.random() * 16)]
+    xy = [v for pair in zip(trf.state_dict["x"], trf.state_dict["y"]) for v in pair]
+    assert xy == expected
+
+
+@pytest.mark.parametrize(
+    "cutout_size, n_cuts, error",
+    [
+        (((6, 2), 2), 1, ValueError),
+        (((-1, 2), 2), 1, ValueError),
+        (((2, 4), 0.5), 1, TypeError),
+        (((2, 4.5), 2), 1, TypeError),
+        (((2, 4, 6), 2), 1, ValueError),
+        ((2, 2, 2), 1, ValueError),
+        (2, (3, 1), ValueError),
+        (2, (-1, 2), ValueError),
+        (2, (1.0, 2), TypeError),
+        (2, 1.5, TypeError),
+    ],
+)
+def test_cutout_wrong_random_size_or_n_cuts(cutout_size, n_cuts, error):
+    with pytest.raises(error):
+        slt.CutOut(cutout_size=cutout_size, n_cuts=n_cuts)
+
+
+def test_cutout_random_size_too_large():
+    trf = slt.CutOut(cutout_size=((2, 50), 2), p=1)
+    with pytest.raises(ValueError):
+        trf(slc.DataContainer((np.ones((20, 20, 1), dtype=np.uint8),), "I"))
+
+
+def test_cutout_random_size_serialization():
+    trf = slt.CutOut(cutout_size=((2, 6), (0, 4)), n_cuts=(1, 3))
+    restored = slu.from_yaml(slc.Stream([trf]).to_yaml()).transforms[0]
+    assert tuple(map(tuple, restored.cutout_size)) == ((2, 6), (0, 4))
+    assert tuple(restored.n_cuts) == (1, 3)
