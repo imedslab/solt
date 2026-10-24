@@ -2042,3 +2042,46 @@ def test_random_resized_crop_of_the_whole_image_maps_keypoints_as_resize(resize_
     assert crop.state_dict["crop_to"] == (w, h)
     np.testing.assert_allclose(cropped.data, resized.data)
     assert (cropped.height, cropped.width) == (resized.height, resized.width)
+
+
+def _rotate90_data(fmt):
+    h, w = 41, 51
+    rng = np.random.default_rng(0)
+    if fmt == "I":
+        return rng.integers(0, 255, (h, w, 3), dtype=np.uint8)
+    if fmt == "M":
+        return (rng.random((h, w)) > 0.5).astype(np.uint8)
+    if fmt == "D":
+        return rng.random((h, w)).astype(np.float32)
+    if fmt == "P":
+        return slc.Keypoints(np.array([[25.0, 10.0], [3.0, 37.0]]), h, w)
+    return slc.BoundingBoxes([[10.0, 5.0, 30.0, 20.0]], h, w)
+
+
+@pytest.fixture(params=["I", "M", "D", "P", "B"], ids=["image", "mask", "distance_map", "keypoints", "bboxes"])
+def rotate90_item(request):
+    return request.param, _rotate90_data(request.param)
+
+
+@pytest.fixture(params=[1, 2, 3], ids=["k1", "k2", "k3"])
+def rotate90_k(request):
+    return request.param
+
+
+def _as_array(item):
+    return item.data if isinstance(item, (slc.Keypoints, slc.BoundingBoxes)) else item
+
+
+def test_fused_rotate_90_transforms_all_data_types(rotate90_item, rotate90_k):
+    fmt, item = rotate90_item
+
+    def make_transforms():
+        return [slt.Rotate90(k=rotate90_k, p=1), slt.Translate(range_x=(5, 5), range_y=(-3, -3), p=1)]
+
+    # max_bbox_* are disabled, so that the boxes are compared as they are
+    kwargs = {"max_bbox_area_loss": None, "max_bbox_outside": None}
+    expected = slc.Stream(make_transforms(), **kwargs)(slc.DataContainer((item,), fmt), return_torch=False).data[0]
+    res = slc.Stream(make_transforms(), optimize_stack=True, **kwargs)(
+        slc.DataContainer((item,), fmt), return_torch=False
+    ).data[0]
+    np.testing.assert_allclose(_as_array(res), _as_array(expected), atol=1e-4)

@@ -1,4 +1,5 @@
 import random
+from functools import wraps
 
 import cv2
 import numpy as np
@@ -192,30 +193,41 @@ class Rotate90(Rotate):
         self.state_dict["fused"] = False
 
     def fuse_with(self, trf):
-        # When other transforms are fused into this one (Stream with optimize_stack), the rotation by 90 degrees is
-        # only a part of the transform matrix, so the general matrix transform has to be applied
         super(Rotate90, self).fuse_with(trf)
         self.state_dict["fused"] = True
 
+    @staticmethod
+    def _exact_unless_fused(method):
+        """
+        Decorator for the methods, which rotate the data exactly by 90 degrees. When other transforms are fused into
+        this one (Stream with optimize_stack), the rotation is only a part of the transform matrix, so the general
+        matrix transform is applied instead.
+        """
+        matrix_method = getattr(MatrixTransform, method.__name__)
+
+        @wraps(method)
+        def wrapper(self, item, settings):
+            if self.state_dict.get("fused", False):
+                return matrix_method(self, item, settings)
+            return method(self, item, settings)
+
+        return wrapper
+
     @img_shape_checker
+    @_exact_unless_fused
     def _apply_img(self, img: np.ndarray, settings: dict):
-        if self.state_dict.get("fused", False):
-            return super(Rotate90, self)._apply_img(img, settings)
         return np.ascontiguousarray(np.rot90(img, -self.k))
 
+    @_exact_unless_fused
     def _apply_mask(self, mask: np.ndarray, settings: dict):
-        if self.state_dict.get("fused", False):
-            return super(Rotate90, self)._apply_mask(mask, settings)
         return np.ascontiguousarray(np.rot90(mask, -self.k))
 
+    @_exact_unless_fused
     def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
-        if self.state_dict.get("fused", False):
-            return super(Rotate90, self)._apply_distance_map(dmap, settings)
         return np.ascontiguousarray(np.rot90(dmap, -self.k))
 
+    @_exact_unless_fused
     def _apply_pts(self, pts: Keypoints, settings: dict):
-        if self.state_dict.get("fused", False):
-            return super(Rotate90, self)._apply_pts(pts, settings)
         # The exact mapping of np.rot90, which rotates the images. A positive k rotates clockwise.
         x, y = pts.data[:, 0].astype(float), pts.data[:, 1].astype(float)
         h, w = pts.height, pts.width
