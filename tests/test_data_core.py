@@ -1540,3 +1540,27 @@ def test_fused_stream_with_projection_keeps_keypoints_on_the_image(affine_transf
     img_res, kpts_res = stream(dc, return_torch=False).data
     for point in kpts_res.data:
         np.testing.assert_allclose(_blob_centroid(img_res, point), point, atol=0.15)
+
+
+@pytest.fixture(
+    params=[
+        lambda: slt.Flip(p=1),
+        lambda: slt.Crop(crop_to=10),
+        lambda: slt.Brightness(brightness_range=(5, 5), p=1),
+        lambda: slc.Stream([slt.Rotate(angle_range=(10, 10), p=1)]),
+    ],
+    ids=["Flip", "Crop", "Brightness", "nested_Stream"],
+)
+def non_matrix_transform(request):
+    return request.param
+
+
+@pytest.mark.parametrize("position", ["first", "last"])
+@pytest.mark.parametrize("stream_cls", [slc.Stream, slc.SelectiveStream])
+def test_fusion_rejects_non_matrix_transforms(non_matrix_transform, position, stream_cls):
+    transforms = [slt.Rotate(angle_range=(10, 10), p=1)]
+    transforms.insert(0 if position == "first" else 1, non_matrix_transform())
+    kwargs = {"n": 2} if stream_cls is slc.SelectiveStream else {}
+    stream = stream_cls(transforms, optimize_stack=True, **kwargs)
+    with pytest.raises(TypeError):
+        stream({"image": np.zeros((20, 20, 3), dtype=np.uint8)}, return_torch=False)
