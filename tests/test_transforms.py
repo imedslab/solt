@@ -1958,3 +1958,23 @@ def test_rotate_90_keypoints_follow_the_image(h, w, k):
         ys, xs = np.nonzero(img_res)
         np.testing.assert_array_equal(kpts_res.data, [[xs[0], ys[0]]])
         assert (kpts_res.height, kpts_res.width) == img_res.shape
+
+
+@pytest.mark.parametrize("rotate_first", [True, False])
+@pytest.mark.parametrize("k", [1, 2, 3])
+def test_rotate_90_in_optimized_stream(rotate_first, k):
+    h, w = 41, 51
+    img = np.zeros((h, w), dtype=np.uint8)
+    img[10, 25] = 1
+    kpts = slc.Keypoints(np.array([[25.0, 10.0]]), h, w)
+
+    def make_transforms():
+        rotate = slt.Rotate90(k=k, p=1)
+        translate = slt.Translate(range_x=(5, 5), range_y=(-3, -3), p=1)
+        return [rotate, translate] if rotate_first else [translate, rotate]
+
+    expected = slc.Stream(make_transforms())(slc.DataContainer((img, kpts), "MP"), return_torch=False)
+    res = slc.Stream(make_transforms(), optimize_stack=True)(slc.DataContainer((img, kpts), "MP"), return_torch=False)
+
+    np.testing.assert_array_equal(np.argwhere(res.data[0] == 1), np.argwhere(expected.data[0] == 1))
+    np.testing.assert_allclose(res.data[1].data, expected.data[1].data, atol=1e-6)

@@ -187,17 +187,35 @@ class Rotate90(Rotate):
         super(Rotate90, self).__init__(p=p, angle_range=(k * 90, k * 90), ignore_fast_mode=ignore_fast_mode)
         self.k = k
 
+    def reset_state(self):
+        super(Rotate90, self).reset_state()
+        self.state_dict["fused"] = False
+
+    def fuse_with(self, trf):
+        # When other transforms are fused into this one (Stream with optimize_stack), the rotation by 90 degrees is
+        # only a part of the transform matrix, so the general matrix transform has to be applied
+        super(Rotate90, self).fuse_with(trf)
+        self.state_dict["fused"] = True
+
     @img_shape_checker
     def _apply_img(self, img: np.ndarray, settings: dict):
+        if self.state_dict.get("fused", False):
+            return super(Rotate90, self)._apply_img(img, settings)
         return np.ascontiguousarray(np.rot90(img, -self.k))
 
     def _apply_mask(self, mask: np.ndarray, settings: dict):
+        if self.state_dict.get("fused", False):
+            return super(Rotate90, self)._apply_mask(mask, settings)
         return np.ascontiguousarray(np.rot90(mask, -self.k))
 
     def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
+        if self.state_dict.get("fused", False):
+            return super(Rotate90, self)._apply_distance_map(dmap, settings)
         return np.ascontiguousarray(np.rot90(dmap, -self.k))
 
     def _apply_pts(self, pts: Keypoints, settings: dict):
+        if self.state_dict.get("fused", False):
+            return super(Rotate90, self)._apply_pts(pts, settings)
         # The exact mapping of np.rot90, which rotates the images. A positive k rotates clockwise.
         x, y = pts.data[:, 0].astype(float), pts.data[:, 1].astype(float)
         h, w = pts.height, pts.width
