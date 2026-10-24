@@ -14,7 +14,6 @@
 #
 import os
 import sys
-import datetime
 
 sys.path.insert(0, os.path.abspath("../../solt/"))
 sys.path.insert(0, os.path.abspath("../../notebooks/"))
@@ -22,10 +21,8 @@ sys.path.insert(0, os.path.abspath("../../notebooks/"))
 # -- Project information -----------------------------------------------------
 
 project = "solt"
-current_year = datetime.datetime.now().year
-copyright = (
-    f"{current_year}, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu"
-)
+# Keep in sync with LICENSE
+copyright = "2018, Aleksei Tiulpin & SOLT contributors"
 author = "Aleksei Tiulpin"
 
 # The short X.Y version

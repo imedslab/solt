@@ -3,7 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/solt.svg)](https://badge.fury.io/py/solt)
 [![CI/CD Pipeline](https://github.com/imedslab/solt/actions/workflows/prod-release.yaml/badge.svg)](https://github.com/imedslab/solt/actions/workflows/prod-release.yaml)
 [![codecov](https://codecov.io/gh/imedslab/solt/branch/master/graph/badge.svg?token=tEqWMIZSrW)](https://codecov.io/gh/imedslab/solt)
-[![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md)
+[![License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE)
 [![DOI](https://zenodo.org/badge/143310844.svg)](https://zenodo.org/badge/latestdoi/143310844)
 
 ## Description
@@ -112,3 +112,7 @@ All the papers that use SOLT are listed [here](PAPERS.md).
   url          = {https://doi.org/10.5281/zenodo.3702819}
 }
 ```
+
+## License
+
+SOLT is released under the [MIT License](LICENSE). See also the [disclaimer](DISCLAIMER).

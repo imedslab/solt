@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -10,15 +10,15 @@ readme = { text = """Data augmentation library for Deep Learning, which supports
 Furthermore, SOLT is fast and has OpenCV in its backend.
 Full auto-generated docs and examples are available here: https://imedslab.github.io/solt/.
 """, content-type = "text/plain" }
-authors = [{ name = "Aleksei Tiulpin", email = "aleksei.tiulpin@oulu.fi" }]
-license = { text = "MIT license" }
+authors = [{ name = "Aleksei Tiulpin", email = "imeds.service@gmail.com" }]
+license = "MIT"
+license-files = ["LICENSE", "DISCLAIMER"]
 keywords = ["data augmentations", "deep learning"]
 requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
