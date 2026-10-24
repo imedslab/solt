@@ -41,7 +41,12 @@ uv sync --group notebooks
 uv run jupyter lab notebooks/
 ```
 
-All the notebooks except `Basics_of_solt.ipynb` need datasets in `notebooks/Data`.
+The notebooks use only the sample images of scikit-image, so they do not need any data to be downloaded.
+The docs show the outputs stored in the notebooks, so re-run a notebook after changing it:
+
+```
+uv run jupyter nbconvert --to notebook --execute --inplace notebooks/<name>.ipynb
+```
 
 ## Contributing
 
