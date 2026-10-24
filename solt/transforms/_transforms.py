@@ -1938,10 +1938,10 @@ class RandomResizedCrop(BaseTransform, InterpolationPropertyHolder):
         in_ratio = w / h
         if in_ratio < min(self.ratio):
             new_w = w
-            new_h = int(round(new_w / min(self.ratio)))
+            new_h = max(1, int(round(new_w / min(self.ratio))))
         elif in_ratio > max(self.ratio):
             new_h = h
-            new_w = int(round(new_h * max(self.ratio)))
+            new_w = max(1, int(round(new_h * max(self.ratio))))
 
         i = (h - new_h) // 2
         j = (w - new_w) // 2
