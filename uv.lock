@@ -2739,6 +2739,7 @@ dev = [
     { name = "pytest-lazy-fixtures" },
 ]
 docs = [
+    { name = "ipython" },
     { name = "nbsphinx" },
     { name = "nbsphinx-link" },
     { name = "sphinx", version = "9.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
@@ -2774,6 +2775,7 @@ dev = [
     { name = "pytest-lazy-fixtures", specifier = ">=1.4.1" },
 ]
 docs = [
+    { name = "ipython", specifier = ">=9.17.1" },
     { name = "nbsphinx", specifier = ">=0.9.8" },
     { name = "nbsphinx-link", specifier = ">=1.4.1" },
     { name = "sphinx", specifier = ">=8.2.0" },

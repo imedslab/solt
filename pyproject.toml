@@ -53,6 +53,8 @@ docs = [
     "sphinx-rtd-theme>=3.1.0",
     "nbsphinx>=0.9.8",
     "nbsphinx-link>=1.4.1",
+    # Syntax highlighting of the code of the notebooks (the ipython3 lexer)
+    "ipython>=9.17.1",
 ]
 # Running the example notebooks: uv run --group notebooks jupyter lab notebooks/
 notebooks = [
