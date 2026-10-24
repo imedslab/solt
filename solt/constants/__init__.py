@@ -13,7 +13,8 @@ Constants module
 
 .. data:: ALLOWED_CROPS
 
-    Defines the allowed crops. Can be ``'r'`` - random crop or ``'c'`` - center crop.
+    Defines the allowed crops. Can be ``'r'`` - random crop, ``'c'`` - center crop, or a corner crop:
+    ``'lt'`` - left top, ``'rt'`` - right top, ``'lb'`` - left bottom and ``'rb'`` - right bottom.
 
 .. data:: ALLOWED_PADDINGS
 

@@ -749,16 +749,18 @@ class Resize(BaseTransform, InterpolationPropertyHolder):
 
 class Crop(BaseTransform):
     """
-    Center / Random crop transform.
+    Center / Random / Corner crop transform.
 
-    Object performs center or random cropping depending on the parameters.
+    Object performs center, random or corner cropping depending on the parameters. The center and the four corner
+    crops make the five crops, which are often used for test-time augmentation.
 
     Parameters
     ----------
     crop_to : tuple or int or None
         Size of the crop ``(width_new, height_new)``. If ``int``, then a square crop will be made.
     crop_mode : str
-        Crop mode. Can be either ``'c'`` - center or ``'r'`` - random.
+        Crop mode. Can be ``'c'`` - center, ``'r'`` - random, or a corner: ``'lt'`` - left top, ``'rt'`` - right top,
+        ``'lb'`` - left bottom and ``'rb'`` - right bottom.
 
     See also
     --------
@@ -804,10 +806,13 @@ class Crop(BaseTransform):
             if self.crop_mode == "r":
                 self.state_dict["x"] = int(random.random() * (w - self.crop_to[0]))
                 self.state_dict["y"] = int(random.random() * (h - self.crop_to[1]))
-
-            else:
+            elif self.crop_mode == "c":
                 self.state_dict["x"] = w // 2 - self.crop_to[0] // 2
                 self.state_dict["y"] = h // 2 - self.crop_to[1] // 2
+            else:
+                # Corner crops: the first letter is the horizontal position, the second one is the vertical one
+                self.state_dict["x"] = 0 if self.crop_mode[0] == "l" else w - self.crop_to[0]
+                self.state_dict["y"] = 0 if self.crop_mode[1] == "t" else h - self.crop_to[1]
 
     def __crop_img_or_mask(self, img_mask):
         if self.crop_to is not None:

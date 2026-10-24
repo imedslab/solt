@@ -1621,3 +1621,57 @@ def test_random_resized_crop_serialization():
     assert tuple(trf_restored.scale) == (0.5, 1.0)
     assert tuple(trf_restored.ratio) == (0.5, 2.0)
     assert trf_restored.interpolation[0] == "bicubic"
+
+
+@pytest.mark.parametrize(
+    "crop_mode, x, y",
+    [("c", 3, 2), ("lt", 0, 0), ("rt", 6, 0), ("lb", 0, 5), ("rb", 6, 5)],
+)
+def test_crop_modes(crop_mode, x, y):
+    h, w, crop_w, crop_h = 9, 10, 4, 4
+    img = np.arange(h * w, dtype=np.uint8).reshape(h, w, 1)
+    mask = img[..., 0].copy()
+    dmap = img[..., 0].astype(np.float32)
+    kpts = slc.Keypoints(np.array([[x + 1.0, y + 2.0]]), h, w)
+
+    trf = slt.Crop(crop_to=(crop_w, crop_h), crop_mode=crop_mode)
+    img_res, mask_res, dmap_res, kpts_res = trf(slc.DataContainer((img, mask, dmap, kpts), "IMDP")).data
+
+    np.testing.assert_array_equal(img_res, img[y : y + crop_h, x : x + crop_w])
+    np.testing.assert_array_equal(mask_res, mask[y : y + crop_h, x : x + crop_w])
+    np.testing.assert_array_equal(dmap_res, dmap[y : y + crop_h, x : x + crop_w])
+    np.testing.assert_array_equal(kpts_res.data, [[1.0, 2.0]])
+
+
+def test_crop_five_crops_for_test_time_augmentation():
+    # 3x3 blocks of 4x4 pixels, each block filled with its own value
+    blocks = np.arange(9, dtype=np.uint8).reshape(3, 3)
+    img = np.kron(blocks, np.ones((4, 4), dtype=np.uint8))[..., np.newaxis]
+
+    values = {}
+    for crop_mode in ["lt", "rt", "c", "lb", "rb"]:
+        res = slt.Crop(crop_to=4, crop_mode=crop_mode)(slc.DataContainer((img,), "I")).data[0]
+        assert len(np.unique(res)) == 1
+        values[crop_mode] = int(res[0, 0, 0])
+
+    assert values == {"lt": 0, "rt": 2, "c": 4, "lb": 6, "rb": 8}
+
+
+def test_crop_random_mode_stays_inside_the_image():
+    img = np.zeros((9, 10, 1), dtype=np.uint8)
+    for _ in range(50):
+        trf = slt.Crop(crop_to=(4, 4), crop_mode="r")
+        trf(slc.DataContainer((img,), "I"))
+        assert 0 <= trf.state_dict["x"] <= 6 and 0 <= trf.state_dict["y"] <= 5
+
+
+@pytest.mark.parametrize("crop_mode", ["lc", "center", "t", None])
+def test_crop_wrong_mode(crop_mode):
+    with pytest.raises(ValueError):
+        slt.Crop(crop_to=4, crop_mode=crop_mode)
+
+
+@pytest.mark.parametrize("crop_mode", ["lt", "rt", "lb", "rb"])
+def test_crop_mode_serialization(crop_mode):
+    trf = slu.from_yaml(slc.Stream([slt.Crop(crop_to=4, crop_mode=crop_mode)]).to_yaml()).transforms[0]
+    assert trf.crop_mode == crop_mode

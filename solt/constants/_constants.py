@@ -9,7 +9,7 @@ ALLOWED_INTERPOLATIONS = {
     "area": cv2.INTER_AREA,
     "lanczos": cv2.INTER_LANCZOS4,
 }
-ALLOWED_CROPS = {"c", "r"}
+ALLOWED_CROPS = {"c", "r", "lt", "rt", "lb", "rb"}
 ALLOWED_TYPES = {"I", "M", "D", "P", "L"}
 ALLOWED_BLURS = {"g", "m", "mo"}
 ALLOWED_COLOR_CONVERSIONS = {"gs2rgb", "rgb2gs", "none"}
