@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath("../../notebooks/"))
 
 project = "solt"
 # Keep in sync with LICENSE
-copyright = "2018-2025, Aleksei Tiulpin & SOLT contributors; 2026, Weill Cornell Medicine & SOLT contributors"
+copyright = "2018-2025, Aleksei Tiulpin & SOLT contributors; 2026, Weill Medical College of Cornell University & SOLT contributors"
 author = "Aleksei Tiulpin"
 
 # The short X.Y version
