@@ -1,10 +1,13 @@
 from functools import wraps
 import json
+import math
+import numbers
 import yaml
 import inspect
 
 import cv2
 import numpy as np
+from scipy import ndimage
 
 
 class Serializable(object):
@@ -243,6 +246,58 @@ def distance_map_handler(method):
         return res.astype(dtype, copy=False)
 
     return wrapper
+
+
+def mask_to_sdf(mask, max_distance=None, dtype=np.float32):
+    """Computes the signed distance field (SDF) of a binary mask.
+
+    The distances are in pixels: negative inside of the objects and positive outside. The pixels next to a boundary
+    have the distance of 1 (or -1), i.e. the boundary (the zero level) lies half way between the inside and the
+    outside pixels. The result can be augmented as a distance map (``'D'``) in a ``DataContainer``.
+
+    Parameters
+    ----------
+    mask : numpy.ndarray
+        Binary mask ``HxW``, or a multi-label mask ``HxWxC``, for which the SDF of every channel is computed.
+        Non-zero values belong to the objects.
+    max_distance : int or float or None
+        If set, the distances are clipped to ``[-max_distance, max_distance]`` (truncated SDF).
+    dtype : numpy.dtype
+        Floating point type of the result, e.g. ``numpy.float16``.
+
+    Returns
+    -------
+    out : numpy.ndarray
+        SDF of the same shape as the mask. If a mask (channel) has no boundary, i.e. it is empty or full, all of its
+        distances are equal to the image diagonal (or to ``max_distance`` if it is set): positive for an empty mask
+        and negative for a full one.
+
+    """
+    if not isinstance(mask, np.ndarray):
+        raise TypeError("Mask must be a numpy array!")
+    if mask.ndim not in (2, 3):
+        raise ValueError("Mask must be an HxW or HxWxC array!")
+    if not np.issubdtype(np.dtype(dtype), np.floating):
+        raise TypeError("The type of the SDF must be a floating point one!")
+    if max_distance is not None:
+        if not isinstance(max_distance, numbers.Real) or isinstance(max_distance, bool):
+            raise TypeError("Maximum distance must be a number!")
+        if max_distance <= 0:
+            raise ValueError("Maximum distance must be positive!")
+
+    if mask.ndim == 3:
+        return np.stack([mask_to_sdf(mask[:, :, c], max_distance, dtype) for c in range(mask.shape[2])], axis=-1)
+
+    mask = mask.astype(bool)
+    if mask.all() or not mask.any():
+        # No boundary: every pixel is farther from it than the size of the image
+        far = math.hypot(*mask.shape) if max_distance is None else max_distance
+        return np.full(mask.shape, -far if mask.any() else far, dtype=dtype)
+
+    sdf = ndimage.distance_transform_edt(~mask) - ndimage.distance_transform_edt(mask)
+    if max_distance is not None:
+        sdf = np.clip(sdf, -max_distance, max_distance)
+    return sdf.astype(dtype)
 
 
 def distance_map_border(border_mode, settings):
