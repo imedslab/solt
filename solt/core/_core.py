@@ -246,6 +246,9 @@ class Stream(Serializable):
         transforms_stack = []
         for trf in transforms:
             if isinstance(trf, MatrixTransform):
+                # The transforms of the stream must not change: the first one would get the matrices, the interpolation
+                # and the padding of the others. A shallow copy with its own state is enough, no arrays are copied.
+                trf = copy.copy(trf)
                 trf.ignore_fast_mode = True
                 trf.reset_state()
                 if trf.use_transform():
