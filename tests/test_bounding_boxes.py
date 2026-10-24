@@ -481,3 +481,37 @@ def test_copy_keeps_the_unclipped_boxes():
     dc = slc.DataContainer((slc.BoundingBoxes([[-40, 0, 20, 20]], 100, 100),), "B")
     assert len(slc.Stream([slt.Flip(p=0)], in_place=False)(dc, return_torch=False).data[0]) == 0
     np.testing.assert_array_equal(dc.copy().data[0].unclipped, [[-40, 0, 20, 20]])
+
+
+@pytest.fixture(
+    params=[((0, 0), (0, 0)), ((0.05, 0.1), (0.05, 0.1)), ((-0.1, -0.05), (-0.1, -0.05)), ((-0.1, 0.1), (-0.1, 0.1))],
+    ids=["no_jitter", "positive", "negative", "both"],
+)
+def jitter_ranges(request):
+    return request.param
+
+
+@pytest.fixture(
+    params=[
+        [[0, 0, W, H]],
+        [[50, 30, W, H], [0, 0, 20, 10]],
+        [[20, 15, 45, 40]],
+        np.zeros((0, 4)),
+    ],
+    ids=["whole_image", "touching_right_and_bottom", "inside", "no_boxes"],
+)
+def jitter_boxes(request):
+    return request.param
+
+
+def test_keypoints_jitter_does_not_change_boxes(jitter_ranges, jitter_boxes):
+    dx_range, dy_range = jitter_ranges
+    bboxes = slc.BoundingBoxes(jitter_boxes, H, W, labels=list(range(len(jitter_boxes))))
+    kpts = slc.Keypoints(np.array([[30.0, 20.0], [10.0, 40.0]]), H, W)
+    random.seed(0)
+    bboxes_res, kpts_res = slt.KeypointsJitter(p=1, dx_range=dx_range, dy_range=dy_range)(
+        slc.DataContainer((bboxes, kpts), "BP")
+    ).data
+    assert bboxes_res == bboxes
+    if dx_range != (0, 0):
+        assert not np.array_equal(kpts_res.data, kpts.data)

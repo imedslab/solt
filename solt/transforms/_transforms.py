@@ -1612,7 +1612,8 @@ class CvtColor(ImageTransform):
 
 class KeypointsJitter(BaseTransform):
     """
-    Applies the jittering to the keypoints in X- and Y-durections
+    Applies the jittering to the keypoints in X- and Y-durections. Only keypoints are changed, e.g. bounding boxes
+    stay as they are.
 
     Parameters
     ----------
@@ -1659,6 +1660,10 @@ class KeypointsJitter(BaseTransform):
             pts_data[j, 1] = min(pts_data[j, 1] + dy, h - 1)
 
         return Keypoints(pts_data, h, w)
+
+    def _apply_bboxes(self, bboxes, settings: dict):
+        # Jittering the corners independently would distort the boxes
+        return bboxes
 
     def _apply_labels(self, labels, settings: dict):
         return labels
