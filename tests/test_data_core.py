@@ -794,8 +794,9 @@ def test_ignore_fast_mode_for_a_stream(stream_ignore_fast, r1_ignore_fast, r2_ig
         ignore_fast_mode=stream_ignore_fast,
     )
 
-    for trf in ppl.transforms:
-        assert stream_ignore_fast == trf.ignore_fast_mode
+    # A stream, which ignores the fast mode, sets it for all its transforms; the default keeps their own setting
+    for trf, own in zip(ppl.transforms, [r1_ignore_fast, r2_ignore_fast]):
+        assert trf.ignore_fast_mode == (stream_ignore_fast or own)
 
 
 @pytest.mark.parametrize(
@@ -1335,7 +1336,7 @@ def test_stream_settings_survive_serialization(img_16x16_rgb, mask_16x16, stream
 @pytest.mark.parametrize("ignore_fast_mode", [False, True])
 def test_stream_ignore_fast_mode_propagates_to_matrix_transforms(img_16x16_rgb, ignore_fast_mode):
     random.seed(42)
-    trf = rotate_30(ignore_fast_mode=not ignore_fast_mode)
+    trf = rotate_30()
     flip = slt.Flip(axis=1, p=1)
     ppl = slc.Stream([flip, trf], ignore_fast_mode=ignore_fast_mode)
     assert trf.ignore_fast_mode is ignore_fast_mode
@@ -1420,3 +1421,58 @@ def test_optimized_transform_can_be_used_alone_afterwards():
     )
 
     np.testing.assert_array_equal(rotate(slc.DataContainer((img,), "I")).data[0], expected)
+
+
+def _rotate_fast(ignore_fast_mode=False):
+    return slt.Rotate(angle_range=(30, 30), p=1, ignore_fast_mode=ignore_fast_mode)
+
+
+# Pipelines with the rotation nested at different depths: factories taking the outer stream kwargs
+_NESTED_FAST_MODE_PIPELINES = {
+    "depth_0": lambda rotate, **kw: slc.Stream([rotate], **kw),
+    "depth_1": lambda rotate, **kw: slc.Stream([slc.Stream([rotate])], **kw),
+    "depth_2": lambda rotate, **kw: slc.Stream([slc.Stream([slc.Stream([rotate])])], **kw),
+    "selective": lambda rotate, **kw: slc.Stream([slc.SelectiveStream([rotate])], **kw),
+}
+
+
+@pytest.fixture(params=list(_NESTED_FAST_MODE_PIPELINES), ids=list(_NESTED_FAST_MODE_PIPELINES))
+def nested_fast_mode_pipeline(request):
+    return _NESTED_FAST_MODE_PIPELINES[request.param]
+
+
+def _frame_enlarged(stream, img):
+    return stream({"image": img}, return_torch=False).data[0].shape != img.shape
+
+
+def test_stream_ignore_fast_mode_reaches_nested_streams(nested_fast_mode_pipeline):
+    img = np.zeros((16, 16, 3), dtype=np.uint8)
+    rotate = _rotate_fast()
+    stream = nested_fast_mode_pipeline(rotate, ignore_fast_mode=True)
+    assert rotate.ignore_fast_mode is True
+    assert _frame_enlarged(stream, img)
+
+
+def test_stream_default_keeps_the_fast_mode_of_transforms(nested_fast_mode_pipeline):
+    img = np.zeros((16, 16, 3), dtype=np.uint8)
+    rotate = _rotate_fast(ignore_fast_mode=True)
+    stream = nested_fast_mode_pipeline(rotate)
+    assert rotate.ignore_fast_mode is True
+    assert _frame_enlarged(stream, img)
+
+
+def test_stream_default_keeps_the_fast_mode_of_nested_streams():
+    rotate = _rotate_fast()
+    slc.Stream([slc.Stream([rotate], ignore_fast_mode=True)])
+    assert rotate.ignore_fast_mode is True
+
+
+@pytest.mark.parametrize("value", [True, False])
+def test_reset_ignore_fast_mode_is_applied_recursively(nested_fast_mode_pipeline, value):
+    img = np.zeros((16, 16, 3), dtype=np.uint8)
+    rotate = _rotate_fast(ignore_fast_mode=not value)
+    stream = nested_fast_mode_pipeline(rotate, ignore_fast_mode=not value)
+    stream.reset_ignore_fast_mode(value)
+    assert rotate.ignore_fast_mode is value
+    assert stream.ignore_fast_mode is value
+    assert _frame_enlarged(stream, img) is value
