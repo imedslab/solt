@@ -464,11 +464,11 @@ def _verify_resize_img_to_arbitrary_size(img, mask, resize_to):
     assert (res[1].shape[0] == resize_to[1]) and (res[1].shape[1] == resize_to[0])
     assert (res[2].height == resize_to[1]) and (res[2].width == resize_to[0])
 
+    # Keypoints are the centres of pixels, as in the resized image
     kpts_data = kpts_data.astype(float)
-    kpts_data[:, 0] *= scale_x
-    kpts_data[:, 1] *= scale_y
-    kpts_data = kpts_data.astype(int)
-    assert np.array_equal(res[2].data, kpts_data)
+    kpts_data[:, 0] = (kpts_data[:, 0] + 0.5) * scale_x - 0.5
+    kpts_data[:, 1] = (kpts_data[:, 1] + 0.5) * scale_y - 0.5
+    np.testing.assert_allclose(res[2].data, kpts_data)
 
 
 @pytest.mark.parametrize(
@@ -531,11 +531,11 @@ def test_resize_img_to_arbitrary_size(img, mask, resize_to):
 
     assert transf.resize_to == resize_to
 
+    # Keypoints are the centres of pixels, as in the resized image
     kpts_data = kpts_data.astype(float)
-    kpts_data[:, 0] *= scale_x
-    kpts_data[:, 1] *= scale_y
-    kpts_data = kpts_data.astype(int)
-    assert np.array_equal(res[2].data, kpts_data)
+    kpts_data[:, 0] = (kpts_data[:, 0] + 0.5) * scale_x - 0.5
+    kpts_data[:, 1] = (kpts_data[:, 1] + 0.5) * scale_y - 0.5
+    np.testing.assert_allclose(res[2].data, kpts_data)
 
 
 @pytest.mark.parametrize("resize_to", ["1123", 123.0])
@@ -1880,3 +1880,29 @@ def test_brightness_contrast_keeps_masks():
 def test_brightness_contrast_relative_must_be_bool(relative):
     with pytest.raises(TypeError):
         slt.BrightnessContrast(brightness_range=(0.1, 0.2), relative=relative)
+
+
+def _blob(h, w, cx, cy, sigma=3.0):
+    """Gaussian blob centred at a sub-pixel position (x, y) given in pixel centres."""
+    yy, xx = np.mgrid[:h, :w].astype(np.float64)
+    return np.exp(-((xx - cx) ** 2 + (yy - cy) ** 2) / (2 * sigma**2))
+
+
+def _centroid(img):
+    yy, xx = np.mgrid[: img.shape[0], : img.shape[1]]
+    return (xx * img).sum() / img.sum(), (yy * img).sum() / img.sum()
+
+
+@pytest.mark.parametrize("resize_to", [(30, 30), (120, 120), (45, 100), (80, 37)])
+@pytest.mark.parametrize("interpolation", ["bilinear", "bicubic"])
+def test_resize_keypoints_follow_the_image(resize_to, interpolation):
+    h, w, cx, cy = 60, 64, 25.3, 33.7
+    img = _blob(h, w, cx, cy).astype(np.float32)[..., np.newaxis]
+    kpts = slc.Keypoints(np.array([[cx, cy]]), h, w)
+
+    img_res, kpts_res = slt.Resize(resize_to=resize_to, interpolation=interpolation)(
+        slc.DataContainer((img, kpts), "IP")
+    ).data
+
+    assert kpts_res.data.dtype == np.float64
+    np.testing.assert_allclose(kpts_res.data[0], _centroid(img_res[..., 0]), atol=0.05)

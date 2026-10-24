@@ -739,10 +739,9 @@ class Resize(BaseTransform, InterpolationPropertyHolder):
         scale_x = resize_x / pts.width
         scale_y = resize_y / pts.height
 
-        pts_data[:, 0] *= scale_x
-        pts_data[:, 1] *= scale_y
-
-        pts_data = pts_data.astype(int)
+        # Keypoints are the centres of pixels. The same mapping as in cv2.resize keeps them aligned with the image
+        pts_data[:, 0] = (pts_data[:, 0] + 0.5) * scale_x - 0.5
+        pts_data[:, 1] = (pts_data[:, 1] + 0.5) * scale_y - 0.5
 
         return Keypoints(pts_data, resize_y, resize_x)
 
