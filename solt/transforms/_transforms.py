@@ -1741,19 +1741,31 @@ class GridMask(ImageTransform):
 
     https://arxiv.org/abs/2001.04086
 
+    The image is split into units of ``d x d`` pixels. Every unit has a kept band of width ``l = ceil(d * ratio)``
+    along its top and left sides, which forms a grid of kept lines, and the remaining square of side ``d - l`` is
+    dropped (set to 0). Without rotation, approximately ``(1 - ratio) ** 2`` of the image is dropped (exactly
+    ``((d - l) / d) ** 2``, up to the incomplete units at the borders), i.e. ``ratio`` is the ratio ``r`` of the paper,
+    and the keep ratio is ``1 - (1 - ratio) ** 2``. The grid has a random offset, and the same mask is applied to all
+    the channels of the image.
+
     Parameters
     ----------
-    d_range: int or tuple or None
-        The range of parameter d. If tuple, then the d is chosen between ``(d_range[0], d_range[1])``.
-        If none, then the d is chosen between ``(1, 2)``.
+    d_range: tuple or None
+        The range of the unit size d. The d is chosen between ``(d_range[0], d_range[1])``, both inclusive.
+        If None, then the d is chosen between ``(1, 10)``.
     ratio: float
-        The value of parameter ratio, defines the distance between GridMask squares.
+        The ratio of the width of the kept lines to the unit size d, between 0 and 1. The dropped squares have the side
+        ``d - ceil(d * ratio)``, i.e. ``0`` drops the whole image and ``1`` keeps it.
     rotate : int or tuple or None
-        If int, then the angle of grid mask rotation is between ``(-rotate, rotate)``.
+        If int, then the angle (in degrees) of grid mask rotation is between ``(-rotate, rotate)``.
         If tuple, then the angle of grid mask rotation is between ``(rotate[0], rotate[1])``.
+        The integer angle is chosen with both ends inclusive. If 0 or None, then the mask is not rotated.
     mode : str or None
-        GridMask mode. If ``'crop'``, then the default GridMask is applied.
-        If ``'crop'``, the inversed GridMask is applied.
+        GridMask mode. If ``'crop'`` or ``'none'`` (default, used when ``mode`` is None), then the default GridMask
+        is applied: the squares are dropped, and the grid lines are kept.
+        If ``'reverse'``, the inversed GridMask is applied: only the squares are kept, and the grid lines are dropped,
+        i.e. exactly the complement of the default mode is dropped. ``'reserve'`` is an alias of ``'reverse'``,
+        kept for backward compatibility.
     data_indices : tuple or None
         Indices of the images within the data container to which this transform needs to be applied.
         Every element within the tuple must be integer numbers.
@@ -1778,14 +1790,26 @@ class GridMask(ImageTransform):
 
         self.d_range = validate_numeric_range_parameter(d_range, (1, np.inf), min_val=1)
 
+        if not 0 <= ratio <= 1:
+            raise ValueError("Ratio must be between 0 and 1")
+
         self.ratio = ratio
+
+        if rotate is None:
+            rotate = 0
 
         if not isinstance(rotate, int) and not isinstance(rotate, tuple):
             raise TypeError("Rotate must be an int or a tuple of int")
 
         if isinstance(rotate, tuple):
+            if len(rotate) != 2:
+                raise ValueError("Rotate must be a tuple of two ints")
             if not isinstance(rotate[0], int) or not isinstance(rotate[1], int):
                 raise TypeError("Rotate must be an int or a tuple of int")
+            if rotate[0] > rotate[1]:
+                raise ValueError("Rotate must be a range: rotate[0] <= rotate[1]")
+        elif rotate < 0:
+            raise ValueError("Rotate must be non-negative, when it is an int")
 
         if isinstance(rotate, int) and rotate:
             rotate = (-rotate, rotate)
@@ -1793,43 +1817,49 @@ class GridMask(ImageTransform):
         self.rotate = rotate
 
         self.mode = validate_parameter(mode, ALLOWED_GRIDMASK_MODES, "none", heritable=False)
+        if self.mode not in ALLOWED_GRIDMASK_MODES:
+            raise ValueError(f"Mode must be one of {sorted(ALLOWED_GRIDMASK_MODES)}")
 
     def sample_transform(self, data: DataContainer):
         h, w = super(GridMask, self).sample_transform(data)
 
+        # The mask is made for the diagonal, so that it covers the image after any rotation around the center
         hh = int(np.ceil(np.sqrt(h**2 + w**2)))
         d = random.randint(self.d_range[0], self.d_range[1])
 
-        mask = np.ones((hh, hh), np.float32)
+        # 1 on the kept grid lines, and 0 on the dropped squares between them
+        mask = np.zeros((hh, hh), np.float32)
         st_h = random.randint(0, d)
         st_w = random.randint(0, d)
-        b = int(np.ceil(d * self.ratio))
+        # Rounding makes e.g. 10 * 0.3 = 3.0000000000000004 a line of width 3
+        line = int(np.ceil(np.round(d * self.ratio, 6)))
 
         for i in range(-1, hh // d + 1):
             s_row = max(min(d * i + st_h, hh), 0)
-            t_row = max(min(d * i + st_h + b, hh), 0)
+            t_row = max(min(d * i + st_h + line, hh), 0)
+            mask[s_row:t_row, :] = 1
 
             s_col = max(min(d * i + st_w, hh), 0)
-            t_col = max(min(d * i + st_w + b, hh), 0)
+            t_col = max(min(d * i + st_w + line, hh), 0)
+            mask[:, s_col:t_col] = 1
 
-            mask[s_row:t_row, s_col:t_col] *= 0
-
-        mask_w, mask_h = mask.shape
         if self.rotate:
             angle = random.randint(self.rotate[0], self.rotate[1])
-            rotation_matrix = cv2.getRotationMatrix2D((mask_w // 2, mask_h // 2), angle, 1)
-            mask = cv2.warpAffine(mask, rotation_matrix, (mask_w, mask_h), flags=cv2.INTER_NEAREST)
+            rotation_matrix = cv2.getRotationMatrix2D((hh // 2, hh // 2), angle, 1)
+            mask = cv2.warpAffine(mask, rotation_matrix, (hh, hh), flags=cv2.INTER_NEAREST)
 
         mask = mask[(hh - h) // 2 : (hh - h) // 2 + h, (hh - w) // 2 : (hh - w) // 2 + w]
-        if self.mode != "reverse":
+        if self.mode in ("reverse", "reserve"):
             mask = 1 - mask
-
-        mask = np.reshape(mask, (h, w))
 
         self.state_dict["mask"] = mask.astype(np.uint8)
 
     @img_shape_checker
     def _apply_img(self, img: np.ndarray, settings: dict):
+        if img.ndim == 2:
+            img *= self.state_dict["mask"]
+            return img
+
         for k in range(img.shape[2]):
             img[:, :, k] *= self.state_dict["mask"]
 

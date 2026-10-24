@@ -1518,7 +1518,8 @@ def test_jpeg_quality_range_raises_error_when_wrong(quality):
 
 @pytest.mark.parametrize(
     "img, d_range, rotate, ratio, expected",
-    [(np.ones((3, 3, 3)), (5, 10), 1, 0.2, np.zeros((3, 3, 3)))],
+    # With this seed, the 3x3 image is inside a single dropped square, apart from one kept vertical line in the middle
+    [(np.ones((3, 3, 3)), (5, 10), 1, 0.2, np.broadcast_to(np.array([0.0, 1.0, 0.0])[None, :, None], (3, 3, 3)))],
 )
 def test_gridmask_transform(img, d_range, rotate, ratio, expected):
     np.random.seed(42)
@@ -2201,3 +2202,196 @@ def test_cvt_color_values_and_mask_for_channel_counts(mode, cvt_img, cvt_mask, c
     np.testing.assert_array_equal(res_img, expected)
     np.testing.assert_array_equal(res_mask, mask_orig)
     np.testing.assert_array_equal(cvt_img, img_orig)
+
+
+# GridMask. Without rotation, the grid is made of kept lines of width ``l = ceil(d * ratio)`` repeated with the
+# period ``d``, and the dropped region is the squares of side ``s = d - l`` between them.
+def _gridmask_line_and_square(d, ratio):
+    line = int(np.ceil(np.round(d * ratio, 6)))
+    return line, d - line
+
+
+def _gridmask_dropped(shape, seed, **kwargs):
+    random.seed(seed)
+    img = np.ones((*shape, 1), dtype=np.float32)
+    res = slt.GridMask(p=1, **kwargs)(slc.DataContainer((img,), "I"), return_torch=False).data[0]
+    assert set(np.unique(res)).issubset({0, 1})
+    return res[:, :, 0] == 0
+
+
+def _runs(vec):
+    """Lengths of the runs of ``True`` and ``False`` in ``vec``, without the runs touching the borders."""
+    edges = np.flatnonzero(np.diff(vec.astype(np.int8))) + 1
+    bounds = np.concatenate(([0], edges, [vec.size]))
+    runs = [(bool(vec[s]), e - s) for s, e in zip(bounds[:-1], bounds[1:])]
+    return runs[1:-1]
+
+
+@pytest.fixture(params=[4, 10, 16], ids=lambda d: f"d{d}")
+def gridmask_d(request):
+    return request.param
+
+
+@pytest.fixture(params=[0.3, 0.5, 0.7], ids=lambda r: f"ratio{r}")
+def gridmask_ratio(request):
+    return request.param
+
+
+@pytest.fixture(params=[(64, 64), (48, 80), (37, 53)], ids=["square", "non_square", "odd"])
+def gridmask_shape(request):
+    return request.param
+
+
+@pytest.fixture(params=["crop", "none", None])
+def gridmask_default_mode(request):
+    return request.param
+
+
+@pytest.fixture(params=["reverse", "reserve"])
+def gridmask_inverse_mode(request):
+    return request.param
+
+
+@pytest.fixture(params=[0, 15, (30, 45), (-20, -10)], ids=["no_rotation", "int", "tuple", "negative_tuple"])
+def gridmask_rotate(request):
+    return request.param
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2])
+def test_gridmask_drops_squares_between_kept_lines(
+    gridmask_d, gridmask_ratio, gridmask_shape, gridmask_default_mode, seed
+):
+    d, (h, w) = gridmask_d, gridmask_shape
+    line, square = _gridmask_line_and_square(d, gridmask_ratio)
+    dropped = _gridmask_dropped(gridmask_shape, seed, d_range=(d, d), ratio=gridmask_ratio, mode=gridmask_default_mode)
+
+    rows, cols = dropped.any(axis=1), dropped.any(axis=0)
+    # The dropped region is a union of squares: a pixel is dropped iff both its row and its column are between lines
+    np.testing.assert_array_equal(dropped, np.outer(rows, cols))
+    for vec in (rows, cols):
+        # Any d consecutive rows (columns) contain exactly one side of a square, also at the image borders
+        windows = np.lib.stride_tricks.sliding_window_view(vec, d).sum(axis=1)
+        np.testing.assert_array_equal(windows, square)
+        for is_dropped, length in _runs(vec):
+            assert length == (square if is_dropped else line)
+
+    assert abs(dropped.mean() - (square / d) ** 2) <= 2 * square / min(h, w)
+
+
+def test_gridmask_dropped_fraction_is_one_minus_ratio_squared():
+    dropped = _gridmask_dropped((256, 256), 0, d_range=(16, 16), ratio=0.5, mode="crop")
+    assert dropped.mean() == pytest.approx(0.25, abs=0.02)
+
+
+def test_gridmask_inverse_mode_drops_the_complement(
+    gridmask_d, gridmask_ratio, gridmask_shape, gridmask_inverse_mode, gridmask_rotate
+):
+    kwargs = {"d_range": (gridmask_d, gridmask_d), "ratio": gridmask_ratio, "rotate": gridmask_rotate}
+    dropped = _gridmask_dropped(gridmask_shape, 0, mode="crop", **kwargs)
+    dropped_inverse = _gridmask_dropped(gridmask_shape, 0, mode=gridmask_inverse_mode, **kwargs)
+    np.testing.assert_array_equal(dropped_inverse, ~dropped)
+
+
+@pytest.mark.parametrize("modes", [("crop", "none"), ("crop", None), ("reverse", "reserve")])
+def test_gridmask_mode_aliases_are_identical(modes, gridmask_rotate):
+    kwargs = {"d_range": (5, 20), "ratio": 0.4, "rotate": gridmask_rotate}
+    res = [_gridmask_dropped((50, 70), 7, mode=mode, **kwargs) for mode in modes]
+    np.testing.assert_array_equal(res[0], res[1])
+
+
+def test_gridmask_rotation_angle_is_sampled_in_range(gridmask_rotate, gridmask_default_mode, monkeypatch):
+    angles = []
+    get_rotation_matrix = cv2.getRotationMatrix2D
+
+    def recording_get_rotation_matrix(center, angle, scale):
+        angles.append(angle)
+        return get_rotation_matrix(center, angle, scale)
+
+    monkeypatch.setattr(cv2, "getRotationMatrix2D", recording_get_rotation_matrix)
+    low, high = (-gridmask_rotate, gridmask_rotate) if isinstance(gridmask_rotate, int) else gridmask_rotate
+    for seed in range(20):
+        dropped = _gridmask_dropped(
+            (40, 60), seed, d_range=(8, 12), ratio=0.5, rotate=gridmask_rotate, mode=gridmask_default_mode
+        )
+        # Every unit of the grid drops about (1 - ratio) ** 2 of its area, whatever the angle
+        assert dropped.mean() == pytest.approx(0.25, abs=0.12)
+
+    if gridmask_rotate == 0:
+        assert angles == []
+    else:
+        assert len(angles) == 20
+        assert all(low <= angle <= high for angle in angles)
+
+
+@pytest.mark.parametrize("rotate, expected", [(0, 0), (15, (-15, 15)), ((30, 45), (30, 45)), ((-5, -5), (-5, -5))])
+def test_gridmask_rotate_range(rotate, expected):
+    assert slt.GridMask(rotate=rotate).rotate == expected
+
+
+@pytest.mark.parametrize("rotate", [-10, (1, 2, 3), (10,), (45, 30)])
+def test_gridmask_rotate_raises_value_error_when_wrong(rotate):
+    with pytest.raises(ValueError):
+        slt.GridMask(rotate=rotate)
+
+
+@pytest.mark.parametrize("ratio", [-0.1, 1.5])
+def test_gridmask_ratio_raises_error_when_wrong(ratio):
+    with pytest.raises(ValueError):
+        slt.GridMask(ratio=ratio)
+
+
+@pytest.mark.parametrize("mode", ["inverse", "reversed"])
+def test_gridmask_mode_raises_error_when_wrong(mode):
+    with pytest.raises(ValueError):
+        slt.GridMask(mode=mode)
+
+
+@pytest.mark.parametrize("n_channels", [1, 3, 5])
+def test_gridmask_applies_the_same_mask_to_every_channel(n_channels, gridmask_rotate, gridmask_inverse_mode):
+    random.seed(3)
+    img = np.random.randint(1, 255, (45, 61, n_channels), dtype=np.uint8)
+    img_orig = img.copy()
+    trf = slt.GridMask(d_range=(6, 15), ratio=0.5, rotate=gridmask_rotate, mode=gridmask_inverse_mode, p=1)
+    res = trf(slc.DataContainer((img,), "I"), return_torch=False).data[0]
+
+    dropped = res == 0
+    assert dropped.any() and not dropped.all()
+    for k in range(n_channels):
+        np.testing.assert_array_equal(dropped[:, :, k], dropped[:, :, 0])
+    np.testing.assert_array_equal(res[~dropped], img_orig[~dropped])
+
+
+def test_gridmask_supports_2d_images():
+    random.seed(0)
+    img = np.ones((40, 50), dtype=np.uint8)
+    res = slt.GridMask(d_range=(10, 10), ratio=0.5, p=1)(slc.DataContainer((img,), "I"), return_torch=False).data[0]
+    assert res.shape == (40, 50, 1)
+    assert (res == 0).mean() == pytest.approx(0.25, abs=0.1)
+
+
+def test_gridmask_modifies_the_image_in_place():
+    img = np.ones((32, 32, 3), dtype=np.uint8)
+    res = slt.GridMask(d_range=(8, 8), p=1)(slc.DataContainer((img,), "I"), return_torch=False).data[0]
+    assert res is img
+    assert (img == 0).any()
+
+
+@pytest.mark.parametrize("mode", ["crop", "reverse"])
+def test_gridmask_does_not_change_masks_keypoints_distance_maps_boxes_and_labels(mode, gridmask_rotate):
+    h, w = 41, 51
+    rng = np.random.default_rng(0)
+    img = rng.integers(1, 255, (h, w, 3), dtype=np.uint8)
+    mask = (rng.random((h, w)) > 0.5).astype(np.uint8)
+    dmap = rng.random((h, w)).astype(np.float32)
+    kpts = slc.Keypoints(np.array([[25.0, 10.0], [3.0, 37.0]]), h, w)
+    boxes = slc.BoundingBoxes([[10.0, 5.0, 30.0, 20.0]], h, w)
+    data = (img, mask.copy(), dmap.copy(), slc.Keypoints(kpts.data.copy(), h, w), boxes, 1)
+
+    trf = slt.GridMask(d_range=(5, 10), rotate=gridmask_rotate, mode=mode, p=1)
+    res = trf(slc.DataContainer(data, "IMDPBL"), return_torch=False).data
+    assert (res[0] == 0).any()
+    np.testing.assert_array_equal(res[1], mask)
+    np.testing.assert_array_equal(res[2], dmap)
+    np.testing.assert_array_equal(res[3].data, kpts.data)
+    np.testing.assert_array_equal(res[4].data, [[10.0, 5.0, 30.0, 20.0]])
+    assert res[5] == 1
