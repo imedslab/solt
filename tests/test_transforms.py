@@ -10,7 +10,7 @@ import solt.core as slc
 
 import solt.transforms as slt
 import solt.utils as slu
-from solt.constants import ALLOWED_INTERPOLATIONS, ALLOWED_PADDINGS
+from solt.constants import ALLOWED_INTERPOLATIONS, ALLOWED_PADDINGS, DTYPES_MAX
 
 from .fixtures import *
 from .utils import gen_gs_img_black_edge
@@ -771,6 +771,25 @@ def test_salt_and_pepper_no_gain(img_6x6):
     trf = slt.SaltAndPepper(gain_range=0.0, p=1)
     dc_res = trf(slc.DataContainer((img_6x6.astype(np.uint8),), "I"))
     assert np.array_equal(img_6x6, dc_res[0][0])
+
+
+def test_dtypes_max():
+    assert DTYPES_MAX == {np.dtype(np.uint8): 255, np.dtype(np.uint16): 65535}
+
+
+@pytest.mark.parametrize("dtype", [np.uint8, np.uint16])
+def test_salt_and_pepper_uses_dtype_max(dtype):
+    img = np.full((20, 20, 1), 100, dtype=dtype)
+    trf = slt.SaltAndPepper(gain_range=(0.5, 0.5), salt_p=(0.5, 0.5), p=1)
+    res = trf(slc.DataContainer((img,), "I")).data[0]
+
+    salt = trf.state_dict["salt"].astype(bool)
+    pepper = trf.state_dict["pepper"].astype(bool)
+    assert salt.any() and pepper.any()
+    assert res.dtype == dtype
+    assert np.all(res[salt] == np.iinfo(dtype).max)
+    assert np.all(res[pepper] == 0)
+    assert np.all(res[~(salt | pepper)] == 100)
 
 
 @pytest.mark.parametrize(

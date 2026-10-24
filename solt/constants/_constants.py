@@ -13,5 +13,5 @@ ALLOWED_CROPS = {"c", "r"}
 ALLOWED_TYPES = {"I", "M", "D", "P", "L"}
 ALLOWED_BLURS = {"g", "m", "mo"}
 ALLOWED_COLOR_CONVERSIONS = {"gs2rgb", "rgb2gs", "none"}
-DTYPES_MAX = {np.dtype("uint8"): 255, np.dtype("uint16"): 65536}
+DTYPES_MAX = {np.dtype(dtype): np.iinfo(dtype).max for dtype in (np.uint8, np.uint16)}
 ALLOWED_GRIDMASK_MODES = {"crop", "reserve", "none"}
