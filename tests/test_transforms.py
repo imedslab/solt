@@ -2020,3 +2020,25 @@ def test_brightness_contrast_parses_contrast_as_contrast(range_input):
 def test_brightness_contrast_parses_brightness_as_brightness(range_input):
     expected = _parse(lambda: slt.Brightness(brightness_range=range_input), "brightness_range")
     assert _parse(lambda: slt.BrightnessContrast(brightness_range=range_input), "brightness_range") == expected
+
+
+@pytest.fixture(
+    params=[(128, 96), (32, 24), (100, 40), (64, 48), (17, 91)],
+    ids=["upscale", "downscale", "non_uniform", "identity", "odd"],
+)
+def resize_to(request):
+    return request.param
+
+
+def test_random_resized_crop_of_the_whole_image_maps_keypoints_as_resize(resize_to):
+    h, w = 48, 64
+    kpts = slc.Keypoints(np.array([[0.0, 0.0], [63.0, 47.0], [10.3, 20.7], [31.5, 23.5]]), h, w)
+    img = np.zeros((h, w, 1), dtype=np.uint8)
+
+    resized = slt.Resize(resize_to=resize_to)(slc.DataContainer((img, kpts), "IP")).data[1]
+    crop = slt.RandomResizedCrop(resize_to=resize_to, scale=(1, 1), ratio=(w / h, w / h))
+    cropped = crop(slc.DataContainer((img, kpts), "IP")).data[1]
+
+    assert crop.state_dict["crop_to"] == (w, h)
+    np.testing.assert_allclose(cropped.data, resized.data)
+    assert (cropped.height, cropped.width) == (resized.height, resized.width)

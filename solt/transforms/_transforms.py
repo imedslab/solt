@@ -764,19 +764,22 @@ class Resize(BaseTransform, InterpolationPropertyHolder):
     def _apply_pts(self, pts: Keypoints, settings: dict):
         if self.resize_to is None:
             return pts
-        pts_data = pts.data.copy().astype(float)
+        resize_x, resize_y = self._handle_resize(pts.height, pts.width)
+        # resize_points returns new coordinates, the input ones stay unchanged
+        pts_data = Resize.resize_points(pts.data, resize_x / pts.width, resize_y / pts.height)
+        return Keypoints(pts_data, resize_y, resize_x)
 
-        resize_to = self._handle_resize(pts.height, pts.width)
-        resize_x, resize_y = resize_to
-
-        scale_x = resize_x / pts.width
-        scale_y = resize_y / pts.height
-
-        # Keypoints are the centres of pixels. The same mapping as in cv2.resize keeps them aligned with the image
+    @staticmethod
+    def resize_points(pts_data, scale_x, scale_y):
+        """
+        Resizes the coordinates of points (``Nx2``, x and y). The points are the centres of pixels, so the same
+        mapping as in ``cv2.resize`` keeps them aligned with the image.
+        """
+        # astype makes a copy, so the input coordinates stay unchanged
+        pts_data = pts_data.astype(float)
         pts_data[:, 0] = (pts_data[:, 0] + 0.5) * scale_x - 0.5
         pts_data[:, 1] = (pts_data[:, 1] + 0.5) * scale_y - 0.5
-
-        return Keypoints(pts_data, resize_y, resize_x)
+        return pts_data
 
 
 class Crop(BaseTransform):
@@ -1942,8 +1945,5 @@ class RandomResizedCrop(BaseTransform, InterpolationPropertyHolder):
         if self.resize_to is None:
             return Keypoints(pts_data, crop_h, crop_w)
 
-        # Keypoints are the centres of pixels, the same as in Resize
         new_w, new_h = self.resize_to
-        pts_data[:, 0] = (pts_data[:, 0] + 0.5) * new_w / crop_w - 0.5
-        pts_data[:, 1] = (pts_data[:, 1] + 0.5) * new_h / crop_h - 0.5
-        return Keypoints(pts_data, new_h, new_w)
+        return Keypoints(Resize.resize_points(pts_data, new_w / crop_w, new_h / crop_h), new_h, new_w)
