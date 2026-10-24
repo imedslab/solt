@@ -881,3 +881,44 @@ def test_selective_stream_returns_torch_when_asked(img_5x5):
     assert tuple(res) == ("image",)
     # We can do squeeze here because it is a grayscale image!
     assert np.array_equal(img.squeeze(), res_img.squeeze())
+
+
+class _OrderRecorder(slt.Brightness):
+    """Brightness transform, which records the order in which the transforms are applied."""
+
+    def __init__(self, name, log):
+        super().__init__(p=1)
+        self.name, self.log = name, log
+
+    def sample_transform(self, data):
+        self.log.append(self.name)
+        return super().sample_transform(data)
+
+
+def test_stream_shuffle_changes_the_order_of_transforms():
+    log = []
+    transforms = [_OrderRecorder(i, log) for i in range(4)]
+    stream = slc.Stream(transforms, shuffle=True)
+    img = np.zeros((4, 4, 1), dtype=np.uint8)
+
+    orders = set()
+    for seed in range(20):
+        random.seed(seed)
+        log.clear()
+        stream({"image": img}, return_torch=False)
+        assert sorted(log) == [0, 1, 2, 3]
+        orders.add(tuple(log))
+
+    assert len(orders) > 1
+    # The order of the transforms in the stream itself is kept
+    assert [trf.name for trf in stream.transforms] == [0, 1, 2, 3]
+
+
+def test_stream_without_shuffle_keeps_the_order_of_transforms():
+    log = []
+    stream = slc.Stream([_OrderRecorder(i, log) for i in range(4)])
+    for seed in range(5):
+        random.seed(seed)
+        log.clear()
+        stream({"image": np.zeros((4, 4, 1), dtype=np.uint8)}, return_torch=False)
+        assert log == [0, 1, 2, 3]

@@ -189,7 +189,7 @@ class Stream(Serializable):
         """
 
         data = self.wrap_data(data)
-        res: DataContainer = Stream.exec_stream(self.transforms, data, self.optimize_stack)
+        res: DataContainer = Stream.exec_stream(self.transforms, data, self.optimize_stack, self.shuffle)
 
         if return_torch:
             return res.to_torch(
@@ -272,6 +272,8 @@ class Stream(Serializable):
             to check how a conversion from dict is done.
         optimize_stack : bool
             Whether to execute augmentations stack optimization.
+        shuffle : bool
+            Whether to apply the transforms in a random order.
 
         Returns
         -------
@@ -281,7 +283,8 @@ class Stream(Serializable):
 
         data = BaseTransform.wrap_data(data)
         if shuffle:
-            random.shuffle(transforms)
+            # A shuffled list, the order of the stream itself is kept
+            transforms = random.sample(transforms, len(transforms))
         # Performing the transforms using the optimized stack
         if optimize_stack:
             transforms = Stream.optimize_transforms_stack(transforms, data)
