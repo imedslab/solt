@@ -69,8 +69,8 @@ class Stream(Serializable):
     Notes
     -----
     ``DataContainer`` clips the bounding boxes to the image after every transform, and tracks the unclipped ones.
-    At the end, the stream drops the boxes, which exceed ``max_bbox_area_loss`` or ``max_bbox_outside``. Nested
-    streams leave this to the outermost one.
+    At the end, the stream drops the boxes, which exceed ``max_bbox_area_loss`` or ``max_bbox_outside``, and the boxes
+    fully outside of the image, also if both checks are disabled. Nested streams leave this to the outermost one.
 
     """
 
@@ -319,7 +319,9 @@ class Stream(Serializable):
         clipped, unclipped = after.data, after.unclipped
         areas, clipped_areas = after.unclipped_areas(), after.areas()
 
-        keep = np.ones(len(after), dtype=bool)
+        # Boxes, whose content has left the image, are always dropped. A box without area is outside, if it was moved
+        lost = (clipped_areas == 0) & ((areas > 0) | np.any(clipped != unclipped, axis=1))
+        keep = ~lost
         if self.max_bbox_area_loss is not None:
             # Shares of the image area, so that resizing the whole image does not change them
             share_before = before.areas() / (before.height * before.width)

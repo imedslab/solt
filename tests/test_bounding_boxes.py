@@ -307,8 +307,8 @@ _CLIPPING_CASES = {
             slt.Translate(range_x=(-190, -190), range_y=(0, 0), p=1),
         ],
         [20, 20, 40, 40],
-        # The content of the box is lost, only a box without area at the clipped position remains
-        [[10, 20, 10, 40]],
+        # The content of the box is lost, so the box is dropped
+        [],
     ),
 }
 
@@ -515,3 +515,40 @@ def test_keypoints_jitter_does_not_change_boxes(jitter_ranges, jitter_boxes):
     assert bboxes_res == bboxes
     if dx_range != (0, 0):
         assert not np.array_equal(kpts_res.data, kpts.data)
+
+
+# Corner cases of boxes, which end up fully outside of the image: (transforms, box, kept)
+_FULLY_OUTSIDE_CASES = {
+    "moved_out": (lambda: [slt.Translate(range_x=(250, 250), range_y=(0, 0), p=1)], [20, 20, 40, 40], False),
+    "left_and_came_back": (
+        lambda: [
+            slt.Translate(range_x=(190, 190), range_y=(0, 0), p=1),
+            slt.Translate(range_x=(-190, -190), range_y=(0, 0), p=1),
+        ],
+        [20, 20, 40, 40],
+        False,
+    ),
+    "cropped_out": (lambda: [slt.Crop(crop_to=100, crop_mode="rb")], [10, 10, 50, 50], False),
+    "point_inside": (lambda: [slt.Flip(p=1)], [50, 50, 50, 50], True),
+    "point_outside": (lambda: [slt.Crop(crop_to=100, crop_mode="rb")], [50, 50, 50, 50], False),
+    "touching_the_border": (lambda: [slt.Flip(p=1)], [0, 0, 200, 30], True),
+}
+
+
+@pytest.fixture(params=list(_FULLY_OUTSIDE_CASES), ids=list(_FULLY_OUTSIDE_CASES))
+def fully_outside_case(request):
+    return _FULLY_OUTSIDE_CASES[request.param]
+
+
+@pytest.fixture(
+    params=[{}, {"max_bbox_area_loss": None, "max_bbox_outside": None}], ids=["default_thresholds", "no_thresholds"]
+)
+def box_thresholds(request):
+    return request.param
+
+
+def test_boxes_fully_outside_are_always_dropped(fully_outside_case, box_thresholds):
+    make_transforms, box, kept = fully_outside_case
+    res = _stream_boxes(make_transforms(), [box], labels=[7], h=200, w=200, **box_thresholds)
+    assert len(res) == int(kept)
+    assert list(res.labels) == ([7] if kept else [])
