@@ -7,13 +7,14 @@
 [![DOI](https://zenodo.org/badge/143310844.svg)](https://zenodo.org/badge/latestdoi/143310844)
 
 ## Description
-A data augmentation library for Deep Learning that supports images, segmentation masks, labels, and keypoints. 
+A data augmentation library for Deep Learning that supports images, segmentation masks, distance maps
+(e.g. signed distance fields), labels, and keypoints. 
 Furthermore, SOLT is fast and has OpenCV in its backend. 
 Full auto-generated docs and examples are available at [https://imedslab.github.io/solt/](https://imedslab.github.io/solt/).
 
 ## Features
 
-- Support of Images, masks, and keypoints for all the transforms (including multiple items at the time)
+- Support of Images, masks, distance maps, and keypoints for all the transforms (including multiple items at the time)
 - Fast and PyTorch-integrated
 - Convenient and flexible serialization API
 - Excellent documentation
