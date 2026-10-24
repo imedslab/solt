@@ -50,9 +50,8 @@ class Stream(Serializable):
         Whether to run transforms stack optimization. It can only be useful if many matrix transformations are
         in a row.
     ignore_fast_mode : bool
-        Whether to ignore the fast mode. This option enables full geometric transforms. If ``True``, it is set for all
-        the matrix transforms, including the ones in nested streams. If ``False`` (default), the transforms keep their
-        own setting. Use ``reset_ignore_fast_mode`` to set ``False`` for all of them.
+        Whether to ignore the fast mode. This option enables full geometric transforms. It always overrides the
+        setting of the matrix transforms, including the ones in nested streams.
     shuffle : bool
         Whether to shuffle the transforms before applying them.
     in_place : bool
@@ -110,9 +109,8 @@ class Stream(Serializable):
         self.ignore_fast_mode = ignore_fast_mode
         self.transforms = transforms
 
-        if ignore_fast_mode:
-            # The default (False) does not override the transforms and the nested streams, which ignore the fast mode
-            self.reset_ignore_fast_mode(ignore_fast_mode)
+        # The setting of the stream always overrides the one of its transforms and nested streams
+        self.reset_ignore_fast_mode(ignore_fast_mode)
         self.reset_padding(padding)
         self.reset_interpolation(interpolation)
 

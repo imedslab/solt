@@ -794,9 +794,9 @@ def test_ignore_fast_mode_for_a_stream(stream_ignore_fast, r1_ignore_fast, r2_ig
         ignore_fast_mode=stream_ignore_fast,
     )
 
-    # A stream, which ignores the fast mode, sets it for all its transforms; the default keeps their own setting
-    for trf, own in zip(ppl.transforms, [r1_ignore_fast, r2_ignore_fast]):
-        assert trf.ignore_fast_mode == (stream_ignore_fast or own)
+    # The setting of the stream always overrides the one of the transforms
+    for trf in ppl.transforms:
+        assert stream_ignore_fast == trf.ignore_fast_mode
 
 
 @pytest.mark.parametrize(
@@ -1336,7 +1336,7 @@ def test_stream_settings_survive_serialization(img_16x16_rgb, mask_16x16, stream
 @pytest.mark.parametrize("ignore_fast_mode", [False, True])
 def test_stream_ignore_fast_mode_propagates_to_matrix_transforms(img_16x16_rgb, ignore_fast_mode):
     random.seed(42)
-    trf = rotate_30()
+    trf = rotate_30(ignore_fast_mode=not ignore_fast_mode)
     flip = slt.Flip(axis=1, p=1)
     ppl = slc.Stream([flip, trf], ignore_fast_mode=ignore_fast_mode)
     assert trf.ignore_fast_mode is ignore_fast_mode
@@ -1453,18 +1453,22 @@ def test_stream_ignore_fast_mode_reaches_nested_streams(nested_fast_mode_pipelin
     assert _frame_enlarged(stream, img)
 
 
-def test_stream_default_keeps_the_fast_mode_of_transforms(nested_fast_mode_pipeline):
+def test_stream_default_overrides_the_fast_mode_of_transforms(nested_fast_mode_pipeline):
     img = np.zeros((16, 16, 3), dtype=np.uint8)
     rotate = _rotate_fast(ignore_fast_mode=True)
     stream = nested_fast_mode_pipeline(rotate)
-    assert rotate.ignore_fast_mode is True
-    assert _frame_enlarged(stream, img)
+    assert rotate.ignore_fast_mode is False
+    assert stream.ignore_fast_mode is False
+    assert not _frame_enlarged(stream, img)
 
 
-def test_stream_default_keeps_the_fast_mode_of_nested_streams():
-    rotate = _rotate_fast()
-    slc.Stream([slc.Stream([rotate], ignore_fast_mode=True)])
-    assert rotate.ignore_fast_mode is True
+@pytest.mark.parametrize("outer, inner", [(False, True), (True, False)])
+def test_outer_stream_overrides_the_fast_mode_of_nested_streams(outer, inner):
+    rotate = _rotate_fast(ignore_fast_mode=inner)
+    nested = slc.Stream([rotate], ignore_fast_mode=inner)
+    slc.Stream([nested], ignore_fast_mode=outer)
+    assert rotate.ignore_fast_mode is outer
+    assert nested.ignore_fast_mode is outer
 
 
 @pytest.mark.parametrize("value", [True, False])
