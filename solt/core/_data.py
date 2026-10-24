@@ -40,6 +40,8 @@ class DataContainer(object):
         by default, this can be changed manually if needed.
         Example: ``transform_settings={0:{'interpolation':'bilinear'}, 1: {'interpolation':'bicubic'}}``
 
+        Bounding boxes (``'B'``) are clipped to the image, when a container is created, i.e. after every transform.
+
         Distance maps (``'D'``), e.g. signed distance fields, are floating point arrays ``HxW`` or ``HxWxC``.
         They have bilinear interpolation by default, and their values are rescaled when a transform changes the
         scale of the image (the rescaling is exact for similarity transforms and approximate otherwise).
@@ -100,6 +102,11 @@ class DataContainer(object):
         for t in fmt:
             if t not in ALLOWED_TYPES:
                 raise TypeError
+
+        # The content outside of the image is lost, so the bounding boxes are clipped to it after every transform
+        data = tuple(
+            item.clipped() if t == "B" and isinstance(item, BoundingBoxes) else item for item, t in zip(data, fmt)
+        )
 
         self.__data = data
         self.__fmt = fmt
@@ -198,7 +205,10 @@ class DataContainer(object):
                 data.append(Keypoints(item.data.copy(), item.height, item.width))
             elif t == "B":
                 labels = None if item.labels is None else item.labels.copy()
-                data.append(BoundingBoxes(item.data.copy(), item.height, item.width, labels=labels))
+                unclipped = None if item.unclipped is item.data else item.unclipped.copy()
+                data.append(
+                    BoundingBoxes(item.data.copy(), item.height, item.width, labels=labels, unclipped=unclipped)
+                )
             else:
                 data.append(copy.copy(item))
         return DataContainer(tuple(data), self.data_format, self.transform_settings)
@@ -550,8 +560,9 @@ class BoundingBoxes(object):
     The boxes are stored in the VOC format: ``x_min, y_min, x_max, y_max``, in continuous pixel coordinates,
     i.e. the image spans ``[0, width] x [0, height]``, and the pixel ``i`` covers ``[i, i + 1)``.
     The transforms move the corners of the boxes, and the result is the box enclosing the transformed corners.
-    ``Stream`` clips the boxes to the image and drops the ones, which became too small (see ``Stream``).
-    The labels of the dropped boxes are dropped as well.
+    ``DataContainer`` clips the boxes to the image after every transform, since the content outside of the image is
+    lost. At the end, ``Stream`` drops the boxes, which became too small or are mostly outside of the image (see
+    ``Stream``), together with their labels.
 
     Parameters
     ----------
@@ -567,12 +578,15 @@ class BoundingBoxes(object):
         height``, as fractions of the image size).
     labels : numpy.ndarray or list or None
         Labels of the boxes, one per box.
+    unclipped : numpy.ndarray or None
+        The boxes ``Nx4`` in the VOC format before clipping to the image, if they differ from ``boxes``. SOLT tracks
+        them to measure, which fraction of the boxes is outside of the image.
 
     """
 
     FORMATS = ("voc", "coco", "cxcywh", "yolo")
 
-    def __init__(self, boxes=None, height=None, width=None, fmt="voc", labels=None):
+    def __init__(self, boxes=None, height=None, width=None, fmt="voc", labels=None, unclipped=None):
         if fmt not in self.FORMATS:
             raise ValueError(f"Unknown format of bounding boxes: {fmt}. Allowed: {self.FORMATS}")
         for size in (height, width):
@@ -597,10 +611,16 @@ class BoundingBoxes(object):
             if labels.shape != (boxes.shape[0],):
                 raise ValueError("There must be one label per bounding box!")
 
+        if unclipped is not None:
+            unclipped = np.asarray(unclipped, dtype=float)
+            if unclipped.shape != boxes.shape:
+                raise ValueError("Unclipped boxes must have the same shape as the boxes!")
+
         self.__data = boxes
         self.__height = height
         self.__width = width
         self.__labels = labels
+        self.__unclipped = unclipped
 
     @staticmethod
     def _to_voc(boxes, fmt, height, width):
@@ -645,9 +665,37 @@ class BoundingBoxes(object):
             res[:, [1, 3]] /= self.__height
         return res
 
+    @staticmethod
+    def _areas(boxes):
+        return (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+
     def areas(self):
         """Areas of the boxes in pixels."""
-        return (self.__data[:, 2] - self.__data[:, 0]) * (self.__data[:, 3] - self.__data[:, 1])
+        return BoundingBoxes._areas(self.__data)
+
+    def unclipped_areas(self):
+        """Areas of the boxes before clipping to the image, in pixels."""
+        return BoundingBoxes._areas(self.unclipped)
+
+    def clipped(self):
+        """
+        Returns the boxes clipped to the image. The unclipped boxes are kept to measure the fraction outside of
+        the image. If all the boxes are inside of the image, the object itself is returned.
+
+        Returns
+        -------
+        out : BoundingBoxes
+            Clipped boxes
+
+        """
+        boxes = self.__data
+        inside = (boxes >= 0).all() and (boxes[:, [0, 2]] <= self.__width).all()
+        if inside and (boxes[:, [1, 3]] <= self.__height).all():
+            return self
+        clipped = boxes.copy()
+        clipped[:, [0, 2]] = np.clip(clipped[:, [0, 2]], 0, self.__width)
+        clipped[:, [1, 3]] = np.clip(clipped[:, [1, 3]], 0, self.__height)
+        return BoundingBoxes(clipped, self.__height, self.__width, labels=self.__labels, unclipped=self.unclipped)
 
     @property
     def data(self):
@@ -657,6 +705,11 @@ class BoundingBoxes(object):
     @property
     def labels(self):
         return self.__labels
+
+    @property
+    def unclipped(self):
+        """Boxes ``Nx4`` in the VOC format before clipping to the image."""
+        return self.__data if self.__unclipped is None else self.__unclipped
 
     @property
     def height(self):

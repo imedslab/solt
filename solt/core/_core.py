@@ -68,9 +68,9 @@ class Stream(Serializable):
 
     Notes
     -----
-    The transforms move the bounding boxes without clipping them. At the end, the stream clips the boxes to the image
-    and drops the ones, which exceed ``max_bbox_area_loss`` or ``max_bbox_outside``. Nested streams leave this to the
-    outermost one.
+    ``DataContainer`` clips the bounding boxes to the image after every transform, and tracks the unclipped ones.
+    At the end, the stream drops the boxes, which exceed ``max_bbox_area_loss`` or ``max_bbox_outside``. Nested
+    streams leave this to the outermost one.
 
     """
 
@@ -315,11 +315,9 @@ class Stream(Serializable):
         return DataContainer(tuple(items), data.data_format, data.transform_settings)
 
     def _filter_bboxes(self, before, after):
-        boxes = after.data
-        clipped = boxes.copy()
-        clipped[:, [0, 2]] = np.clip(clipped[:, [0, 2]], 0, after.width)
-        clipped[:, [1, 3]] = np.clip(clipped[:, [1, 3]], 0, after.height)
-        areas, clipped_areas = after.areas(), BoundingBoxes(clipped, after.height, after.width).areas()
+        # DataContainer clips the boxes after every transform, the unclipped ones show, how much is outside
+        clipped, unclipped = after.data, after.unclipped
+        areas, clipped_areas = after.unclipped_areas(), after.areas()
 
         keep = np.ones(len(after), dtype=bool)
         if self.max_bbox_area_loss is not None:
@@ -332,7 +330,7 @@ class Stream(Serializable):
             outside = np.where(
                 areas > 0,
                 1 - clipped_areas / np.where(areas > 0, areas, 1),
-                np.any(clipped != boxes, axis=1).astype(float),
+                np.any(clipped != unclipped, axis=1).astype(float),
             )
             keep &= outside <= self.max_bbox_outside
 

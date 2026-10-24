@@ -81,6 +81,7 @@ def test_bounding_boxes_empty():
         ([[10, 10, 20, 20]], {"labels": [1, 2]}, ValueError),
         ([[10, 10, 20, 20]], {"height": 0}, ValueError),
         ([[10, 10, -1, 20]], {"fmt": "coco"}, ValueError),
+        ([[10, 10, 20, 20]], {"unclipped": [[0, 0, 30, 30], [0, 0, 1, 1]]}, ValueError),
     ],
 )
 def test_bounding_boxes_wrong_input(boxes, kwargs, error):
@@ -275,13 +276,104 @@ def test_stream_drops_boxes_fully_outside():
 
 
 def test_stream_filters_boxes_only_at_the_end():
-    # The box leaves the image in the nested stream and comes back, so it must be kept
+    # The box becomes tiny in the nested stream and grows back, so it must be kept
     transforms = [
-        slc.Stream([slt.Translate(range_x=(90, 90), range_y=(0, 0), p=1)]),
-        slt.Translate(range_x=(-90, -90), range_y=(0, 0), p=1),
+        slc.Stream([slt.Scale(range_x=(0.25, 0.25), p=1)]),
+        slt.Scale(range_x=(4, 4), p=1),
     ]
-    res = _stream_boxes(transforms, [[20, 20, 40, 40]])
-    np.testing.assert_allclose(res.data, [[20, 20, 40, 40]], atol=1e-6)
+    res = _stream_boxes(transforms, [[40, 40, 60, 60]])
+    np.testing.assert_allclose(res.data, [[40, 40, 60, 60]], atol=1)
+
+
+# Corner cases of clipping after every transform: (transforms, box, expected boxes after the stream)
+_CLIPPING_CASES = {
+    "crop_then_pad": (
+        lambda: [slt.Crop(crop_to=100, crop_mode="c"), slt.Pad(pad_to=200)],
+        [0, 0, 200, 200],
+        [[50, 50, 150, 150]],
+    ),
+    "crop_then_translate_back": (
+        lambda: [
+            slt.Crop(crop_to=150, crop_mode="rb"),
+            slt.Translate(range_x=(-50, -50), range_y=(0, 0), p=1),
+        ],
+        [20, 60, 120, 140],
+        # The crop starts at (50, 50): [-30, 10, 70, 90] -> [0, 10, 70, 90], then moved by -50 in x
+        [[0, 10, 20, 90]],
+    ),
+    "box_leaves_the_image_and_comes_back": (
+        lambda: [
+            slt.Translate(range_x=(190, 190), range_y=(0, 0), p=1),
+            slt.Translate(range_x=(-190, -190), range_y=(0, 0), p=1),
+        ],
+        [20, 20, 40, 40],
+        # The content of the box is lost, only a box without area at the clipped position remains
+        [[10, 20, 10, 40]],
+    ),
+}
+
+
+@pytest.fixture(params=list(_CLIPPING_CASES), ids=list(_CLIPPING_CASES))
+def clipping_case(request):
+    return _CLIPPING_CASES[request.param]
+
+
+def test_boxes_are_clipped_after_every_transform(clipping_case):
+    make_transforms, box, expected = clipping_case
+    res = _stream_boxes(make_transforms(), [box], h=200, w=200, max_bbox_outside=None, max_bbox_area_loss=None)
+    np.testing.assert_allclose(res.data.reshape(-1, 4), np.array(expected, dtype=float).reshape(-1, 4), atol=1e-6)
+
+
+def test_crop_then_rotate_rotates_the_visible_part():
+    # The crop keeps the left half of the box: [40, 80, 100, 120] -> [40, 80, 60, 120] in the frame [0, 60)
+    box_in_crop = np.array([[40.0, 80.0, 60.0, 120.0]])
+    rotate = lambda: slt.Rotate(angle_range=(90, 90), p=1)  # noqa: E731
+    res = _stream_boxes(
+        [slt.Crop(crop_to=(60, 200), crop_mode="lt"), rotate()],
+        [[40, 80, 100, 120]],
+        h=200,
+        w=200,
+        max_bbox_outside=None,
+        max_bbox_area_loss=None,
+    )
+    expected = rotate()(slc.DataContainer((slc.BoundingBoxes(box_in_crop, 200, 60),), "B")).data[0]
+    np.testing.assert_allclose(res.data, expected.data, atol=1e-6)
+
+
+@pytest.mark.parametrize("trf", [t for t, _ in GEOMETRIC_TRANSFORMS], ids=lambda t: type(t).__name__)
+def test_every_transform_returns_boxes_inside_the_image(trf):
+    boxes = np.array([[-10.0, -5.0, 30.0, 20.0], [60.0, 40.0, 95.0, 70.0], [20.0, 15.0, 45.0, 40.0]])
+    res = trf(slc.DataContainer((slc.BoundingBoxes(boxes, H, W),), "B")).data[0]
+    assert np.all(res.data >= 0)
+    assert np.all(res.data[:, [0, 2]] <= res.width) and np.all(res.data[:, [1, 3]] <= res.height)
+
+
+@pytest.mark.parametrize(
+    "box, kept",
+    [([-30, 0, 30, 20], True), ([-40, 0, 20, 20], False)],
+    ids=["half_outside", "two_thirds_outside"],
+)
+def test_boxes_outside_on_entry_count_as_outside(box, kept):
+    bboxes = slc.BoundingBoxes([box], 100, 100)
+    dc = slc.DataContainer((bboxes,), "B")
+    assert dc.data[0].data[0, 0] == 0
+    res = slc.Stream([slt.Flip(p=0)])(dc, return_torch=False).data[0]
+    assert len(res) == int(kept)
+
+
+def test_outside_fraction_accumulates_over_transforms():
+    # The first crop starts at x=30 and cuts 30% of the box [0, 100], the second one starts at x=21 and cuts 30% of
+    # the remaining [0, 70], so 49% of the box stays visible
+    transforms = [slt.Crop(crop_to=(170, 200), crop_mode="rt"), slt.Crop(crop_to=(149, 200), crop_mode="rt")]
+    res = _stream_boxes(transforms, [[0, 0, 100, 100]], h=200, w=200)
+    assert len(res) == 0
+    res = _stream_boxes(transforms, [[0, 0, 100, 100]], h=200, w=200, max_bbox_outside=0.55)
+    assert len(res) == 1
+
+
+def test_data_container_does_not_copy_boxes_inside_the_image():
+    bboxes = slc.BoundingBoxes(BOXES, H, W)
+    assert slc.DataContainer((bboxes,), "B").data[0] is bboxes
 
 
 def test_selective_stream_filters_boxes():
@@ -382,3 +474,10 @@ def test_all_boxes_dropped_keep_integer_labels():
     res = slc.Stream([slt.Crop(crop_to=50, crop_mode="rb")])({"image": img, "bboxes": bboxes}, normalize=False)
     assert res["bboxes"]["boxes"].shape == (0, 4)
     assert res["bboxes"]["labels"].dtype == torch.int64
+
+
+def test_copy_keeps_the_unclipped_boxes():
+    # 2/3 of the box is outside, also after the stream copies the data container
+    dc = slc.DataContainer((slc.BoundingBoxes([[-40, 0, 20, 20]], 100, 100),), "B")
+    assert len(slc.Stream([slt.Flip(p=0)], in_place=False)(dc, return_torch=False).data[0]) == 0
+    np.testing.assert_array_equal(dc.copy().data[0].unclipped, [[-40, 0, 20, 20]])

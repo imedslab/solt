@@ -266,7 +266,8 @@ class BaseTransform(Serializable, metaclass=ABCMeta):
         Method, which determines the transform's behaviour when it is applied to bounding boxes.
 
         The corners of the boxes are transformed as keypoints, and the result is the box enclosing the transformed
-        corners. The boxes are neither clipped nor dropped here, ``Stream`` does it at the end.
+        corners. ``DataContainer`` clips them to the image, and ``Stream`` drops the ones, which became too small,
+        at the end.
 
         Parameters
         ----------
@@ -281,13 +282,18 @@ class BaseTransform(Serializable, metaclass=ABCMeta):
             Result
 
         """
-        boxes = bboxes.data
+        n = len(bboxes)
+        tracks_unclipped = bboxes.unclipped is not bboxes.data
+        # The unclipped boxes are transformed together with the boxes, to measure the fraction outside of the image
+        boxes = np.concatenate([bboxes.data, bboxes.unclipped]) if tracks_unclipped else bboxes.data
         corners = np.stack([boxes[:, [0, 1]], boxes[:, [2, 1]], boxes[:, [2, 3]], boxes[:, [0, 3]]], axis=1)
         # Keypoints are the centres of pixels, while the coordinates of the boxes are continuous
         pts = self._apply_pts(Keypoints(corners.reshape(-1, 2) - 0.5, bboxes.height, bboxes.width), settings)
         corners = pts.data.reshape(-1, 4, 2) + 0.5
         boxes = np.concatenate([corners.min(axis=1), corners.max(axis=1)], axis=1)
-        return BoundingBoxes(boxes, pts.height, pts.width, labels=bboxes.labels)
+        unclipped = boxes[n:] if tracks_unclipped else None
+        # DataContainer clips the boxes to the new image
+        return BoundingBoxes(boxes[:n], pts.height, pts.width, labels=bboxes.labels, unclipped=unclipped)
 
     @abstractmethod
     def _apply_labels(self, labels, settings: np.ndarray):
