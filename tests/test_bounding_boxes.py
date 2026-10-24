@@ -226,10 +226,34 @@ def test_stream_clips_and_drops_boxes_outside_of_the_image():
     np.testing.assert_allclose(res.data, [[0, 0, 15, 15], [40, 40, 60, 60]])
 
 
-@pytest.mark.parametrize("size, kept", [(50, True), (25, False)])
-def test_stream_drops_boxes_which_lost_most_of_their_area(size, kept):
-    # Downscaling 100 -> 25 leaves 6.25% of the area
-    res = _stream_boxes([slt.Resize(resize_to=(size, size))], [[20, 20, 60, 60]])
+# Corner cases of the area loss, which is measured relative to the image: (transforms, image size, box, kept)
+_AREA_LOSS_CASES = {
+    "downscale_4x": (lambda: [slt.Resize(resize_to=(25, 25))], 100, [20, 20, 60, 60], True),
+    "downscale_8x": (lambda: [slt.Resize(resize_to=(100, 100))], 800, [100, 100, 400, 400], True),
+    "downscale_800_to_200": (lambda: [slt.Resize(resize_to=(200, 200))], 800, [100, 100, 400, 400], True),
+    "whole_image_random_resized_crop": (
+        lambda: [slt.RandomResizedCrop(resize_to=224, scale=(1, 1), ratio=(1, 1))],
+        800,
+        [100, 100, 400, 400],
+        True,
+    ),
+    "non_uniform_resize": (lambda: [slt.Resize(resize_to=(50, 200))], 100, [20, 20, 60, 60], True),
+    "scale_down_4x_in_the_same_frame": (lambda: [slt.Scale(range_x=(0.25, 0.25), p=1)], 100, [30, 30, 70, 70], False),
+    "scale_down_2x_in_the_same_frame": (lambda: [slt.Scale(range_x=(0.5, 0.5), p=1)], 100, [30, 30, 70, 70], True),
+    "zoom_crop": (lambda: [slt.Crop(crop_to=50, crop_mode="c")], 100, [40, 40, 60, 60], True),
+    "pad_to_4x_area": (lambda: [slt.Pad(pad_to=200)], 100, [20, 20, 60, 60], True),
+    "pad_to_11x_area": (lambda: [slt.Pad(pad_to=332)], 100, [20, 20, 60, 60], False),
+}
+
+
+@pytest.fixture(params=list(_AREA_LOSS_CASES), ids=list(_AREA_LOSS_CASES))
+def area_loss_case(request):
+    return _AREA_LOSS_CASES[request.param]
+
+
+def test_stream_box_area_loss_is_relative_to_the_image(area_loss_case):
+    make_transforms, size, box, kept = area_loss_case
+    res = _stream_boxes(make_transforms(), [box], h=size, w=size)
     assert len(res) == int(kept)
 
 
@@ -237,7 +261,8 @@ def test_stream_box_thresholds():
     boxes = [[10, 10, 30, 30]]
     res = _stream_boxes([slt.Crop(crop_to=80, crop_mode="rb")], boxes, max_bbox_outside=0.8)
     assert len(res) == 1
-    res = _stream_boxes([slt.Resize(resize_to=(25, 25))], boxes, max_bbox_area_loss=0.95)
+    # Scaling by 0.25 in the same frame loses 93.75% of the share of the image
+    res = _stream_boxes([slt.Scale(range_x=(0.25, 0.25), p=1)], [[30, 30, 70, 70]], max_bbox_area_loss=0.95)
     assert len(res) == 1
     res = _stream_boxes([slt.Crop(crop_to=80, crop_mode="rb")], boxes, max_bbox_outside=None, max_bbox_area_loss=None)
     # Without thresholds, the boxes are only clipped

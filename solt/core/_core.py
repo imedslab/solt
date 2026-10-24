@@ -58,9 +58,10 @@ class Stream(Serializable):
         necessary, e.g. ``CutOut`` writes into the image it receives, and ``Crop`` returns a view. If ``False``, the
         stream copies the input data once before applying the transforms, so the original arrays stay unchanged.
     max_bbox_area_loss : float or None
-        Bounding boxes are dropped (with their labels), if their area at the end of the stream is smaller than at its
-        start by more than this fraction. ``0.9`` by default, i.e. the boxes, which lost more than 90% of their area,
-        e.g. by cropping or downscaling, are dropped. ``None`` disables this check.
+        Bounding boxes are dropped (with their labels), if their share of the image area at the end of the stream is
+        smaller than at its start by more than this fraction. ``0.9`` by default, i.e. the boxes, which became more
+        than 10 times smaller relative to the image, are dropped. Resizing the whole image does not change the share,
+        while e.g. ``Scale`` in the same frame or ``Pad`` decrease it. ``None`` disables this check.
     max_bbox_outside : float or None
         Bounding boxes are dropped (with their labels), if more than this fraction of their area is outside the image
         at the end of the stream. ``0.5`` by default. ``None`` disables this check.
@@ -322,7 +323,10 @@ class Stream(Serializable):
 
         keep = np.ones(len(after), dtype=bool)
         if self.max_bbox_area_loss is not None:
-            keep &= clipped_areas >= (1 - self.max_bbox_area_loss) * before.areas()
+            # Shares of the image area, so that resizing the whole image does not change them
+            share_before = before.areas() / (before.height * before.width)
+            share_after = clipped_areas / (after.height * after.width)
+            keep &= share_after >= (1 - self.max_bbox_area_loss) * share_before
         if self.max_bbox_outside is not None:
             # Boxes without an area are outside if clipping moves them
             outside = np.where(
