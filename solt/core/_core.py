@@ -435,8 +435,9 @@ class SelectiveStream(Stream):
         transforms : list
             List of k transforms to sample from
         n : int or tuple of int
-            How many transform to sample. If tuple, the number of transforms
-            to sample will be chosen randomly from the tuple.
+            How many transforms to sample. If tuple (or list), the number of transforms is chosen uniformly
+            from its values at every call, e.g. ``n=(1, 3)`` applies either 1 or 3 transforms.
+            Every value must be between 0 and the number of transforms.
         probs : list of float
             Probabilities of the transforms to sample. If None, the transforms will be sampled uniformly.
         optimize_stack : bool
@@ -460,7 +461,13 @@ class SelectiveStream(Stream):
         )
         if transforms is None:
             transforms = []
-        if n < 0 or n > len(transforms):
+        if isinstance(n, (tuple, list)):
+            n = tuple(n)
+            if len(n) == 0:
+                raise ValueError("Tuple of numbers of transforms to sample must not be empty")
+            if not all(isinstance(x, int) and not isinstance(x, bool) for x in n):
+                raise TypeError("Tuple of numbers of transforms to sample must contain only ints")
+        if any(x < 0 or x > len(transforms) for x in (n if isinstance(n, tuple) else (n,))):
             raise ValueError("Number of transforms to sample must be between 0 and the number of transforms")
         if probs is not None:
             if len(probs) != len(transforms):
@@ -486,7 +493,7 @@ class SelectiveStream(Stream):
         if len(self.transforms) > 0:
             random_state = np.random.RandomState(random.randint(0, 2**32 - 1))
             if isinstance(self.n, tuple):
-                n = random_state.choice(self.n, replace=False)
+                n = random_state.choice(self.n)
             else:
                 n = self.n
 

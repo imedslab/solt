@@ -993,3 +993,104 @@ def test_nested_streams_run_their_own_logic(nested_stream):
     img = np.full((4, 4, 1), 10, dtype=np.uint8)
     res = slc.Stream([make_stream()])({"image": img}, return_torch=False).data[0]
     assert np.all(res == 10 + increment)
+
+
+def _selective_stream_counts(n, probs=None, n_seeds=200):
+    """Applies SelectiveStream of 3 transforms over many seeds, returns the set of numbers of the applied transforms."""
+    log = []
+    stream = slc.SelectiveStream([_OrderRecorder(i, log) for i in range(3)], n=n, probs=probs)
+    counts = set()
+    for seed in range(n_seeds):
+        random.seed(seed)
+        log.clear()
+        stream({"image": np.zeros((4, 4, 1), dtype=np.uint8)}, return_torch=False)
+        assert len(set(log)) == len(log)
+        counts.add(len(log))
+        if probs is not None:
+            assert all(probs[i] > 0 for i in log)
+    return counts
+
+
+# n and the numbers of transforms, which SelectiveStream of 3 transforms must apply.
+@pytest.fixture(
+    params=[
+        (2, {2}),
+        ((1, 3), {1, 3}),
+        ([1, 3], {1, 3}),
+        ((2,), {2}),
+        ((0, 2), {0, 2}),
+        ((3,), {3}),
+        ((0, 1, 2, 3), {0, 1, 2, 3}),
+    ],
+    ids=["int", "tuple", "list", "single_value_tuple", "tuple_with_0", "tuple_with_k", "tuple_full_range"],
+)
+def selective_stream_valid_n(request):
+    return request.param
+
+
+# Invalid n for SelectiveStream of 3 transforms and the expected error.
+@pytest.fixture(
+    params=[
+        (4, ValueError),
+        (-1, ValueError),
+        ((1, 4), ValueError),
+        ((-1, 1), ValueError),
+        ((), ValueError),
+        ([], ValueError),
+        ((1.0, 2), TypeError),
+        ((True, 2), TypeError),
+        ([False], TypeError),
+    ],
+    ids=[
+        "int_too_large",
+        "int_negative",
+        "tuple_too_large",
+        "tuple_negative",
+        "empty_tuple",
+        "empty_list",
+        "tuple_with_float",
+        "tuple_with_true",
+        "list_with_false",
+    ],
+)
+def selective_stream_invalid_n(request):
+    return request.param
+
+
+def test_selective_stream_applies_only_and_all_listed_numbers_of_transforms(selective_stream_valid_n):
+    n, expected_counts = selective_stream_valid_n
+    assert _selective_stream_counts(n) == expected_counts
+
+
+def test_selective_stream_converts_list_n_to_tuple():
+    stream = slc.SelectiveStream([slt.Flip(), slt.Flip(), slt.Flip()], n=[1, 3])
+    assert stream.n == (1, 3)
+
+
+def test_selective_stream_raises_on_invalid_n(selective_stream_invalid_n):
+    n, expected = selective_stream_invalid_n
+    with pytest.raises(expected):
+        slc.SelectiveStream([slt.Flip(), slt.Flip(), slt.Flip()], n=n)
+
+
+def test_selective_stream_tuple_n_respects_probs():
+    assert _selective_stream_counts((1, 2), probs=[0.5, 0.5, 0.0]) == {1, 2}
+
+
+@pytest.mark.parametrize("n", [0, (0,)])
+def test_selective_stream_n_0_leaves_data_unchanged(img_5x5, n):
+    log = []
+    stream = slc.SelectiveStream([_OrderRecorder(0, log), slt.Rotate(angle_range=(90, 90), p=1)], n=n)
+    expected = img_5x5.copy()
+    res = stream({"image": img_5x5}, return_torch=False)
+    assert log == []
+    np.testing.assert_array_equal(res.data[0], expected)
+
+
+@pytest.mark.parametrize("n", [(1, 2), [1, 2]])
+def test_selective_stream_tuple_n_serialization_round_trip(n):
+    stream = slc.Stream([slc.SelectiveStream([slt.Flip(axis=0), slt.Flip(axis=1)], n=n)])
+    restored = slu.from_yaml(stream.to_yaml())
+    assert isinstance(restored.transforms[0], slc.SelectiveStream)
+    assert restored.transforms[0].n == (1, 2)
+    assert restored.to_dict() == stream.to_dict()
