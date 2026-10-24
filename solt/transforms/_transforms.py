@@ -1209,11 +1209,14 @@ class Contrast(ImageTransform):
 
     def __init__(self, p=0.5, contrast_range=0.1, data_indices=None):
         super(Contrast, self).__init__(p=p, data_indices=data_indices)
+        self.contrast_range = Contrast.parse_contrast_range(contrast_range)
 
+    @staticmethod
+    def parse_contrast_range(contrast_range):
+        """Validates the contrast range. A float ``c`` becomes ``(1 - c, 1 + c)``."""
         if isinstance(contrast_range, float):
             contrast_range = (1 - contrast_range, 1 + contrast_range)
-
-        self.contrast_range = validate_numeric_range_parameter(contrast_range, self._default_range, 0)
+        return validate_numeric_range_parameter(contrast_range, Contrast._default_range, 0)
 
     def sample_transform(self, data):
         contrast_mul = random.uniform(self.contrast_range[0], self.contrast_range[1])
@@ -1403,10 +1406,14 @@ class Brightness(ImageTransform):
 
     def __init__(self, brightness_range=None, data_indices=None, p=0.5, relative=False):
         super(Brightness, self).__init__(p=p, data_indices=data_indices)
+        self.brightness_range, self.relative = Brightness.parse_brightness(brightness_range, relative)
+
+    @staticmethod
+    def parse_brightness(brightness_range, relative):
+        """Validates the brightness range and whether it is relative to the mean intensity."""
         if not isinstance(relative, bool):
             raise TypeError("Argument relative must be bool!")
-        self.brightness_range = validate_numeric_range_parameter(brightness_range, self._default_range)
-        self.relative = relative
+        return validate_numeric_range_parameter(brightness_range, Brightness._default_range), relative
 
     @staticmethod
     def _lut(shift, contrast=1.0):
@@ -1458,13 +1465,8 @@ class BrightnessContrast(ImageTransform):
 
     def __init__(self, brightness_range=None, contrast_range=0.1, relative=False, data_indices=None, p=0.5):
         super(BrightnessContrast, self).__init__(p=p, data_indices=data_indices)
-        if not isinstance(relative, bool):
-            raise TypeError("Argument relative must be bool!")
-        if isinstance(contrast_range, float):
-            contrast_range = (1 - contrast_range, 1 + contrast_range)
-        self.brightness_range = validate_numeric_range_parameter(brightness_range, Brightness._default_range)
-        self.contrast_range = validate_numeric_range_parameter(contrast_range, Contrast._default_range, 0)
-        self.relative = relative
+        self.brightness_range, self.relative = Brightness.parse_brightness(brightness_range, relative)
+        self.contrast_range = Contrast.parse_contrast_range(contrast_range)
 
     def sample_transform(self, data):
         contrast_mul = random.uniform(self.contrast_range[0], self.contrast_range[1])

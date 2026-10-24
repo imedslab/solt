@@ -1731,7 +1731,12 @@ def test_cutout_fixed_size_keeps_the_random_sequence():
     trf(slc.DataContainer((np.ones((20, 20, 1), dtype=np.uint8),), "I"))
     random.seed(0)
     random.random()  # Whether to apply the transform
-    expected = [int(random.random() * 17), int(random.random() * 16), int(random.random() * 17), int(random.random() * 16)]
+    expected = [
+        int(random.random() * 17),
+        int(random.random() * 16),
+        int(random.random() * 17),
+        int(random.random() * 16),
+    ]
     xy = [v for pair in zip(trf.state_dict["x"], trf.state_dict["y"]) for v in pair]
     assert xy == expected
 
@@ -1978,3 +1983,40 @@ def test_rotate_90_in_optimized_stream(rotate_first, k):
 
     np.testing.assert_array_equal(np.argwhere(res.data[0] == 1), np.argwhere(expected.data[0] == 1))
     np.testing.assert_allclose(res.data[1].data, expected.data[1].data, atol=1e-6)
+
+
+_RANGE_INPUTS = {
+    "none": None,
+    "float": 0.2,
+    "zero_float": 0.0,
+    "tuple": (0.5, 1.5),
+    "list": [0.5, 1.5],
+    "int_tuple": (1, 3),
+    "int": 2,
+    "negative": (-0.5, 0.5),
+    "reversed": (1.5, 0.5),
+    "too_long": (0.5, 1.0, 1.5),
+    "string": "0.5",
+}
+
+
+@pytest.fixture(params=list(_RANGE_INPUTS), ids=list(_RANGE_INPUTS))
+def range_input(request):
+    return _RANGE_INPUTS[request.param]
+
+
+def _parse(make_transform, attribute):
+    try:
+        return getattr(make_transform(), attribute)
+    except Exception as e:
+        return type(e)
+
+
+def test_brightness_contrast_parses_contrast_as_contrast(range_input):
+    expected = _parse(lambda: slt.Contrast(contrast_range=range_input), "contrast_range")
+    assert _parse(lambda: slt.BrightnessContrast(contrast_range=range_input), "contrast_range") == expected
+
+
+def test_brightness_contrast_parses_brightness_as_brightness(range_input):
+    expected = _parse(lambda: slt.Brightness(brightness_range=range_input), "brightness_range")
+    assert _parse(lambda: slt.BrightnessContrast(brightness_range=range_input), "brightness_range") == expected
