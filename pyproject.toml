@@ -64,6 +64,12 @@ notebooks = [
 
 [tool.uv]
 default-groups = ["dev"]
+# torch has wheels only, and only for some platforms. Without this, the lowest supported versions resolve to
+# torch==2.9.0 from the PyTorch CPU index, which has only a macOS wheel, instead of 2.9.0+cpu for Linux.
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
 
 # CPU-only PyTorch wheels on Linux/Windows; macOS wheels come from PyPI.
 [[tool.uv.index]]
