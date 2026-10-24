@@ -6,7 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "solt"
 dynamic = ["version"]
 description = "Optimized data augmentation library for Deep Learning"
-readme = { text = """Data augmentation library for Deep Learning, which supports images, segmentation masks, labels and keypoints.
+readme = { text = """Data augmentation library for Deep Learning, which supports images, segmentation masks,
+distance maps (e.g. signed distance fields), keypoints, bounding boxes and labels.
 Furthermore, SOLT is fast and has OpenCV in its backend.
 Full auto-generated docs and examples are available here: https://imedslab.github.io/solt/.
 """, content-type = "text/plain" }
