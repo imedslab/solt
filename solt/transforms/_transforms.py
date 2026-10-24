@@ -197,6 +197,21 @@ class Rotate90(Rotate):
     def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
         return np.ascontiguousarray(np.rot90(dmap, -self.k))
 
+    def _apply_pts(self, pts: Keypoints, settings: dict):
+        # The exact mapping of np.rot90, which rotates the images. A positive k rotates clockwise.
+        x, y = pts.data[:, 0].astype(float), pts.data[:, 1].astype(float)
+        h, w = pts.height, pts.width
+        k = self.k % 4
+        if k == 0:
+            pts_data, h_new, w_new = np.stack([x, y], axis=1), h, w
+        elif k == 1:
+            pts_data, h_new, w_new = np.stack([h - 1 - y, x], axis=1), w, h
+        elif k == 2:
+            pts_data, h_new, w_new = np.stack([w - 1 - x, h - 1 - y], axis=1), h, w
+        else:
+            pts_data, h_new, w_new = np.stack([y, w - 1 - x], axis=1), w, h
+        return Keypoints(pts_data, h_new, w_new)
+
 
 class Shear(MatrixTransform):
     """

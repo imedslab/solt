@@ -1943,3 +1943,18 @@ def test_random_resized_crop_keypoints_follow_the_image():
             np.testing.assert_allclose(kpts_res.data[0], _centroid(img_res[..., 0]), atol=0.1)
             checked += 1
     assert checked > 5
+
+
+@pytest.mark.parametrize("h, w", [(60, 80), (61, 81), (60, 60), (61, 61), (7, 4)])
+@pytest.mark.parametrize("k", [-3, -2, -1, 0, 1, 2, 3, 4, 5])
+def test_rotate_90_keypoints_follow_the_image(h, w, k):
+    rng = np.random.default_rng(0)
+    xy = np.stack([rng.integers(0, w, 5), rng.integers(0, h, 5)], axis=1)
+    for x, y in xy:
+        img = np.zeros((h, w), dtype=np.uint8)
+        img[y, x] = 1
+        kpts = slc.Keypoints(np.array([[float(x), float(y)]]), h, w)
+        img_res, kpts_res = slt.Rotate90(k=k, p=1)(slc.DataContainer((img, kpts), "MP")).data
+        ys, xs = np.nonzero(img_res)
+        np.testing.assert_array_equal(kpts_res.data, [[xs[0], ys[0]]])
+        assert (kpts_res.height, kpts_res.width) == img_res.shape
