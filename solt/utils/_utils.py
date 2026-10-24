@@ -376,6 +376,11 @@ def validate_parameter(parameter, allowed_modes, default_value, basic_type=str, 
             raise ValueError
     elif heritable:
         raise NotImplementedError
+    else:
+        if not isinstance(parameter, basic_type):
+            raise TypeError(f"Parameter must be of type {basic_type.__name__}, got {parameter!r}")
+        if parameter not in allowed_modes:
+            raise ValueError(f"Parameter must be one of {sorted(allowed_modes)}, got {parameter!r}")
 
     return parameter
 

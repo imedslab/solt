@@ -420,3 +420,47 @@ def test_mask_to_sdf_max_distance():
 def test_mask_to_sdf_wrong_input(mask, kwargs, error):
     with pytest.raises(error):
         slu.mask_to_sdf(mask, **kwargs)
+
+
+@pytest.fixture(
+    params=[
+        ("g", {"g", "m"}, "g"),
+        (None, {"g", "m"}, "m"),
+        ("m", {"g", "m"}, "m"),
+    ],
+    ids=["value", "default", "other_value"],
+)
+def valid_non_heritable(request):
+    return request.param
+
+
+def test_validate_non_heritable_parameter(valid_non_heritable):
+    value, allowed, expected = valid_non_heritable
+    default = expected if value is None else "g"
+    assert slu.validate_parameter(value, allowed, default, str, heritable=False) == expected
+
+
+@pytest.mark.parametrize(
+    "value, error", [("xyz", ValueError), ("", ValueError), (1, TypeError), (("g", "strict"), TypeError)]
+)
+def test_validate_non_heritable_parameter_rejects_wrong_values(value, error):
+    with pytest.raises(error):
+        slu.validate_parameter(value, {"g", "m"}, "g", str, heritable=False)
+
+
+@pytest.fixture(
+    params=[
+        (lambda mode: slt.Blur(blur_type=mode, p=1), "blur"),
+        (lambda mode: slt.CvtColor(mode=mode), "cvtcolor"),
+        (lambda mode: slt.GridMask(mode=mode, p=1), "gridmask"),
+    ],
+    ids=["Blur", "CvtColor", "GridMask"],
+)
+def transform_with_mode(request):
+    return request.param[0]
+
+
+@pytest.mark.parametrize("mode", ["xyz", "G", "rgb2bgr", 1, ("g", "strict")])
+def test_transforms_reject_unknown_modes_on_creation(transform_with_mode, mode):
+    with pytest.raises((ValueError, TypeError)):
+        transform_with_mode(mode)

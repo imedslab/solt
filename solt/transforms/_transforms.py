@@ -1817,8 +1817,6 @@ class GridMask(ImageTransform):
         self.rotate = rotate
 
         self.mode = validate_parameter(mode, ALLOWED_GRIDMASK_MODES, "none", heritable=False)
-        if self.mode not in ALLOWED_GRIDMASK_MODES:
-            raise ValueError(f"Mode must be one of {sorted(ALLOWED_GRIDMASK_MODES)}")
 
     def sample_transform(self, data: DataContainer):
         h, w = super(GridMask, self).sample_transform(data)
