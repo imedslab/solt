@@ -3,6 +3,9 @@ import json
 import yaml
 import inspect
 
+import cv2
+import numpy as np
+
 
 class Serializable(object):
     registry = {}
@@ -198,6 +201,75 @@ def img_shape_checker(method):
         return res
 
     return wrapper
+
+
+def distance_map_handler(method):
+    """Decorator for the ``_apply_distance_map`` methods of transforms.
+
+    It makes sure that the result has the same dtype and the same number of dimensions as the input:
+
+    * ``float16`` distance maps are processed in ``float32``, since most of OpenCV does not support ``float16``.
+    * Distance maps with more than 4 channels are processed in groups of at most 4 channels, since some OpenCV
+      operations (e.g. bicubic interpolation or a constant fill value) only support up to 4 channels.
+
+    Parameters
+    ----------
+    method : _apply_distance_map method of BaseTransform
+
+    Returns
+    -------
+    out : method of a class
+        Result
+
+    """
+
+    @wraps(method)
+    def wrapper(self, dmap, settings):
+        dtype = dmap.dtype
+        if dtype == np.float16:
+            dmap = dmap.astype(np.float32)
+
+        def apply(chunk):
+            res = method(self, chunk, settings)
+            if chunk.ndim == 3 and res.ndim == 2:
+                res = res[:, :, np.newaxis]
+            return res
+
+        if dmap.ndim == 3 and dmap.shape[2] > 4:
+            res = np.concatenate([apply(dmap[:, :, i : i + 4]) for i in range(0, dmap.shape[2], 4)], axis=2)
+        else:
+            res = apply(dmap)
+
+        return res.astype(dtype, copy=False)
+
+    return wrapper
+
+
+def distance_map_border(border_mode, settings):
+    """Returns the OpenCV border mode and value to pad a distance map with.
+
+    Zero padding would create a false object boundary in a distance map. Therefore, for the zero padding mode,
+    a distance map is padded with its ``fill`` value if it is set, and with its edge values otherwise.
+
+    Parameters
+    ----------
+    border_mode : int
+        OpenCV border mode, which the transform uses for this item.
+    settings : dict
+        Item-wise settings of the distance map.
+
+    Returns
+    -------
+    out : tuple
+        OpenCV border mode and value.
+
+    """
+    if border_mode != cv2.BORDER_CONSTANT:
+        return border_mode, 0
+    if settings["fill"] is None:
+        return cv2.BORDER_REPLICATE, 0
+    # The same value for all (at most 4) channels
+    return cv2.BORDER_CONSTANT, (float(settings["fill"]),) * 4
 
 
 def validate_parameter(parameter, allowed_modes, default_value, basic_type=str, heritable=True):

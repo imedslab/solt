@@ -25,6 +25,8 @@ from ..constants import (
 from ..core import Stream
 from ..core import DataContainer, Keypoints
 from ..utils import (
+    distance_map_border,
+    distance_map_handler,
     img_shape_checker,
     validate_numeric_range_parameter,
     validate_parameter,
@@ -68,6 +70,10 @@ class Flip(BaseTransform):
     def _apply_mask(self, mask: np.ndarray, settings: dict):
         mask_new = cv2.flip(mask, self.axis)
         return mask_new
+
+    @distance_map_handler
+    def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
+        return cv2.flip(dmap, self.axis)
 
     def _apply_labels(self, labels, settings: dict):
         return labels
@@ -187,6 +193,9 @@ class Rotate90(Rotate):
 
     def _apply_mask(self, mask: np.ndarray, settings: dict):
         return np.ascontiguousarray(np.rot90(mask, -self.k))
+
+    def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
+        return np.ascontiguousarray(np.rot90(dmap, -self.k))
 
 
 class Shear(MatrixTransform):
@@ -586,7 +595,7 @@ class Pad(BaseTransform, PaddingPropertyHolder):
                 "pad_w": (pad_w_left, pad_w_right),
             }
 
-    def _apply_img_or_mask(self, img: np.ndarray, settings: dict):
+    def _apply_img_or_mask(self, img: np.ndarray, settings: dict, is_distance_map=False):
         if self.pad_to is None:
             return img
         pad_h_top, pad_h_bottom = self.state_dict["pad_h"]
@@ -596,7 +605,11 @@ class Pad(BaseTransform, PaddingPropertyHolder):
         if settings["padding"][1] == "strict":
             padding = ALLOWED_PADDINGS[settings["padding"][0]]
 
-        return cv2.copyMakeBorder(img, pad_h_top, pad_h_bottom, pad_w_left, pad_w_right, padding, value=0)
+        value = 0
+        if is_distance_map:
+            padding, value = distance_map_border(padding, settings)
+
+        return cv2.copyMakeBorder(img, pad_h_top, pad_h_bottom, pad_w_left, pad_w_right, padding, value=value)
 
     @img_shape_checker
     def _apply_img(self, img: np.ndarray, settings: dict):
@@ -604,6 +617,10 @@ class Pad(BaseTransform, PaddingPropertyHolder):
 
     def _apply_mask(self, mask: np.ndarray, settings: dict):
         return self._apply_img_or_mask(mask, settings)
+
+    @distance_map_handler
+    def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
+        return self._apply_img_or_mask(dmap, settings, is_distance_map=True)
 
     def _apply_labels(self, labels, settings: dict):
         return labels
@@ -697,6 +714,16 @@ class Resize(BaseTransform, InterpolationPropertyHolder):
 
     def _apply_mask(self, mask: np.ndarray, settings: dict):
         return self._apply_img_or_mask(mask, settings)
+
+    @distance_map_handler
+    def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
+        if self.resize_to is None:
+            return dmap
+        h, w = dmap.shape[:2]
+        resize_to = self._handle_resize(h, w)
+        # Distances change by the square root of the area change
+        scale = math.sqrt(resize_to[0] / w * resize_to[1] / h)
+        return self._apply_img_or_mask(dmap * scale, settings)
 
     def _apply_labels(self, labels, settings: dict):
         return labels
@@ -793,6 +820,9 @@ class Crop(BaseTransform):
     def _apply_mask(self, mask: np.ndarray, settings: dict):
         return self.__crop_img_or_mask(mask)
 
+    def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
+        return self.__crop_img_or_mask(dmap)
+
     def _apply_labels(self, labels, settings: dict):
         return labels
 
@@ -877,6 +907,9 @@ class Noise(BaseTransform):
 
     def _apply_mask(self, mask: np.ndarray, settings: dict):
         return mask
+
+    def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
+        return dmap
 
     def _apply_labels(self, labels, settings: dict):
         return labels
@@ -1447,6 +1480,9 @@ class KeypointsJitter(BaseTransform):
     def _apply_mask(self, mask, settings: dict):
         return mask
 
+    def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
+        return dmap
+
     def _apply_pts(self, pts: Keypoints, settings: dict):
         pts_data = pts.data.copy()
         h = pts.height
@@ -1732,6 +1768,14 @@ class RandomResizedCrop(BaseTransform, InterpolationPropertyHolder):
 
     def _apply_mask(self, mask: np.ndarray, settings: dict):
         return self._apply_img_or_mask(mask, settings)
+
+    @distance_map_handler
+    def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
+        if self.resize_to is not None:
+            w_crop, h_crop = self.state_dict["crop_to"]
+            # Distances change by the square root of the area change
+            dmap = dmap * math.sqrt(self.resize_to[0] / w_crop * self.resize_to[1] / h_crop)
+        return self._apply_img_or_mask(dmap, settings)
 
     def _apply_labels(self, labels, settings: dict):
         return labels

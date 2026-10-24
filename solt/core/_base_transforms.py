@@ -8,6 +8,8 @@ from solt.utils import Serializable
 from solt.constants import ALLOWED_INTERPOLATIONS, ALLOWED_PADDINGS
 from ._data import DataContainer, Keypoints
 from solt.utils import (
+    distance_map_border,
+    distance_map_handler,
     img_shape_checker,
     validate_parameter,
 )
@@ -110,12 +112,14 @@ class BaseTransform(Serializable, metaclass=ABCMeta):
                     tmp_item = self._apply_img(item, item_settings)
                 elif t == "M":  # Mask
                     tmp_item = self._apply_mask(item, item_settings)
+                elif t == "D":  # Distance map
+                    tmp_item = self._apply_distance_map(item, item_settings)
                 elif t == "P":  # Points
                     tmp_item = self._apply_pts(item, item_settings)
                 elif t == "L":  # Labels
                     tmp_item = self._apply_labels(item, item_settings)
             else:
-                if t == "I" or t == "M":
+                if t == "I" or t == "M" or t == "D":
                     tmp_item = item.copy()
                 elif t == "L":
                     tmp_item = copy.copy(item)
@@ -232,6 +236,29 @@ class BaseTransform(Serializable, metaclass=ABCMeta):
 
         """
 
+    def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
+        """
+        Method, which determines the transform's behaviour when it is applied to distance maps HxW or HxWxC,
+        e.g. signed distance fields.
+
+        Unlike masks, the values of distance maps have a geometric meaning, so every transform has to define
+        explicitly how it changes them. By default, the transforms do not support distance maps.
+
+        Parameters
+        ----------
+        dmap : numpy.ndarray
+            Distance map to be augmented
+        settings : dict
+            Item-wise settings
+
+        Returns
+        -------
+        out : numpy.ndarray
+            Result
+
+        """
+        raise NotImplementedError(f"{self.__class__.__name__} does not support distance maps!")
+
     @abstractmethod
     def _apply_labels(self, labels, settings: np.ndarray):
         """
@@ -278,6 +305,9 @@ class ImageTransform(BaseTransform):
 
     def _apply_mask(self, mask, settings: dict):
         return mask
+
+    def _apply_distance_map(self, dmap, settings: dict):
+        return dmap
 
     def _apply_pts(self, pts: Keypoints, settings: dict):
         return pts
@@ -598,6 +628,53 @@ class MatrixTransform(BaseTransform, InterpolationPropertyHolder, PaddingPropert
 
         """
         return self._apply_img_or_mask(mask, settings)
+
+    def distance_scale(self):
+        """
+        Returns the factor, by which the transform changes the distances around the image center.
+
+        It is the square root of the area change, i.e. of the Jacobian determinant of the transform. For a homography
+        ``H``, it equals to ``det(H) / w ** 3``, where ``w`` is the homogeneous coordinate of the transformed center.
+        This is exact for the similarity transforms (rotation, uniform scaling and translation), and an approximation
+        otherwise.
+
+        """
+        transf_m = self.state_dict["transform_matrix_corrected"]
+        center = np.array([(self.state_dict["w"] - 1) / 2, (self.state_dict["h"] - 1) / 2, 1])
+        w = transf_m[2] @ center
+        return np.sqrt(abs(np.linalg.det(transf_m) / w**3))
+
+    @distance_map_handler
+    def _apply_distance_map(self, dmap: np.ndarray, settings: dict):
+        """
+        Applies a matrix transform to a distance map, and rescales its values accordingly.
+
+        Parameters
+        ----------
+        dmap : numpy.ndarray
+            Distance map to be augmented
+        settings : dict
+            Item-wise settings
+
+        Returns
+        -------
+        out : numpy.ndarray
+            Result
+
+        """
+        h_new, w_new = self.state_dict["h_new"], self.state_dict["w_new"]
+        interp, padding = self.parse_settings(settings)
+        border_mode, border_value = distance_map_border(padding, settings)
+        transf_m = self.state_dict["transform_matrix_corrected"]
+        # The values are rescaled before warping, so that the fill value is used as is
+        dmap = dmap * float(self.distance_scale())
+        if self.affine:
+            return cv2.warpAffine(
+                dmap, transf_m[:2, :], (w_new, h_new), flags=interp, borderMode=border_mode, borderValue=border_value
+            )
+        return cv2.warpPerspective(
+            dmap, transf_m, (w_new, h_new), flags=interp, borderMode=border_mode, borderValue=border_value
+        )
 
     def _apply_labels(self, labels, settings: dict):
         """
