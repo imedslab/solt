@@ -54,6 +54,19 @@ def test_data_indices_can_be_only_nonnegative(trf):
         trf(data_indices=(0, 1, -2))
 
 
+def test_transform_without_data_indices_is_applied_to_all_items_of_every_call():
+    img = np.arange(12, dtype=np.uint8).reshape(3, 4, 1)
+    mask = np.arange(12, dtype=np.uint8).reshape(3, 4)
+    flip = slt.Flip(p=1, axis=1)
+
+    flip(slc.DataContainer((img,), "I"))
+    img_res, mask_res = flip(slc.DataContainer((img, mask), "IM")).data
+
+    assert np.array_equal(img_res, img[:, ::-1])
+    assert np.array_equal(mask_res, mask[:, ::-1])
+    assert flip.data_indices is None
+
+
 @pytest.mark.parametrize("trf", filter_trfs(all_trfs_solt, "p"))
 def test_transform_returns_original_data_if_use_transform_is_false(img_2x2, trf):
     dc = slc.DataContainer((img_2x2,), "I")

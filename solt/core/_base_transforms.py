@@ -101,11 +101,11 @@ class BaseTransform(Serializable, metaclass=ABCMeta):
         result = []
         types = []
         settings = {}
-        if self.data_indices is None:
-            self.data_indices = tuple(range(len(data)))
+        # Not stored in the transform: it can be applied to data containers of different lengths
+        data_indices = self.data_indices if self.data_indices is not None else range(len(data))
         tmp_item = None
         for i, (item, t, item_settings) in enumerate(data):
-            if i in self.data_indices:
+            if i in data_indices:
                 if t == "I":  # Image
                     tmp_item = self._apply_img(item, item_settings)
                 elif t == "M":  # Mask
