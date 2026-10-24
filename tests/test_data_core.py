@@ -1480,3 +1480,63 @@ def test_reset_ignore_fast_mode_is_applied_recursively(nested_fast_mode_pipeline
     assert rotate.ignore_fast_mode is value
     assert stream.ignore_fast_mode is value
     assert _frame_enlarged(stream, img) is value
+
+
+_FUSION_H, _FUSION_W = 61, 81
+_FUSION_POINTS = np.array([[20.0, 15.0], [60.0, 20.0], [40.0, 45.0], [10.0, 50.0], [45.0, 30.0]])
+
+_AFFINE_TRANSFORMS = {
+    "Rotate": lambda: slt.Rotate(angle_range=(25, 25), p=1),
+    "Rotate90": lambda: slt.Rotate90(k=1, p=1),
+    "Scale": lambda: slt.Scale(range_x=(1.2, 1.2), range_y=(0.9, 0.9), same=False, p=1),
+    "Translate": lambda: slt.Translate(range_x=(5, 5), range_y=(-4, -4), p=1),
+    "Shear": lambda: slt.Shear(range_x=(0.15, 0.15), range_y=(0, 0), p=1),
+}
+
+
+@pytest.fixture(params=list(_AFFINE_TRANSFORMS), ids=list(_AFFINE_TRANSFORMS))
+def affine_transform(request):
+    return _AFFINE_TRANSFORMS[request.param]
+
+
+@pytest.fixture(params=[2e-4, 1e-3, -6e-4], ids=["weak", "strong", "negative"])
+def perspective(request):
+    return request.param
+
+
+@pytest.fixture(params=["projection_last", "projection_middle", "projection_first"])
+def projection_position(request):
+    return request.param
+
+
+def _blobs():
+    img = np.zeros((_FUSION_H, _FUSION_W), dtype=np.float32)
+    for x, y in _FUSION_POINTS:
+        cv2.circle(img, (int(x), int(y)), 3, 1.0, -1)
+    return img
+
+
+def _blob_centroid(img, point, radius=6):
+    x0, y0 = int(round(point[0])), int(round(point[1]))
+    ys, xs = np.mgrid[: img.shape[0], : img.shape[1]]
+    near = (np.abs(xs - x0) <= radius) & (np.abs(ys - y0) <= radius)
+    weights = img * near
+    assert weights.sum() > 0, f"no image content around the keypoint {point}"
+    return np.array([(xs * weights).sum(), (ys * weights).sum()]) / weights.sum()
+
+
+def test_fused_stream_with_projection_keeps_keypoints_on_the_image(affine_transform, perspective, projection_position):
+    projection = slt.Projection(v_range=(perspective, perspective), p=1)
+    transforms = {
+        "projection_last": [affine_transform(), affine_transform(), projection],
+        "projection_middle": [affine_transform(), projection, affine_transform()],
+        "projection_first": [projection, affine_transform(), affine_transform()],
+    }[projection_position]
+    stream = slc.Stream(transforms, optimize_stack=True)
+    dc = slc.DataContainer(
+        (_blobs(), slc.Keypoints(_FUSION_POINTS.copy(), _FUSION_H, _FUSION_W)), "MP", {0: {"interpolation": "bilinear"}}
+    )
+    random.seed(0)
+    img_res, kpts_res = stream(dc, return_torch=False).data
+    for point in kpts_res.data:
+        np.testing.assert_allclose(_blob_centroid(img_res, point), point, atol=0.15)

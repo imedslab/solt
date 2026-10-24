@@ -464,6 +464,8 @@ class MatrixTransform(BaseTransform, InterpolationPropertyHolder, PaddingPropert
         if trf.padding is not None:
             self.padding = trf.padding
         self.interpolation = trf.interpolation
+        # A projective transform makes the fused one projective, which needs the perspective warp
+        self.affine = self.affine and trf.affine
 
         self.state_dict["transform_matrix"] = trf.state_dict["transform_matrix"] @ self.state_dict["transform_matrix"]
 
