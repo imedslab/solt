@@ -1815,3 +1815,68 @@ def test_brightness_relative_serialization():
 def test_brightness_relative_must_be_bool(relative):
     with pytest.raises(TypeError):
         slt.Brightness(brightness_range=(0.1, 0.2), relative=relative)
+
+
+@pytest.mark.parametrize("contrast, brightness", [(2.0, 10.0), (1.0, -20.0), (0.5, 0.0), (1.0, 0.0)])
+def test_brightness_contrast_equals_contrast_then_brightness(contrast, brightness):
+    # Values, for which neither rounding nor clipping happens between the two transforms
+    img = np.arange(0, 120, 2, dtype=np.uint8).reshape(6, 10, 1)
+    combined = slt.BrightnessContrast(
+        brightness_range=(brightness, brightness), contrast_range=(contrast, contrast), p=1
+    )
+    sequential = slc.Stream(
+        [
+            slt.Contrast(contrast_range=(contrast, contrast), p=1),
+            slt.Brightness(brightness_range=(brightness, brightness), p=1),
+        ]
+    )
+    res = combined(slc.DataContainer((img,), "I")).data[0]
+    np.testing.assert_array_equal(res, sequential({"image": img}, return_torch=False).data[0])
+
+
+def test_brightness_contrast_clips_once():
+    img = np.full((4, 4, 1), 200, dtype=np.uint8)
+    trf = slt.BrightnessContrast(brightness_range=(-100, -100), contrast_range=(2.0, 2.0), p=1)
+    # 200 * 2 - 100 = 300 -> 255. Contrast followed by Brightness would clip 400 to 255 first, and give 155.
+    assert np.all(trf(slc.DataContainer((img,), "I")).data[0] == 255)
+
+
+def test_brightness_contrast_relative():
+    img = np.full((4, 4, 3), 100, dtype=np.uint8)
+    trf = slt.BrightnessContrast(brightness_range=(0.2, 0.2), contrast_range=(1.5, 1.5), relative=True, p=1)
+    # 100 * 1.5 + 0.2 * 100
+    assert np.all(trf(slc.DataContainer((img,), "I")).data[0] == 170)
+
+
+def test_brightness_contrast_ranges():
+    trf = slt.BrightnessContrast(contrast_range=0.2)
+    assert trf.contrast_range == (0.8, 1.2)
+    assert trf.brightness_range == (0, 0)
+    random.seed(0)
+    for _ in range(20):
+        trf = slt.BrightnessContrast(brightness_range=(-10, 10), contrast_range=(0.5, 1.5), p=1)
+        trf(slc.DataContainer((np.zeros((4, 4, 1), dtype=np.uint8),), "I"))
+        assert -10 <= trf.state_dict["brightness_fact"] <= 10
+        assert 0.5 <= trf.state_dict["contrast_mul"] <= 1.5
+
+
+def test_brightness_contrast_serialization():
+    trf = slt.BrightnessContrast(brightness_range=(-0.1, 0.1), contrast_range=(0.8, 1.2), relative=True)
+    restored = slu.from_yaml(slc.Stream([trf]).to_yaml()).transforms[0]
+    assert isinstance(restored, slt.BrightnessContrast)
+    assert tuple(restored.brightness_range) == (-0.1, 0.1)
+    assert tuple(restored.contrast_range) == (0.8, 1.2)
+    assert restored.relative is True
+
+
+def test_brightness_contrast_keeps_masks():
+    img = np.full((4, 4, 3), 100, dtype=np.uint8)
+    mask = np.ones((4, 4), dtype=np.uint8)
+    trf = slt.BrightnessContrast(brightness_range=(10, 10), contrast_range=(1.2, 1.2), p=1)
+    assert trf(slc.DataContainer((img, mask), "IM")).data[1] is mask
+
+
+@pytest.mark.parametrize("relative", [1, "yes", None])
+def test_brightness_contrast_relative_must_be_bool(relative):
+    with pytest.raises(TypeError):
+        slt.BrightnessContrast(brightness_range=(0.1, 0.2), relative=relative)

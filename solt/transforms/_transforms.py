@@ -1396,6 +1396,60 @@ class Brightness(ImageTransform):
         return cv2.LUT(img, self.state_dict["LUT"])
 
 
+class BrightnessContrast(ImageTransform):
+    """
+    Performs a random brightness and contrast augmentation in one step: ``x * contrast + brightness``.
+
+    It is the same as ``Contrast`` followed by ``Brightness``, but the intensities are clipped only once, so no
+    information is lost between the two steps.
+
+    Parameters
+    ----------
+    brightness_range: tuple or None
+        Brightness shift range. If None, then ``brightness_range=(0, 0)``.
+    contrast_range : tuple or float or None
+        Contrast multiplier range. If float, then ``contrast_range = (1-contrast_range, 1+contrast_range)``.
+        If None, then ``contrast_range=(1, 1)``.
+    relative : bool
+        Whether the brightness shift is relative to the mean intensity of the image. See ``Brightness``.
+    data_indices : tuple or None
+        Indices of the images within the data container to which this transform needs to be applied.
+        Every element within the tuple must be integer numbers.
+        If None, then the transform will be applied to all the images withing the DataContainer.
+    p : float
+        Probability of applying this transform.
+
+    """
+
+    serializable_name = "brightness_contrast"
+    """How the class should be stored in the registry"""
+
+    def __init__(self, brightness_range=None, contrast_range=0.1, relative=False, data_indices=None, p=0.5):
+        super(BrightnessContrast, self).__init__(p=p, data_indices=data_indices)
+        if not isinstance(relative, bool):
+            raise TypeError("Argument relative must be bool!")
+        if isinstance(contrast_range, float):
+            contrast_range = (1 - contrast_range, 1 + contrast_range)
+        self.brightness_range = validate_numeric_range_parameter(brightness_range, Brightness._default_range)
+        self.contrast_range = validate_numeric_range_parameter(contrast_range, Contrast._default_range, 0)
+        self.relative = relative
+
+    def sample_transform(self, data):
+        contrast_mul = random.uniform(self.contrast_range[0], self.contrast_range[1])
+        brightness_fact = random.uniform(self.brightness_range[0], self.brightness_range[1])
+        self.state_dict = {"contrast_mul": contrast_mul, "brightness_fact": brightness_fact}
+        if not self.relative:
+            # The look-up table does not depend on the image
+            self.state_dict["LUT"] = Brightness._lut(brightness_fact, contrast_mul)
+
+    @img_shape_checker
+    def _apply_img(self, img: np.ndarray, settings: dict):
+        if self.relative:
+            shift = self.state_dict["brightness_fact"] * img.mean()
+            return cv2.LUT(img, Brightness._lut(shift, self.state_dict["contrast_mul"]))
+        return cv2.LUT(img, self.state_dict["LUT"])
+
+
 class IntensityRemap(ImageTransform):
     """
     Performs random intensity remapping [1]_.
