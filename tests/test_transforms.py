@@ -2252,7 +2252,9 @@ def gridmask_inverse_mode(request):
     return request.param
 
 
-@pytest.fixture(params=[0, 15, (30, 45), (-20, -10)], ids=["no_rotation", "int", "tuple", "negative_tuple"])
+@pytest.fixture(
+    params=[0, None, 15, (30, 45), (-20, -10)], ids=["no_rotation", "none", "int", "tuple", "negative_tuple"]
+)
 def gridmask_rotate(request):
     return request.param
 
@@ -2308,7 +2310,6 @@ def test_gridmask_rotation_angle_is_sampled_in_range(gridmask_rotate, gridmask_d
         return get_rotation_matrix(center, angle, scale)
 
     monkeypatch.setattr(cv2, "getRotationMatrix2D", recording_get_rotation_matrix)
-    low, high = (-gridmask_rotate, gridmask_rotate) if isinstance(gridmask_rotate, int) else gridmask_rotate
     for seed in range(20):
         dropped = _gridmask_dropped(
             (40, 60), seed, d_range=(8, 12), ratio=0.5, rotate=gridmask_rotate, mode=gridmask_default_mode
@@ -2316,14 +2317,17 @@ def test_gridmask_rotation_angle_is_sampled_in_range(gridmask_rotate, gridmask_d
         # Every unit of the grid drops about (1 - ratio) ** 2 of its area, whatever the angle
         assert dropped.mean() == pytest.approx(0.25, abs=0.12)
 
-    if gridmask_rotate == 0:
+    if gridmask_rotate in (0, None):
         assert angles == []
     else:
+        low, high = (-gridmask_rotate, gridmask_rotate) if isinstance(gridmask_rotate, int) else gridmask_rotate
         assert len(angles) == 20
         assert all(low <= angle <= high for angle in angles)
 
 
-@pytest.mark.parametrize("rotate, expected", [(0, 0), (15, (-15, 15)), ((30, 45), (30, 45)), ((-5, -5), (-5, -5))])
+@pytest.mark.parametrize(
+    "rotate, expected", [(0, 0), (None, 0), (15, (-15, 15)), ((30, 45), (30, 45)), ((-5, -5), (-5, -5))]
+)
 def test_gridmask_rotate_range(rotate, expected):
     assert slt.GridMask(rotate=rotate).rotate == expected
 
