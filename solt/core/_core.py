@@ -1,16 +1,15 @@
-import numpy as np
-
-from ._base_transforms import (
-    BaseTransform,
-    MatrixTransform,
-)
 import copy
+import numbers
 import random
 
-from solt.utils import Serializable
-import numbers
+import numpy as np
 
-from ._data import BoundingBoxes, DataContainer
+from solt.utils import Serializable
+
+from ._annotations import BoundingBoxes
+from ._base_transforms import BaseTransform
+from ._data import DataContainer
+from ._matrix_transform import MatrixTransform
 
 
 class Stream(Serializable):

@@ -1,14 +1,8 @@
 from ._core import Stream, SelectiveStream
-from ._base_transforms import (
-    BaseTransform,
-    MatrixTransform,
-)
-from ._base_transforms import (
-    PaddingPropertyHolder,
-    InterpolationPropertyHolder,
-    ImageTransform,
-)
-from ._data import BoundingBoxes, DataContainer, Keypoints
+from ._base_transforms import BaseTransform, ImageTransform, InterpolationPropertyHolder, PaddingPropertyHolder
+from ._matrix_transform import MatrixTransform
+from ._annotations import BoundingBoxes, Keypoints
+from ._data import DataContainer
 
 __all__ = [
     "Stream",
