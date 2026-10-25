@@ -1,0 +1,1187 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="solt.constants" href="constants.html"><link rel="prev" title="solt.core" href="core.html">
+        <link rel="prefetch" href="_static/logo.png" as="image">
+
+    <!-- Generated with Sphinx 9.2.0 and Furo 2025.12.19 -->
+        <title>solt.transforms - solt v0.2.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">solt v0.2.2 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="_static/logo.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">solt v0.2.2 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to solt’s documentation!</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="modules.html">solt</a><input aria-label="Toggle navigation of solt" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.html">solt.core</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">solt.transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">solt.constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">solt.utils module</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Basics_of_solt.html">Basics of <code class="docutils literal notranslate"><span class="pre">SOLT</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="Instance_segmentation.html">Instance segmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Distance_maps.html">Distance maps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Keypoints.html">Keypoints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bounding_boxes.html">Bounding boxes in medical images</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/imedslab/solt/blob/master/doc/source/transforms.rst?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/imedslab/solt/edit/master/doc/source/transforms.rst" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="module-solt.transforms">
+<span id="solt-transforms"></span><h1>solt.transforms<a class="headerlink" href="#module-solt.transforms" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Blur">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Blur</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blur_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'g'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_noise.html#Blur"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Blur" title="Link to this definition">¶</a></dt>
+<dd><p>Transform blurs an image</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of applying this transform,</p></li>
+<li><p><strong>blur_type</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – Blur type. See allowed blurs in <cite>solt.constants</cite></p></li>
+<li><p><strong>k_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a>) – Kernel sizes of the blur. if int, then sampled from <code class="docutils literal notranslate"><span class="pre">(k_size,</span> <span class="pre">k_size)</span></code>. If tuple,
+then sampled from the whole tuple. All the values here must be odd.</p></li>
+<li><p><strong>gaussian_sigma</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a>) – Gaussian sigma value. Used for both X and Y axes. If None, then gaussian_sigma=1.</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="constants.html#solt.constants.ALLOWED_BLURS" title="solt.constants.ALLOWED_BLURS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solt.constants.ALLOWED_BLURS</span></code></a></p>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Blur.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'blur'</span></span><a class="headerlink" href="#solt.transforms.Blur.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Brightness">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Brightness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">brightness_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_intensity.html#Brightness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Brightness" title="Link to this definition">¶</a></dt>
+<dd><p>Performs a random brightness augmentation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of applying this transform,</p></li>
+<li><p><strong>brightness_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – brightness_range shift range. If None, then <code class="docutils literal notranslate"><span class="pre">brightness_range=(0,</span> <span class="pre">0)</span></code>.</p></li>
+<li><p><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Whether the shift is relative to the mean intensity of the image. If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values of
+<code class="docutils literal notranslate"><span class="pre">brightness_range</span></code> are fractions of the mean, e.g. <code class="docutils literal notranslate"><span class="pre">(-0.2,</span> <span class="pre">0.2)</span></code> changes the brightness by up to 20% of
+the mean intensity of every image. <code class="docutils literal notranslate"><span class="pre">False</span></code> by default.</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="solt.transforms.Brightness.parse_brightness">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">parse_brightness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">brightness_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_intensity.html#Brightness.parse_brightness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Brightness.parse_brightness" title="Link to this definition">¶</a></dt>
+<dd><p>Validates the brightness range and whether it is relative to the mean intensity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Brightness.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'brightness'</span></span><a class="headerlink" href="#solt.transforms.Brightness.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.BrightnessContrast">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">BrightnessContrast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">brightness_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contrast_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_intensity.html#BrightnessContrast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.BrightnessContrast" title="Link to this definition">¶</a></dt>
+<dd><p>Performs a random brightness and contrast augmentation in one step: <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">*</span> <span class="pre">contrast</span> <span class="pre">+</span> <span class="pre">brightness</span></code>.</p>
+<p>It is the same as <code class="docutils literal notranslate"><span class="pre">Contrast</span></code> followed by <code class="docutils literal notranslate"><span class="pre">Brightness</span></code>, but the intensities are clipped only once, so no
+information is lost between the two steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>brightness_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Brightness shift range. If None, then <code class="docutils literal notranslate"><span class="pre">brightness_range=(0,</span> <span class="pre">0)</span></code>.</p></li>
+<li><p><strong>contrast_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em>) – Contrast multiplier range. If float, then <code class="docutils literal notranslate"><span class="pre">contrast_range</span> <span class="pre">=</span> <span class="pre">(1-contrast_range,</span> <span class="pre">1+contrast_range)</span></code>.
+If None, then <code class="docutils literal notranslate"><span class="pre">contrast_range=(1,</span> <span class="pre">1)</span></code>.</p></li>
+<li><p><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Whether the brightness shift is relative to the mean intensity of the image. See <code class="docutils literal notranslate"><span class="pre">Brightness</span></code>.</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of applying this transform.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.BrightnessContrast.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'brightness_contrast'</span></span><a class="headerlink" href="#solt.transforms.BrightnessContrast.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Contrast">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Contrast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contrast_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_intensity.html#Contrast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Contrast" title="Link to this definition">¶</a></dt>
+<dd><p>Transform randomly changes the contrast</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of applying this transform,</p></li>
+<li><p><strong>contrast_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em>) – Gain of the noise. Indicates percentage of indices, which will be changed.
+If float, then <code class="docutils literal notranslate"><span class="pre">gain_range</span> <span class="pre">=</span> <span class="pre">(1-contrast_range,</span> <span class="pre">1+contrast_range)</span></code>.</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="solt.transforms.Contrast.parse_contrast_range">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">parse_contrast_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">contrast_range</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_intensity.html#Contrast.parse_contrast_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Contrast.parse_contrast_range" title="Link to this definition">¶</a></dt>
+<dd><p>Validates the contrast range. A float <code class="docutils literal notranslate"><span class="pre">c</span></code> becomes <code class="docutils literal notranslate"><span class="pre">(1</span> <span class="pre">-</span> <span class="pre">c,</span> <span class="pre">1</span> <span class="pre">+</span> <span class="pre">c)</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Contrast.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'contrast'</span></span><a class="headerlink" href="#solt.transforms.Contrast.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Crop">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Crop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crop_to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'c'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_spatial.html#Crop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Crop" title="Link to this definition">¶</a></dt>
+<dd><p>Center / Random / Corner crop transform.</p>
+<p>Object performs center, random or corner cropping depending on the parameters. The center and the four corner
+crops make the five crops, which are often used for test-time augmentation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crop_to</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>None</em>) – Size of the crop <code class="docutils literal notranslate"><span class="pre">(width_new,</span> <span class="pre">height_new)</span></code>. If <code class="docutils literal notranslate"><span class="pre">int</span></code>, then a square crop will be made.</p></li>
+<li><p><strong>crop_mode</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – Crop mode. Can be <code class="docutils literal notranslate"><span class="pre">'c'</span></code> - center, <code class="docutils literal notranslate"><span class="pre">'r'</span></code> - random, or a corner: <code class="docutils literal notranslate"><span class="pre">'lt'</span></code> - left top, <code class="docutils literal notranslate"><span class="pre">'rt'</span></code> - right top,
+<code class="docutils literal notranslate"><span class="pre">'lb'</span></code> - left bottom and <code class="docutils literal notranslate"><span class="pre">'rb'</span></code> - right bottom.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="constants.html#solt.constants.ALLOWED_CROPS" title="solt.constants.ALLOWED_CROPS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solt.constants.ALLOWED_CROPS</span></code></a></p>
+</div>
+<p class="rubric">Notes</p>
+<p>To avoid copying, the cropped images, masks and distance maps are views of the input arrays.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Crop.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'crop'</span></span><a class="headerlink" href="#solt.transforms.Crop.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.CutOut">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">CutOut</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutout_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cuts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_occlusion.html#CutOut"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.CutOut" title="Link to this definition">¶</a></dt>
+<dd><p>Does cutout augmentation.</p>
+<p><a class="reference external" href="https://arxiv.org/abs/1708.04552">https://arxiv.org/abs/1708.04552</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cutout_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – The size of the cutout <code class="docutils literal notranslate"><span class="pre">(width,</span> <span class="pre">height)</span></code>. If <code class="docutils literal notranslate"><span class="pre">int</span></code> or <code class="docutils literal notranslate"><span class="pre">float</span></code>, then the cutout is a square.
+<code class="docutils literal notranslate"><span class="pre">int</span></code> values are in pixels, and <code class="docutils literal notranslate"><span class="pre">float</span></code> values are fractions of the image size. Each of the width and
+the height can also be a range <code class="docutils literal notranslate"><span class="pre">(min,</span> <span class="pre">max)</span></code>, from which the size of every cutout is sampled, e.g.
+<code class="docutils literal notranslate"><span class="pre">((4,</span> <span class="pre">16),</span> <span class="pre">(4,</span> <span class="pre">16))</span></code>. By default, it is 2.</p></li>
+<li><p><strong>n_cuts</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – Number of cutouts to make. If tuple <code class="docutils literal notranslate"><span class="pre">(min,</span> <span class="pre">max)</span></code>, then it is sampled from this range. By default, it is 1.</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of applying this transform.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>To avoid copying, the transform modifies the image it receives in place. If the input image must stay unchanged,
+e.g. because it is cached or augmented several times, use <code class="docutils literal notranslate"><span class="pre">Stream(...,</span> <span class="pre">in_place=False)</span></code> or pass a copy.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.CutOut.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'cutout'</span></span><a class="headerlink" href="#solt.transforms.CutOut.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.CvtColor">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">CvtColor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_intensity.html#CvtColor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.CvtColor" title="Link to this definition">¶</a></dt>
+<dd><p>RGB to grayscale or grayscale to RGB image conversion.</p>
+<p>If converting from grayscale to RGB, then the gs channel is simply clonned.
+If converting from RGB to grayscale, then opencv is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><em>None</em>) – Color conversion mode. If None, then no conversion happens and mode=none.
+If <code class="docutils literal notranslate"><span class="pre">mode</span> <span class="pre">==</span> <span class="pre">'rgb2gs'</span></code> and the image is already grayscale,
+then nothing happens. If <code class="docutils literal notranslate"><span class="pre">mode</span> <span class="pre">==</span> <span class="pre">'gs2rgb'</span></code> and the image is already RGB,
+then also nothing happens.</p></li>
+<li><p><strong>keep_dim</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Whether to enforce having three channels when performing rgb to grayscale conversion</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of the transform’s use. 1 by default</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="constants.html#solt.constants.ALLOWED_COLOR_CONVERSIONS" title="solt.constants.ALLOWED_COLOR_CONVERSIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solt.constants.ALLOWED_COLOR_CONVERSIONS</span></code></a></p>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.CvtColor.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'cvt_color'</span></span><a class="headerlink" href="#solt.transforms.CvtColor.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Flip">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Flip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_spatial.html#Flip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Flip" title="Link to this definition">¶</a></dt>
+<dd><p>Random Flipping transform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of flip</p></li>
+<li><p><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – Axis of flip. Here, 1 stands for horizontal flipping, 0 stands for the vertical one. -1 stands for
+both axes.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Flip.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'flip'</span></span><a class="headerlink" href="#solt.transforms.Flip.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.GammaCorrection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">GammaCorrection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_intensity.html#GammaCorrection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.GammaCorrection" title="Link to this definition">¶</a></dt>
+<dd><p>Transform applies random gamma correction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of applying this transform,</p></li>
+<li><p><strong>gamma_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em>) – Gain of the noise. Indicates percentage of indices, which will be changed.
+If float, then <code class="docutils literal notranslate"><span class="pre">gain_range</span> <span class="pre">=</span> <span class="pre">(1-gamma_range,</span> <span class="pre">1+gamma_range)</span></code>.</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.GammaCorrection.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'gamma_correction'</span></span><a class="headerlink" href="#solt.transforms.GammaCorrection.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.GridMask">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">GridMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_occlusion.html#GridMask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.GridMask" title="Link to this definition">¶</a></dt>
+<dd><p>Performs a GridMask augmentation.</p>
+<p><a class="reference external" href="https://arxiv.org/abs/2001.04086">https://arxiv.org/abs/2001.04086</a></p>
+<p>The image is split into units of <code class="docutils literal notranslate"><span class="pre">d</span> <span class="pre">x</span> <span class="pre">d</span></code> pixels. Every unit has a kept band of width <code class="docutils literal notranslate"><span class="pre">l</span> <span class="pre">=</span> <span class="pre">ceil(d</span> <span class="pre">*</span> <span class="pre">ratio)</span></code>
+along its top and left sides, which forms a grid of kept lines, and the remaining square of side <code class="docutils literal notranslate"><span class="pre">d</span> <span class="pre">-</span> <span class="pre">l</span></code> is
+dropped (set to 0). Without rotation, approximately <code class="docutils literal notranslate"><span class="pre">(1</span> <span class="pre">-</span> <span class="pre">ratio)</span> <span class="pre">**</span> <span class="pre">2</span></code> of the image is dropped (exactly
+<code class="docutils literal notranslate"><span class="pre">((d</span> <span class="pre">-</span> <span class="pre">l)</span> <span class="pre">/</span> <span class="pre">d)</span> <span class="pre">**</span> <span class="pre">2</span></code>, up to the incomplete units at the borders), i.e. <code class="docutils literal notranslate"><span class="pre">ratio</span></code> is the ratio <code class="docutils literal notranslate"><span class="pre">r</span></code> of the paper,
+and the keep ratio is <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">-</span> <span class="pre">(1</span> <span class="pre">-</span> <span class="pre">ratio)</span> <span class="pre">**</span> <span class="pre">2</span></code>. The grid has a random offset, and the same mask is applied to all
+the channels of the image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – The range of the unit size d. The d is chosen between <code class="docutils literal notranslate"><span class="pre">(d_range[0],</span> <span class="pre">d_range[1])</span></code>, both inclusive.
+If None, then the d is chosen between <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">10)</span></code>.</p></li>
+<li><p><strong>ratio</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – The ratio of the width of the kept lines to the unit size d, between 0 and 1. The dropped squares have the side
+<code class="docutils literal notranslate"><span class="pre">d</span> <span class="pre">-</span> <span class="pre">ceil(d</span> <span class="pre">*</span> <span class="pre">ratio)</span></code>, i.e. <code class="docutils literal notranslate"><span class="pre">0</span></code> drops the whole image and <code class="docutils literal notranslate"><span class="pre">1</span></code> keeps it.</p></li>
+<li><p><strong>rotate</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – If int, then the angle (in degrees) of grid mask rotation is between <code class="docutils literal notranslate"><span class="pre">(-rotate,</span> <span class="pre">rotate)</span></code>.
+If tuple, then the angle of grid mask rotation is between <code class="docutils literal notranslate"><span class="pre">(rotate[0],</span> <span class="pre">rotate[1])</span></code>.
+The integer angle is chosen with both ends inclusive. If 0 or None, then the mask is not rotated.</p></li>
+<li><p><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><em>None</em>) – GridMask mode. If <code class="docutils literal notranslate"><span class="pre">'crop'</span></code> or <code class="docutils literal notranslate"><span class="pre">'none'</span></code> (default, used when <code class="docutils literal notranslate"><span class="pre">mode</span></code> is None), then the default GridMask
+is applied: the squares are dropped, and the grid lines are kept.
+If <code class="docutils literal notranslate"><span class="pre">'reverse'</span></code>, the inversed GridMask is applied: only the squares are kept, and the grid lines are dropped,
+i.e. exactly the complement of the default mode is dropped. <code class="docutils literal notranslate"><span class="pre">'reserve'</span></code> is an alias of <code class="docutils literal notranslate"><span class="pre">'reverse'</span></code>,
+kept for backward compatibility.</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of applying this transform.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>To avoid copying, the transform modifies the image it receives in place. If the input image must stay unchanged,
+e.g. because it is cached or augmented several times, use <code class="docutils literal notranslate"><span class="pre">Stream(...,</span> <span class="pre">in_place=False)</span></code> or pass a copy.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.GridMask.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'gridmask'</span></span><a class="headerlink" href="#solt.transforms.GridMask.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.HSV">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">HSV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_intensity.html#HSV"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.HSV" title="Link to this definition">¶</a></dt>
+<dd><p>Performs a random HSV color shift.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>h_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Hue shift range. If None, than <code class="docutils literal notranslate"><span class="pre">h_range=(0,</span> <span class="pre">0)</span></code>.</p></li>
+<li><p><strong>s_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Saturation shift range. If None, then <code class="docutils literal notranslate"><span class="pre">s_range=(0,</span> <span class="pre">0)</span></code>.</p></li>
+<li><p><strong>v_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Value shift range. If None, then <code class="docutils literal notranslate"><span class="pre">v_range=(0,</span> <span class="pre">0)</span></code>.</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of applying this transform,</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.HSV.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'hsv'</span></span><a class="headerlink" href="#solt.transforms.HSV.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.IntensityRemap">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">IntensityRemap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_intensity.html#IntensityRemap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.IntensityRemap" title="Link to this definition">¶</a></dt>
+<dd><p>Performs random intensity remapping <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of applying this transform,</p></li>
+<li><p><strong>kernel_size</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – Size of medial filter kernel used during the generation of intensity mapping.
+Higher value yield more monotonic mapping.</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id2" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Hesse, L. S., Kuling, G., Veta, M., &amp; Martel, A. L. (2019).
+Intensity augmentation for domain transfer of whole breast
+segmentation in MRI. <a class="reference external" href="https://arxiv.org/abs/1909.02642">https://arxiv.org/abs/1909.02642</a></p>
+</aside>
+</aside>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.IntensityRemap.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'intensity_remap'</span></span><a class="headerlink" href="#solt.transforms.IntensityRemap.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.JPEGCompression">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">JPEGCompression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quality_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_noise.html#JPEGCompression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.JPEGCompression" title="Link to this definition">¶</a></dt>
+<dd><p>Performs random JPEG-based worsening of images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>quality_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>None</em>) – <p>If float, then the lower bound to sample the quality is
+between <code class="docutils literal notranslate"><span class="pre">(quality_range*100%,</span> <span class="pre">100%)</span></code>.</p>
+<p>If tuple of int, then it directly sets the quality range.</p>
+<p>If tuple of float, then the quality is sampled from
+<code class="docutils literal notranslate"><span class="pre">[quality_range[0]*100%,</span> <span class="pre">quality_range[1]*100%]</span></code>.</p>
+<p>If int, then the quality is sampled from <code class="docutils literal notranslate"><span class="pre">[quality_range,</span> <span class="pre">100]</span></code>.
+.
+If None, that the quality range is <code class="docutils literal notranslate"><span class="pre">[100,</span> <span class="pre">100]</span></code>.</p>
+</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.JPEGCompression.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'jpeg_compression'</span></span><a class="headerlink" href="#solt.transforms.JPEGCompression.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.KeypointsJitter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">KeypointsJitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_noise.html#KeypointsJitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.KeypointsJitter" title="Link to this definition">¶</a></dt>
+<dd><p>Applies the jittering to the keypoints in X- and Y-durections. Only keypoints are changed, e.g. bounding boxes
+stay as they are.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of applying the transform</p></li>
+<li><p><strong>dx_range</strong> (<em>None</em><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Jittering across X-axis. Valid range is <code class="docutils literal notranslate"><span class="pre">(-1,</span> <span class="pre">1)</span></code></p></li>
+<li><p><strong>dy_range</strong> (<em>None</em><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Jittering across Y-axis. Valid range is <code class="docutils literal notranslate"><span class="pre">(-1,</span> <span class="pre">1)</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.KeypointsJitter.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'keypoints_jitter'</span></span><a class="headerlink" href="#solt.transforms.KeypointsJitter.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Noise">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_noise.html#Noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Noise" title="Link to this definition">¶</a></dt>
+<dd><p>Adds noise to an image. Other types of data than the image are ignored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of applying this transform,</p></li>
+<li><p><strong>gain_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em>) – Gain of the noise. Final image is created as <code class="docutils literal notranslate"><span class="pre">(1-gain)*img</span> <span class="pre">+</span> <span class="pre">gain*noise</span></code>.
+If float, then <code class="docutils literal notranslate"><span class="pre">gain_range</span> <span class="pre">=</span> <span class="pre">(0,</span> <span class="pre">gain_range)</span></code>. If None, then <code class="docutils literal notranslate"><span class="pre">gain_range=(0,</span> <span class="pre">0)</span></code>.</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Noise.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'noise'</span></span><a class="headerlink" href="#solt.transforms.Noise.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Pad">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Pad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad_to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_spatial.html#Pad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Pad" title="Link to this definition">¶</a></dt>
+<dd><p>Transformation, which pads the input to a given size</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pad_to</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>None</em>) – <p>Target size <code class="docutils literal notranslate"><span class="pre">(width_new,</span> <span class="pre">height_new)</span></code>.
+The padding is computed using the following equations:</p>
+<p><code class="docutils literal notranslate"><span class="pre">left_pad</span> <span class="pre">=</span> <span class="pre">(pad_to[0]</span> <span class="pre">-</span> <span class="pre">w)</span> <span class="pre">//</span> <span class="pre">2</span></code>
+<code class="docutils literal notranslate"><span class="pre">right_pad</span> <span class="pre">=</span> <span class="pre">(pad_to[0]</span> <span class="pre">-</span> <span class="pre">w)</span> <span class="pre">//</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">(pad_to[0]</span> <span class="pre">-</span> <span class="pre">w)</span> <span class="pre">%</span> <span class="pre">2</span></code>
+<code class="docutils literal notranslate"><span class="pre">top_pad</span> <span class="pre">=</span> <span class="pre">(pad_to[1]</span> <span class="pre">-</span> <span class="pre">h)</span> <span class="pre">//</span> <span class="pre">2</span></code>
+<code class="docutils literal notranslate"><span class="pre">bottom_pad</span> <span class="pre">=</span> <span class="pre">(pad_to[1]</span> <span class="pre">-</span> <span class="pre">h)</span> <span class="pre">//</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">(pad_to[1]</span> <span class="pre">-</span> <span class="pre">h)</span> <span class="pre">%</span> <span class="pre">2</span></code></p>
+</p></li>
+<li><p><strong>padding</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – Padding type.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">solt.constants.allowed_paddings</span></code></p>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Pad.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'pad'</span></span><a class="headerlink" href="#solt.transforms.Pad.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Projection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine_transforms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bilinear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_fast_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_matrix.html#Projection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Projection" title="Link to this definition">¶</a></dt>
+<dd><p>Random Projective transform.</p>
+<p>Takes a set of affine transforms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>affine_transforms</strong> (<a class="reference internal" href="core.html#solt.core.Stream" title="solt.core.Stream"><em>Stream</em></a><em> or </em><em>None</em>) – Stream object, which has a parameterized Affine Transform.
+If None, then a zero degrees rotation matrix is instantiated.</p></li>
+<li><p><strong>v_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Projective parameters range. If None, then <code class="docutils literal notranslate"><span class="pre">v_range</span> <span class="pre">=</span> <span class="pre">(0,</span> <span class="pre">0)</span></code></p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of using this transform.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="solt.transforms.Projection.sample_transform_matrix">
+<span class="sig-name descname"><span class="pre">sample_transform_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_matrix.html#Projection.sample_transform_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Projection.sample_transform_matrix" title="Link to this definition">¶</a></dt>
+<dd><p>Method that is called to sample the transform matrix</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Projection.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'projection'</span></span><a class="headerlink" href="#solt.transforms.Projection.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.RandomResizedCrop">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">RandomResizedCrop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resize_to</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bilinear'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_spatial.html#RandomResizedCrop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.RandomResizedCrop" title="Link to this definition">¶</a></dt>
+<dd><p>Random resized crop transform.</p>
+<p>Random cropping of a random size with a random aspect ratio, and then resizes the crop to a
+target size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>resize_to</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>None</em>) – Size of the crop <code class="docutils literal notranslate"><span class="pre">(width_new,</span> <span class="pre">height_new)</span></code>. If <code class="docutils literal notranslate"><span class="pre">int</span></code>, then a square crop will be made.</p></li>
+<li><p><strong>scale</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em>) – Range of size of the origin size cropped. If None, then default Imagenet values are used – <code class="docutils literal notranslate"><span class="pre">(0.08,</span> <span class="pre">1.0)</span></code>.</p></li>
+<li><p><strong>ratio</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em>) – Range of the aspect ratio. If None, then default Imagenet values are used – <code class="docutils literal notranslate"><span class="pre">(3</span> <span class="pre">/</span> <span class="pre">4.,</span> <span class="pre">4</span> <span class="pre">/</span> <span class="pre">3.)</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.RandomResizedCrop.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'random_resized_crop'</span></span><a class="headerlink" href="#solt.transforms.RandomResizedCrop.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Resize">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Resize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resize_to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bilinear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_ar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_spatial.html#Resize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Resize" title="Link to this definition">¶</a></dt>
+<dd><p>Transformation, which resizes the input to a given size</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>resize_to</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>None</em>) – Target size <code class="docutils literal notranslate"><span class="pre">(width_new,</span> <span class="pre">height_new)</span></code>. If <code class="docutils literal notranslate"><span class="pre">int</span></code>, the output is square, unless <code class="docutils literal notranslate"><span class="pre">keep_ar</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>interpolation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – Interpolation type.</p></li>
+<li><p><strong>keep_ar</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Whether or not to keep the aspect ratio for non-squared images. Only used when <code class="docutils literal notranslate"><span class="pre">resize_to</span></code> is an <code class="docutils literal notranslate"><span class="pre">int</span></code>.</p></li>
+<li><p><strong>height_first</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Used only if <code class="docutils literal notranslate"><span class="pre">keep_ar</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> and <code class="docutils literal notranslate"><span class="pre">resize_to</span></code> is an <code class="docutils literal notranslate"><span class="pre">int</span></code>. If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the height is resized to
+<code class="docutils literal notranslate"><span class="pre">resize_to</span></code> and the width is computed from the original aspect ratio. If <code class="docutils literal notranslate"><span class="pre">False</span></code>, the width is resized
+to <code class="docutils literal notranslate"><span class="pre">resize_to</span></code> and the height is computed from the original aspect ratio.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">solt.constants.allowed_interpolations</span></code></p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="solt.transforms.Resize.resize_points">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">resize_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pts_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_spatial.html#Resize.resize_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Resize.resize_points" title="Link to this definition">¶</a></dt>
+<dd><p>Resizes the coordinates of points (<code class="docutils literal notranslate"><span class="pre">Nx2</span></code>, x and y). The points are the centres of pixels, so the same
+mapping as in <code class="docutils literal notranslate"><span class="pre">cv2.resize</span></code> keeps them aligned with the image.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Resize.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'resize'</span></span><a class="headerlink" href="#solt.transforms.Resize.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Rotate">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Rotate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bilinear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_fast_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_matrix.html#Rotate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Rotate" title="Link to this definition">¶</a></dt>
+<dd><p>Random rotation around the center clockwise</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>angle_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em>) – Range of rotation.
+If float, then (-angle_range, angle_range) will be used for transformation sampling.
+if None, then angle_range=(0,0).</p></li>
+<li><p><strong>interpolation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Interpolation type. Check the allowed interpolation types.</p></li>
+<li><p><strong>padding</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Padding mode. Check the allowed padding modes.</p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of using this transform</p></li>
+<li><p><strong>ignore_state</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Whether to ignore the state. See details in the docs for <cite>MatrixTransform</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="solt.transforms.Rotate.sample_transform_matrix">
+<span class="sig-name descname"><span class="pre">sample_transform_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_matrix.html#Rotate.sample_transform_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Rotate.sample_transform_matrix" title="Link to this definition">¶</a></dt>
+<dd><p>Samples random rotation within specified range and saves it as an object state.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Rotate.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'rotate'</span></span><a class="headerlink" href="#solt.transforms.Rotate.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Rotate90">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Rotate90</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_fast_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_matrix.html#Rotate90"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Rotate90" title="Link to this definition">¶</a></dt>
+<dd><p>Random rotation around the center by 90 degrees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a>) – How many times to rotate the data. If positive, indicates the clockwise direction.
+Zero by default.</p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of using this transform</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="solt.transforms.Rotate90.fuse_with">
+<span class="sig-name descname"><span class="pre">fuse_with</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_matrix.html#Rotate90.fuse_with"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Rotate90.fuse_with" title="Link to this definition">¶</a></dt>
+<dd><p>Takes a transform an performs a matrix fusion. This is useful to optimize the computations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>trf</strong> (<a class="reference internal" href="core.html#solt.core.MatrixTransform" title="solt.core.MatrixTransform"><em>MatrixTransform</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Rotate90.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'rotate_90'</span></span><a class="headerlink" href="#solt.transforms.Rotate90.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.SaltAndPepper">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">SaltAndPepper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">salt_p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_noise.html#SaltAndPepper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.SaltAndPepper" title="Link to this definition">¶</a></dt>
+<dd><p>Adds salt and pepper noise to an image. Other types of data than the image are ignored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of applying this transform,</p></li>
+<li><p><strong>gain_range</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em>) – Gain of the noise. Indicates percentage of indices, which will be changed.
+If float, then <code class="docutils literal notranslate"><span class="pre">gain_range</span> <span class="pre">=</span> <span class="pre">(0,</span> <span class="pre">gain_range)</span></code>.</p></li>
+<li><p><strong>salt_p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Percentage of salt. Percentage of pepper is <code class="docutils literal notranslate"><span class="pre">1-salt_p</span></code>. If tuple, then <code class="docutils literal notranslate"><span class="pre">salt_p</span></code> is chosen
+uniformly from the given range.</p></li>
+<li><p><strong>data_indices</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Indices of the images within the data container to which this transform needs to be applied.
+Every element within the tuple must be integer numbers.
+If None, then the transform will be applied to all the images withing the DataContainer.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.SaltAndPepper.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'salt_and_pepper'</span></span><a class="headerlink" href="#solt.transforms.SaltAndPepper.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Scale">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">range_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">range_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">same</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bilinear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_fast_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_matrix.html#Scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Scale" title="Link to this definition">¶</a></dt>
+<dd><p>Random scale transform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>range_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em>) – Scaling range along X-axis.
+If float, then (min(1, range_x), max(1, range_x)) will be used.
+If None, then range_x =(1,1) by default.</p></li>
+<li><p><strong>range_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Scaling range along Y-axis.
+If float, then (min(1, range_y), max(1, range_y)) will be used.
+If None, then range_y=(1,1) by default.</p></li>
+<li><p><strong>same</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Indicates whether to use the same scaling factor for width and height.</p></li>
+<li><p><strong>interpolation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Interpolation type. Check the allowed interpolation types.
+one indicates default behavior - the <code class="docutils literal notranslate"><span class="pre">bilinear</span></code> mode.</p></li>
+<li><p><strong>padding</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – <code class="docutils literal notranslate"><span class="pre">z</span></code> (zero pad) or <code class="docutils literal notranslate"><span class="pre">r</span></code> - reflective pad.</p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of using this transform</p></li>
+<li><p><strong>ignore_state</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Whether to ignore the state. See details in the docs for <cite>MatrixTransform</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="solt.transforms.Scale.sample_transform_matrix">
+<span class="sig-name descname"><span class="pre">sample_transform_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_matrix.html#Scale.sample_transform_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Scale.sample_transform_matrix" title="Link to this definition">¶</a></dt>
+<dd><p>Method that is called to sample the transform matrix</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Scale.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'scale'</span></span><a class="headerlink" href="#solt.transforms.Scale.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Shear">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Shear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">range_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">range_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bilinear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_fast_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_matrix.html#Shear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Shear" title="Link to this definition">¶</a></dt>
+<dd><p>Random shear around the center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>range_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em>) – Shearing range along X-axis.
+If float, then (-range_x, range_x) will be used.
+If None, then range_x=(0, 0)</p></li>
+<li><p><strong>range_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a><em> or </em><em>None</em>) – Shearing range along Y-axis. If float, then (-range_y, range_y) will be used.
+If None, then range_y=(0, 0)</p></li>
+<li><p><strong>interpolation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><em>None</em>) – Interpolation type. Check the allowed interpolation types.</p></li>
+<li><p><strong>padding</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – Padding mode. Check the allowed padding modes.</p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – Probability of using this transform</p></li>
+<li><p><strong>ignore_state</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><em>bool</em></a>) – Whether to ignore the state. See details in the docs for <cite>MatrixTransform</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="solt.transforms.Shear.sample_transform_matrix">
+<span class="sig-name descname"><span class="pre">sample_transform_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_matrix.html#Shear.sample_transform_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Shear.sample_transform_matrix" title="Link to this definition">¶</a></dt>
+<dd><p>Method that is called to sample the transform matrix</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Shear.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'shear'</span></span><a class="headerlink" href="#solt.transforms.Shear.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="solt.transforms.Translate">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">solt.transforms.</span></span><span class="sig-name descname"><span class="pre">Translate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">range_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">range_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bilinear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_fast_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_matrix.html#Translate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Translate" title="Link to this definition">¶</a></dt>
+<dd><p>Random Translate transform..</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>range_x</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>None</em>) – Translation range along the horizontal axis. If int, then range_x=(-range_x, range_x).
+If None, then range_x=(0,0).</p></li>
+<li><p><strong>range_y</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><em>tuple</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><em>int</em></a><em> or </em><em>None</em>) – Translation range along the vertical axis. If int, then range_y=(-range_y, range_y).
+If None, then range_y=(0,0).</p></li>
+<li><p><strong>interpolation</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – Interpolation type. See allowed_interpolations in constants.</p></li>
+<li><p><strong>padding</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – Padding mode. See allowed_paddings  in constants</p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><em>float</em></a>) – probability of applying this transform.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="solt.transforms.Translate.sample_transform_matrix">
+<span class="sig-name descname"><span class="pre">sample_transform_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/solt/transforms/_matrix.html#Translate.sample_transform_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#solt.transforms.Translate.sample_transform_matrix" title="Link to this definition">¶</a></dt>
+<dd><p>Method that is called to sample the transform matrix</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="solt.transforms.Translate.serializable_name">
+<span class="sig-name descname"><span class="pre">serializable_name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'translate'</span></span><a class="headerlink" href="#solt.transforms.Translate.serializable_name" title="Link to this definition">¶</a></dt>
+<dd><p>How the class should be stored in the registry</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="constants.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">solt.constants</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="core.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">solt.core</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2018-2026, Aleksei Tiulpin &amp; SOLT contributors
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">solt.transforms</a><ul>
+<li><a class="reference internal" href="#solt.transforms.Blur"><code class="docutils literal notranslate"><span class="pre">Blur</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Blur.serializable_name"><code class="docutils literal notranslate"><span class="pre">Blur.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Brightness"><code class="docutils literal notranslate"><span class="pre">Brightness</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Brightness.parse_brightness"><code class="docutils literal notranslate"><span class="pre">Brightness.parse_brightness()</span></code></a></li>
+<li><a class="reference internal" href="#solt.transforms.Brightness.serializable_name"><code class="docutils literal notranslate"><span class="pre">Brightness.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.BrightnessContrast"><code class="docutils literal notranslate"><span class="pre">BrightnessContrast</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.BrightnessContrast.serializable_name"><code class="docutils literal notranslate"><span class="pre">BrightnessContrast.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Contrast"><code class="docutils literal notranslate"><span class="pre">Contrast</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Contrast.parse_contrast_range"><code class="docutils literal notranslate"><span class="pre">Contrast.parse_contrast_range()</span></code></a></li>
+<li><a class="reference internal" href="#solt.transforms.Contrast.serializable_name"><code class="docutils literal notranslate"><span class="pre">Contrast.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Crop"><code class="docutils literal notranslate"><span class="pre">Crop</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Crop.serializable_name"><code class="docutils literal notranslate"><span class="pre">Crop.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.CutOut"><code class="docutils literal notranslate"><span class="pre">CutOut</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.CutOut.serializable_name"><code class="docutils literal notranslate"><span class="pre">CutOut.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.CvtColor"><code class="docutils literal notranslate"><span class="pre">CvtColor</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.CvtColor.serializable_name"><code class="docutils literal notranslate"><span class="pre">CvtColor.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Flip"><code class="docutils literal notranslate"><span class="pre">Flip</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Flip.serializable_name"><code class="docutils literal notranslate"><span class="pre">Flip.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.GammaCorrection"><code class="docutils literal notranslate"><span class="pre">GammaCorrection</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.GammaCorrection.serializable_name"><code class="docutils literal notranslate"><span class="pre">GammaCorrection.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.GridMask"><code class="docutils literal notranslate"><span class="pre">GridMask</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.GridMask.serializable_name"><code class="docutils literal notranslate"><span class="pre">GridMask.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.HSV"><code class="docutils literal notranslate"><span class="pre">HSV</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.HSV.serializable_name"><code class="docutils literal notranslate"><span class="pre">HSV.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.IntensityRemap"><code class="docutils literal notranslate"><span class="pre">IntensityRemap</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.IntensityRemap.serializable_name"><code class="docutils literal notranslate"><span class="pre">IntensityRemap.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.JPEGCompression"><code class="docutils literal notranslate"><span class="pre">JPEGCompression</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.JPEGCompression.serializable_name"><code class="docutils literal notranslate"><span class="pre">JPEGCompression.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.KeypointsJitter"><code class="docutils literal notranslate"><span class="pre">KeypointsJitter</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.KeypointsJitter.serializable_name"><code class="docutils literal notranslate"><span class="pre">KeypointsJitter.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Noise"><code class="docutils literal notranslate"><span class="pre">Noise</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Noise.serializable_name"><code class="docutils literal notranslate"><span class="pre">Noise.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Pad"><code class="docutils literal notranslate"><span class="pre">Pad</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Pad.serializable_name"><code class="docutils literal notranslate"><span class="pre">Pad.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Projection"><code class="docutils literal notranslate"><span class="pre">Projection</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Projection.sample_transform_matrix"><code class="docutils literal notranslate"><span class="pre">Projection.sample_transform_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#solt.transforms.Projection.serializable_name"><code class="docutils literal notranslate"><span class="pre">Projection.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.RandomResizedCrop"><code class="docutils literal notranslate"><span class="pre">RandomResizedCrop</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.RandomResizedCrop.serializable_name"><code class="docutils literal notranslate"><span class="pre">RandomResizedCrop.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Resize"><code class="docutils literal notranslate"><span class="pre">Resize</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Resize.resize_points"><code class="docutils literal notranslate"><span class="pre">Resize.resize_points()</span></code></a></li>
+<li><a class="reference internal" href="#solt.transforms.Resize.serializable_name"><code class="docutils literal notranslate"><span class="pre">Resize.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Rotate"><code class="docutils literal notranslate"><span class="pre">Rotate</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Rotate.sample_transform_matrix"><code class="docutils literal notranslate"><span class="pre">Rotate.sample_transform_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#solt.transforms.Rotate.serializable_name"><code class="docutils literal notranslate"><span class="pre">Rotate.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Rotate90"><code class="docutils literal notranslate"><span class="pre">Rotate90</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Rotate90.fuse_with"><code class="docutils literal notranslate"><span class="pre">Rotate90.fuse_with()</span></code></a></li>
+<li><a class="reference internal" href="#solt.transforms.Rotate90.serializable_name"><code class="docutils literal notranslate"><span class="pre">Rotate90.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.SaltAndPepper"><code class="docutils literal notranslate"><span class="pre">SaltAndPepper</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.SaltAndPepper.serializable_name"><code class="docutils literal notranslate"><span class="pre">SaltAndPepper.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Scale"><code class="docutils literal notranslate"><span class="pre">Scale</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Scale.sample_transform_matrix"><code class="docutils literal notranslate"><span class="pre">Scale.sample_transform_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#solt.transforms.Scale.serializable_name"><code class="docutils literal notranslate"><span class="pre">Scale.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Shear"><code class="docutils literal notranslate"><span class="pre">Shear</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Shear.sample_transform_matrix"><code class="docutils literal notranslate"><span class="pre">Shear.sample_transform_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#solt.transforms.Shear.serializable_name"><code class="docutils literal notranslate"><span class="pre">Shear.serializable_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solt.transforms.Translate"><code class="docutils literal notranslate"><span class="pre">Translate</span></code></a><ul>
+<li><a class="reference internal" href="#solt.transforms.Translate.sample_transform_matrix"><code class="docutils literal notranslate"><span class="pre">Translate.sample_transform_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#solt.transforms.Translate.serializable_name"><code class="docutils literal notranslate"><span class="pre">Translate.serializable_name</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=fbb87d90"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>
