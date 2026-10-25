@@ -18,6 +18,8 @@ __all__ = [
     "mask_3x4",
     "mask_5x5",
     "mask_6x6",
+    "img_16x16_rgb",
+    "stream_interpolation",
 ]
 
 
@@ -241,3 +243,13 @@ def img_6x6_lc():
     img[0, :] = 0
     img[-1, :] = 0
     return np.dstack((img, img, img)).astype(np.uint8) * 127
+
+
+@pytest.fixture
+def img_16x16_rgb():
+    return np.random.RandomState(42).randint(0, 256, size=(16, 16, 3)).astype(np.uint8)
+
+
+@pytest.fixture(params=["nearest", "bilinear", "bicubic"])
+def stream_interpolation(request):
+    return request.param
