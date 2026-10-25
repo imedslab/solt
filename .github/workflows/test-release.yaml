@@ -32,7 +32,7 @@ jobs:
         run: uv sync --locked
 
       - name: Run tests
-        run: uv run pytest tests --cov solt --cov-report=xml --junitxml=./junit.xml
+        run: uv run pytest tests --cov solt --cov-report=xml --cov-report=term-missing --junitxml=./junit.xml
 
       - name: Check code formatting
         run: uv run black --config=black.toml --check .
@@ -40,11 +40,22 @@ jobs:
       - name: Run flake8 linter
         run: uv run flake8
 
-      - name: Upload test results to Codecov
+      - name: Upload coverage to Codecov
         if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
+        uses: codecov/codecov-action@v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          disable_search: true
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v7.1.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./junit.xml
+          disable_search: true
+          report_type: test_results
 
   build-and-publish:
     name: Build and Publish to TestPyPI
