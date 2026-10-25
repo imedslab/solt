@@ -437,40 +437,6 @@ def test_pad_crop_resize_dont_change_data_when_parameters_are_not_set(img_3x3, m
     assert dc == res
 
 
-def _verify_resize_img_to_arbitrary_size(img, mask, resize_to):
-    # Setting up the data
-    kpts_data = np.array([[0, 0], [0, 2], [2, 2], [2, 0]]).reshape((4, 2))  # Top left corner
-    kpts = slc.Keypoints(kpts_data.copy(), img.shape[0], img.shape[1])
-
-    dc = slc.DataContainer(
-        (
-            img,
-            mask,
-            kpts,
-        ),
-        "IMP",
-    )
-    transf = slt.Resize(resize_to=resize_to)
-    res = transf(dc).data
-
-    if isinstance(resize_to, int):
-        resize_to = (resize_to, resize_to)
-
-    scale_x = resize_to[0] / img.shape[1]
-    scale_y = resize_to[1] / img.shape[0]
-
-    assert transf.resize_to == resize_to
-    assert (res[0].shape[0] == resize_to[1]) and (res[0].shape[1] == resize_to[0])
-    assert (res[1].shape[0] == resize_to[1]) and (res[1].shape[1] == resize_to[0])
-    assert (res[2].height == resize_to[1]) and (res[2].width == resize_to[0])
-
-    # Keypoints are the centres of pixels, as in the resized image
-    kpts_data = kpts_data.astype(float)
-    kpts_data[:, 0] = (kpts_data[:, 0] + 0.5) * scale_x - 0.5
-    kpts_data[:, 1] = (kpts_data[:, 1] + 0.5) * scale_y - 0.5
-    np.testing.assert_allclose(res[2].data, kpts_data)
-
-
 @pytest.mark.parametrize(
     "img, mask, resize_to",
     [
