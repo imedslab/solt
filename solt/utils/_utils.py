@@ -114,17 +114,22 @@ def from_dict(transforms):
 
     if not isinstance(transforms, dict):
         raise TypeError("Transforms must be a dict!")
-    for t in transforms:
-        if "transforms" in transforms[t]:
-            transforms[t]["transforms"] = [from_dict(x) for x in transforms[t]["transforms"]]
-        if "affine_transforms" in transforms[t]:
-            transforms[t]["affine_transforms"] = from_dict(transforms[t]["affine_transforms"])
-        if t in Serializable.registry:
-            cls = Serializable.registry[t]
-        else:
-            raise ValueError(f"Could not find {t} in the registry!")
+    if len(transforms) != 1:
+        raise ValueError(f"A serialized transform must be a dict with one key, got {list(transforms)}")
+    ((t, kwargs),) = transforms.items()
 
-        return cls(**transforms[t])
+    # The arguments are collected in a new dict, so that the given one stays unchanged and can be loaded again
+    kwargs = dict(kwargs)
+    if "transforms" in kwargs:
+        kwargs["transforms"] = [from_dict(x) for x in kwargs["transforms"]]
+    if "affine_transforms" in kwargs:
+        kwargs["affine_transforms"] = from_dict(kwargs["affine_transforms"])
+    if t in Serializable.registry:
+        cls = Serializable.registry[t]
+    else:
+        raise ValueError(f"Could not find {t} in the registry!")
+
+    return cls(**kwargs)
 
 
 def from_json(s):

@@ -1,3 +1,4 @@
+import copy
 import math
 
 import numpy as np
@@ -464,3 +465,66 @@ def transform_with_mode(request):
 def test_transforms_reject_unknown_modes_on_creation(transform_with_mode, mode):
     with pytest.raises((ValueError, TypeError)):
         transform_with_mode(mode)
+
+
+_NESTED_CONFIGS = {
+    "flat": {"stream": {"transforms": [{"flip": {"axis": 1}}, {"rotate": {"angle_range": [-10, 10]}}]}},
+    "nested_stream": {"stream": {"transforms": [{"stream": {"transforms": [{"flip": {"axis": 0}}]}}]}},
+    "projection": {
+        "stream": {
+            "transforms": [
+                {
+                    "projection": {
+                        "affine_transforms": {"stream": {"transforms": [{"rotate": {"angle_range": [-10, 10]}}]}}
+                    }
+                }
+            ]
+        }
+    },
+    "selective": {"selective_stream": {"n": 1, "transforms": [{"flip": {"axis": 1}}, {"flip": {"axis": 0}}]}},
+    "without_transforms": {"stream": {"interpolation": "nearest"}},
+    "empty_selective": {"selective_stream": {"n": 0}},
+}
+
+
+@pytest.fixture(params=list(_NESTED_CONFIGS), ids=list(_NESTED_CONFIGS))
+def nested_config(request):
+    return _NESTED_CONFIGS[request.param]
+
+
+def test_from_dict_does_not_modify_its_input(nested_config):
+    original = copy.deepcopy(nested_config)
+    first = slu.from_dict(nested_config)
+    assert nested_config == original
+    # The same config can be loaded again
+    assert slu.from_dict(nested_config).to_dict() == first.to_dict()
+
+
+def test_from_dict_without_transforms():
+    stream = slu.from_dict({"stream": {"interpolation": "nearest"}})
+    assert isinstance(stream, slc.Stream)
+    assert stream.transforms == []
+    assert stream.interpolation == "nearest"
+
+
+def test_selective_stream_without_transforms_keeps_the_data():
+    img = np.full((4, 4, 1), 7, dtype=np.uint8)
+    stream = slu.from_dict({"selective_stream": {"n": 0}})
+    assert isinstance(stream, slc.SelectiveStream)
+    res = stream({"image": img}, return_torch=False).data[0]
+    np.testing.assert_array_equal(res, img)
+
+
+@pytest.mark.parametrize(
+    "config",
+    [
+        {},
+        {"flip": {"axis": 1}, "rotate": {"angle_range": [1, 2]}},
+        {"stream": {"transforms": [{}]}},
+        {"stream": {"transforms": [{"flip": {"axis": 1}, "rotate": {"angle_range": [1, 2]}}]}},
+    ],
+    ids=["empty", "two_transforms", "empty_item", "item_with_two_transforms"],
+)
+def test_from_dict_requires_exactly_one_transform_per_dict(config):
+    with pytest.raises(ValueError):
+        slu.from_dict(config)
