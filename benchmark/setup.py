@@ -34,7 +34,7 @@ setup(
     name="augbench",
     packages=find_packages(include=["augbench"]),
     setup_requires=(),
-    url="https://github.com/mipt-oulu/solt/benchmark",
+    url="https://github.com/imedslab/solt",
     version="0.1.9",
     zip_safe=False,
 )

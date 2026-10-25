@@ -1,6 +1,6 @@
 ## Papers that use SOLT
 The aim of building SOLT was to create a tool for reproducible research. 
-At MIPT-Oulu, we use SOLT in our projects:
+At IMEDS, we use SOLT in our projects:
 
 1. Nguyen, H. H., Saarakkala, S., Blaschko, M. B., & Tiulpin, A. (2020). Semixup: In- and out-of-manifold regularization for deep semi-supervised knee osteoarthritis severity grading from plain radiographs. *IEEE Transactions on Medical Imaging*, 39(12), 4346–4356. https://doi.org/10.1109/TMI.2020.3017007. [arXiv preprint](https://arxiv.org/abs/2003.01944).
 2. Tiulpin, A., Finnilä, M., Lehenkari, P., Nieminen, H. J., & Saarakkala, S. (2020). Deep-learning for tidemark segmentation in human osteochondral tissues imaged with micro-computed tomography. In J. Blanc-Talon, P. Delmas, W. Philips, D. Popescu, & P. Scheunders (Eds.), *Advanced concepts for intelligent vision systems* (Lecture Notes in Computer Science, Vol. 12002, pp. 131–138). Springer. https://doi.org/10.1007/978-3-030-40605-9_12. [arXiv preprint](https://arxiv.org/abs/1907.05089).
