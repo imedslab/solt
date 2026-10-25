@@ -2,8 +2,8 @@
 The aim of building SOLT was to create a tool for reproducible research. 
 At MIPT-Oulu, we use SOLT in our projects:
 
-1. https://arxiv.org/abs/1907.05089
-2. https://arxiv.org/abs/1904.06236
-3. https://arxiv.org/abs/1907.08020
-4. https://arxiv.org/abs/1907.12237
-5. https://arxiv.org/abs/2003.01944
+1. Nguyen, H. H., Saarakkala, S., Blaschko, M. B., & Tiulpin, A. (2020). Semixup: In- and out-of-manifold regularization for deep semi-supervised knee osteoarthritis severity grading from plain radiographs. *IEEE Transactions on Medical Imaging*, 39(12), 4346–4356. https://doi.org/10.1109/TMI.2020.3017007. [arXiv preprint](https://arxiv.org/abs/2003.01944).
+2. Tiulpin, A., Finnilä, M., Lehenkari, P., Nieminen, H. J., & Saarakkala, S. (2020). Deep-learning for tidemark segmentation in human osteochondral tissues imaged with micro-computed tomography. In J. Blanc-Talon, P. Delmas, W. Philips, D. Popescu, & P. Scheunders (Eds.), *Advanced concepts for intelligent vision systems* (Lecture Notes in Computer Science, Vol. 12002, pp. 131–138). Springer. https://doi.org/10.1007/978-3-030-40605-9_12. [arXiv preprint](https://arxiv.org/abs/1907.05089).
+3. Tiulpin, A., Klein, S., Bierma-Zeinstra, S. M. A., Thevenot, J., Rahtu, E., van Meurs, J., Oei, E. H. G., & Saarakkala, S. (2019). Multimodal machine learning-based knee osteoarthritis progression prediction from plain radiographs and clinical data. *Scientific Reports*, 9, Article 20038. https://doi.org/10.1038/s41598-019-56527-3. [arXiv preprint](https://arxiv.org/abs/1904.06236).
+4. Tiulpin, A., Melekhov, I., & Saarakkala, S. (2019). KNEEL: Knee anatomical landmark localization using hourglass networks. In *2019 IEEE/CVF International Conference on Computer Vision Workshop (ICCVW)* (pp. 352–361). IEEE. https://doi.org/10.1109/ICCVW.2019.00046. [arXiv preprint](https://arxiv.org/abs/1907.12237).
+5. Tiulpin, A., & Saarakkala, S. (2020). Automatic grading of individual knee osteoarthritis features in plain radiographs using deep convolutional neural networks. *Diagnostics*, 10(11), Article 932. https://doi.org/10.3390/diagnostics10110932. [arXiv preprint](https://arxiv.org/abs/1907.08020).
