@@ -1,8 +1,15 @@
+"""Container of the data, which is augmented together."""
+
+import copy
+import numbers
+
 import numpy as np
 import torch
 
 from solt.constants import ALLOWED_INTERPOLATIONS, ALLOWED_PADDINGS, ALLOWED_TYPES
 from solt.utils import validate_parameter
+
+from ._annotations import BoundingBoxes, Keypoints
 
 
 class DataContainer(object):
@@ -28,13 +35,23 @@ class DataContainer(object):
     data : tuple
         Data items stored in a tuple
     fmt : str
-        Data format. Example: 'IMMM' - image and three masks.
+        Data format. Example: 'IMMM' - image and three masks. See ``solt.constants.ALLOWED_TYPES``.
     transform_settings : dict or None
-        Settings for each data item. At this stage, the settings include only padding and interpolation.
+        Settings for each data item. At this stage, the settings include padding and interpolation, and for
+        distance maps also the fill value.
         The key in this dict corresponds to the index of the element in the given data tuple.
         The value is another dict, which has all the settings. Segmentation masks have nearest neighbor interpolation
         by default, this can be changed manually if needed.
         Example: ``transform_settings={0:{'interpolation':'bilinear'}, 1: {'interpolation':'bicubic'}}``
+
+        Bounding boxes (``'B'``) are clipped to the image, when a container is created, i.e. after every transform.
+
+        Distance maps (``'D'``), e.g. signed distance fields, are floating point arrays ``HxW`` or ``HxWxC``.
+        They have bilinear interpolation by default, and their values are rescaled when a transform changes the
+        scale of the image (the rescaling is exact for similarity transforms and approximate otherwise).
+        The zero padding would create a false object boundary, so a distance map is padded with its ``fill``
+        value instead, if it is set, and with its edge values otherwise.
+        Example: ``transform_settings={1: {'fill': 100.0}}``
 
     """
 
@@ -54,50 +71,46 @@ class DataContainer(object):
         if transform_settings is not None:
             if not isinstance(transform_settings, dict):
                 raise TypeError
+            if not set(transform_settings).issubset(range(len(data))):
+                raise ValueError
         else:
             transform_settings = {}
 
-        # Element-wise settings
-        # If no settings provided for certain items, they will be created
+        # Element-wise settings. They are parsed into a new dict, so that the caller's dict stays untouched
+        # and can be re-used. If no settings provided for certain items, they will be created
+        parsed_settings = {}
         for idx in range(len(data)):
-            if idx not in transform_settings:
-                transform_settings[idx] = {}
+            item_settings = transform_settings.get(idx, {})
+            if not isinstance(item_settings, dict):
+                raise TypeError
+            item_settings = dict(item_settings)
 
-            if fmt[idx] == "I" or fmt[idx] == "M":
-                val = ("nearest", "strict") if fmt[idx] == "M" else None
-                if "interpolation" not in transform_settings[idx]:
-                    transform_settings[idx]["interpolation"] = validate_parameter(
-                        val, ALLOWED_INTERPOLATIONS, "bilinear", str, True
-                    )
-                else:
-                    transform_settings[idx]["interpolation"] = validate_parameter(
-                        (transform_settings[idx]["interpolation"], "strict"),
-                        ALLOWED_INTERPOLATIONS,
-                        "bilinear",
-                        str,
-                        True,
-                    )
-
-                if "padding" not in transform_settings[idx]:
-                    transform_settings[idx]["padding"] = validate_parameter(None, ALLOWED_PADDINGS, "z", str, True)
-                else:
-                    transform_settings[idx]["padding"] = validate_parameter(
-                        (transform_settings[idx]["padding"], "strict"),
-                        ALLOWED_PADDINGS,
-                        "z",
-                        str,
-                        True,
-                    )
+            if fmt[idx] in ("I", "M", "D"):
+                val = {"I": None, "M": ("nearest", "strict"), "D": ("bilinear", "strict")}[fmt[idx]]
+                item_settings["interpolation"] = self._parse_item_setting(
+                    item_settings, "interpolation", ALLOWED_INTERPOLATIONS, "bilinear", val
+                )
+                item_settings["padding"] = self._parse_item_setting(item_settings, "padding", ALLOWED_PADDINGS, "z")
             else:
-                if "interpolation" in transform_settings[idx] or "padding" in transform_settings[idx]:
+                if "interpolation" in item_settings or "padding" in item_settings:
                     raise TypeError
 
-        if len(data) != len(transform_settings):
-            raise ValueError
+            if fmt[idx] == "D":
+                item_settings["fill"] = self._parse_fill(item_settings)
+            elif "fill" in item_settings:
+                raise TypeError("Fill value can only be set for distance maps!")
+
+            parsed_settings[idx] = item_settings
+        transform_settings = parsed_settings
 
         for t in fmt:
             if t not in ALLOWED_TYPES:
                 raise TypeError
+
+        # The content outside of the image is lost, so the bounding boxes are clipped to it after every transform
+        data = tuple(
+            item.clipped() if t == "B" and isinstance(item, BoundingBoxes) else item for item, t in zip(data, fmt)
+        )
 
         self.__data = data
         self.__fmt = fmt
@@ -108,16 +121,56 @@ class DataContainer(object):
 
         self.validate()
 
+    @staticmethod
+    def _parse_item_setting(item_settings, name, allowed_modes, default_value, value_if_missing=None):
+        """
+        Parses a single item-wise setting, e.g. interpolation.
+
+        A plain value (e.g. ``'bilinear'``) is set by the user for this very item, so it becomes strict.
+        An already parsed value (e.g. ``('bilinear', 'inherit')``), which comes from another ``DataContainer``,
+        is kept as is.
+        """
+        if name not in item_settings:
+            return validate_parameter(value_if_missing, allowed_modes, default_value, str, True)
+
+        value = item_settings[name]
+        if not isinstance(value, (tuple, list)):
+            value = (value, "strict")
+        return validate_parameter(value, allowed_modes, default_value, str, True)
+
+    @staticmethod
+    def _parse_fill(item_settings):
+        """
+        Parses the fill value of a distance map. ``None`` (default) means that the edge values are used for padding.
+        """
+        fill = item_settings.get("fill")
+        if fill is None:
+            return None
+        if not isinstance(fill, numbers.Real) or isinstance(fill, (bool, np.bool_)):
+            raise TypeError("Fill value must be a number!")
+        if not np.isfinite(fill):
+            raise ValueError("Fill value must be finite!")
+        return fill
+
     def validate(self):
         prev_h = None
         prev_w = None
         # Let's make sure that all the objects have the same coordinate frame
         data = self
         for obj, t, settings in data:
-            if t == "M" or t == "I":
+            if t == "D":
+                if not isinstance(obj, np.ndarray) or not np.issubdtype(obj.dtype, np.floating):
+                    raise TypeError("Distance maps must be floating point numpy arrays!")
+                if obj.ndim not in (2, 3):
+                    raise ValueError("Distance maps must be HxW or HxWxC arrays!")
+
+            if t == "B" and not isinstance(obj, BoundingBoxes):
+                raise TypeError("Bounding boxes must be stored in a BoundingBoxes object!")
+
+            if t in ("M", "I", "D"):
                 h = obj.shape[0]
                 w = obj.shape[1]
-            elif t == "P":
+            elif t == "P" or t == "B":
                 h = obj.height
                 w = obj.width
             elif t == "L":
@@ -136,6 +189,33 @@ class DataContainer(object):
                     raise ValueError("Coordinate frames within DataContainer do not match (width)!")
 
         return prev_h, prev_w
+
+    def copy(self):
+        """
+        Returns a copy of the container, in which all the arrays are copied as well. Transforms may modify the
+        arrays in place, so a copy keeps the original data unchanged.
+
+        Returns
+        -------
+        out : DataContainer
+            Copy of the container
+
+        """
+        data = []
+        for item, t, _ in self:
+            if t in ("I", "M", "D"):
+                data.append(item.copy())
+            elif t == "P":
+                data.append(Keypoints(item.data.copy(), item.height, item.width))
+            elif t == "B":
+                labels = None if item.labels is None else item.labels.copy()
+                unclipped = None if item.unclipped is item.data else item.unclipped.copy()
+                data.append(
+                    BoundingBoxes(item.data.copy(), item.height, item.width, labels=labels, unclipped=unclipped)
+                )
+            else:
+                data.append(copy.copy(item))
+        return DataContainer(tuple(data), self.data_format, self.transform_settings)
 
     @property
     def data_format(self):
@@ -157,12 +237,15 @@ class DataContainer(object):
         If data is a dict, then the ``solt.data.DataContainer`` will be created so that the
         ``image`` data will be stored first. Subsequently, multiple images under the key ``images``
         will be stored. The same applies to masks (first ``mask`` and then ``masks``),
-        labels (``label`` and ``labels``), and the keypoints (``keypoints`` and ``keypoints_array``).
+        distance maps (``distance_map`` and ``distance_maps``), labels (``label`` and ``labels``),
+        the keypoints (``keypoints`` and ``keypoints_array``) and the bounding boxes (``bboxes`` and
+        ``bboxes_array``). The bounding boxes must be stored in ``solt.core.BoundingBoxes`` objects.
         You must use ``solt.data.KeyPoints`` object here. Labels will always be stored last.
 
         For example, if the input ``dict`` looks like this: ``d = {'label': l1, 'image': i1, 'mask': m1}`` or
         ``d = {'mask': m1, 'image': i1, 'label': l1}``, the ``DataContainer`` will convert this
-        into ``sld.DataContainer((i1, m1, l1), 'IML')``.
+        into ``sld.DataContainer((i1, m1, l1), 'IML')``. The order of the types is images, masks, distance maps,
+        keypoints, bounding boxes and labels.
 
         More complex case:
 
@@ -209,12 +292,24 @@ class DataContainer(object):
         if "masks" in data:
             dc_content.extend(data["masks"])
             dc_format.extend("M" * len(data["masks"]))
+        if "distance_map" in data:
+            dc_content.append(data["distance_map"])
+            dc_format.append("D")
+        if "distance_maps" in data:
+            dc_content.extend(data["distance_maps"])
+            dc_format.extend("D" * len(data["distance_maps"]))
         if "keypoints" in data:
             dc_content.append(data["keypoints"])
             dc_format.append("P")
         if "keypoints_array" in data:
             dc_content.extend(data["keypoints_array"])
             dc_format.extend("P" * len(data["keypoints_array"]))
+        if "bboxes" in data:
+            dc_content.append(data["bboxes"])
+            dc_format.append("B")
+        if "bboxes_array" in data:
+            dc_content.extend(data["bboxes_array"])
+            dc_format.extend("B" * len(data["bboxes_array"]))
         if "label" in data:
             dc_content.append(data["label"])
             dc_format.append("L")
@@ -260,7 +355,10 @@ class DataContainer(object):
         as_dict : bool
             Whether to return the result as a dictionary. If a single item is present, then the singular naming
             will be used. If plural, then the plural will be used. The items will be stored and
-            sorted a similar manner to the method ``from_dict``: images, masks, keypoints_array, and labels.
+            sorted a similar manner to the method ``from_dict``: images, masks, distance maps, keypoints_array,
+            bounding boxes and labels. Bounding boxes become dicts with ``boxes`` (``Nx4`` ``float32`` tensor in the
+            VOC format, in pixels) and ``labels`` (``int64`` tensor for integer labels), the target format of the
+            detection models of torchvision.
             The same applies to a singular case/
         scale_keypoints : bool
             Whether to scale keypoints to 0-1 range. ``True`` by default.
@@ -274,7 +372,9 @@ class DataContainer(object):
         res_dict = {
             "images": list(),
             "masks": list(),
+            "distance_maps": list(),
             "keypoints_array": list(),
+            "bboxes_array": list(),
             "labels": list(),
         }
         not_as_dict = []
@@ -284,6 +384,9 @@ class DataContainer(object):
                 if el.dtype == np.uint16:
                     scale = 65535.0
                     el = el.astype(np.float32)
+                if el.ndim == 2:
+                    # HxW (grayscale) -> HxWx1
+                    el = el[:, :, np.newaxis]
                 img = torch.from_numpy(el.transpose((2, 0, 1))).div(scale)
                 if normalize:
                     if mean is None or std is None:
@@ -296,9 +399,11 @@ class DataContainer(object):
                 res_dict["images"].append(img)
                 not_as_dict.append(img)
 
-            elif f == "M":
-                mask = torch.from_numpy(el).squeeze().unsqueeze(0).float()
-                res_dict["masks"].append(mask)
+            elif f == "M" or f == "D":
+                # HxW -> 1xHxW, HxWxC -> CxHxW
+                el = el[np.newaxis] if el.ndim == 2 else el.transpose((2, 0, 1))
+                mask = torch.from_numpy(np.ascontiguousarray(el)).float()
+                res_dict["masks" if f == "M" else "distance_maps"].append(mask)
                 not_as_dict.append(mask)
             elif f == "P":
                 landmarks = torch.from_numpy(el.data).float()
@@ -307,6 +412,18 @@ class DataContainer(object):
                     landmarks[:, 1] /= el.height - 1
                 res_dict["keypoints_array"].append(landmarks)
                 not_as_dict.append(landmarks)
+            elif f == "B":
+                # The target format of the detection models of torchvision
+                target = {"boxes": torch.from_numpy(el.data.astype(np.float32))}
+                if el.labels is not None:
+                    if np.issubdtype(el.labels.dtype, np.integer) or np.issubdtype(el.labels.dtype, np.bool_):
+                        target["labels"] = torch.from_numpy(el.labels.astype(np.int64))
+                    elif np.issubdtype(el.labels.dtype, np.floating):
+                        target["labels"] = torch.from_numpy(el.labels)
+                    else:
+                        target["labels"] = el.labels.tolist()
+                res_dict["bboxes_array"].append(target)
+                not_as_dict.append(target)
             elif f == "L":
                 res_dict["labels"].append(el)
                 not_as_dict.append(el)
@@ -330,10 +447,20 @@ class DataContainer(object):
         elif len(res_dict["masks"]) > 1:
             res["masks"] = res_dict["masks"]
 
+        if len(res_dict["distance_maps"]) == 1:
+            res["distance_map"] = res_dict["distance_maps"][0]
+        elif len(res_dict["distance_maps"]) > 1:
+            res["distance_maps"] = res_dict["distance_maps"]
+
         if len(res_dict["keypoints_array"]) == 1:
             res["keypoints"] = res_dict["keypoints_array"][0]
         elif len(res_dict["keypoints_array"]) > 1:
             res["keypoints_array"] = res_dict["keypoints_array"]
+
+        if len(res_dict["bboxes_array"]) == 1:
+            res["bboxes"] = res_dict["bboxes_array"][0]
+        elif len(res_dict["bboxes_array"]) > 1:
+            res["bboxes_array"] = res_dict["bboxes_array"]
 
         if len(res_dict["labels"]) == 1:
             res["label"] = res_dict["labels"][0]
@@ -374,57 +501,3 @@ class DataContainer(object):
                 data_equal = data_equal and d1 == d2
 
         return fmt_equal and data_equal
-
-
-class Keypoints(object):
-    """
-    Keypoints class
-
-    Parameters
-    ----------
-    pts : numpy.ndarray
-        Key points as an numpy.ndarray in (x, y) format.
-    height : int
-        Height of the coordinate frame.
-    width : int
-        Width of the coordinate frame.
-    """
-
-    def __init__(self, pts=None, height=None, width=None):
-        self.__data = pts
-        self.__height = height
-        self.__width = width
-
-    @property
-    def data(self):
-        return self.__data
-
-    def __getitem__(self, idx):
-        return self.__data[idx, :]
-
-    def __setitem__(self, idx, value):
-        if not isinstance(value, np.ndarray):
-            raise TypeError
-        self.__data[idx, :] = value
-
-    @property
-    def height(self):
-        return self.__height
-
-    @property
-    def width(self):
-        return self.__width
-
-    @height.setter
-    def height(self, value):
-        self.__height = value
-
-    @width.setter
-    def width(self, value):
-        self.__width = value
-
-    def __eq__(self, other):
-        dim_equal = (self.height == other.height) and (self.width == other.width)
-        data_equal = np.array_equal(self.data, other.data)
-
-        return dim_equal and data_equal

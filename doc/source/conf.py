@@ -14,7 +14,6 @@
 #
 import os
 import sys
-import datetime
 
 sys.path.insert(0, os.path.abspath("../../solt/"))
 sys.path.insert(0, os.path.abspath("../../notebooks/"))
@@ -22,16 +21,14 @@ sys.path.insert(0, os.path.abspath("../../notebooks/"))
 # -- Project information -----------------------------------------------------
 
 project = "solt"
-current_year = datetime.datetime.now().year
-copyright = (
-    f"{current_year}, Aleksei Tiulpin, Research Unit of Medical Imaging, Physics and Technology. University of Oulu"
-)
+# Keep in sync with LICENSE
+copyright = "2018-2026, Aleksei Tiulpin & SOLT contributors"
 author = "Aleksei Tiulpin"
 
 # The short X.Y version
 version = "v0.2"
 # The full version, including alpha/beta/rc tags
-release = "v0.2.0"
+release = "v0.2.2"
 
 
 # -- General configuration ---------------------------------------------------
@@ -80,23 +77,24 @@ language = "en"
 # This pattern also affects html_static_path and html_extra_path .
 exclude_patterns = []
 
-# The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "sphinx"
-
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 
-# html_theme = "sphinx_rtd_theme"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
-# documentation.
-#
-# html_theme_options = {}
+# documentation: https://pradyunsg.me/furo/customisation/
+# The theme picks the syntax highlighting styles for its light and dark modes.
+html_theme_options = {
+    # "Edit this page" links to the sources on GitHub
+    "source_repository": "https://github.com/imedslab/solt/",
+    "source_branch": "master",
+    "source_directory": "doc/source/",
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -180,7 +178,3 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
 }
-
-
-def setup(app):
-    app.add_css_file("custom.css")

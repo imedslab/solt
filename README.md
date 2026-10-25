@@ -3,17 +3,18 @@
 [![PyPI version](https://badge.fury.io/py/solt.svg)](https://badge.fury.io/py/solt)
 [![CI/CD Pipeline](https://github.com/imedslab/solt/actions/workflows/prod-release.yaml/badge.svg)](https://github.com/imedslab/solt/actions/workflows/prod-release.yaml)
 [![codecov](https://codecov.io/gh/imedslab/solt/branch/master/graph/badge.svg?token=tEqWMIZSrW)](https://codecov.io/gh/imedslab/solt)
-[![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md)
+[![License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE)
 [![DOI](https://zenodo.org/badge/143310844.svg)](https://zenodo.org/badge/latestdoi/143310844)
 
 ## Description
-A data augmentation library for Deep Learning that supports images, segmentation masks, labels, and keypoints. 
+A data augmentation library for Deep Learning that supports images, segmentation masks, distance maps
+(e.g. signed distance fields), keypoints, bounding boxes, and labels. 
 Furthermore, SOLT is fast and has OpenCV in its backend. 
 Full auto-generated docs and examples are available at [https://imedslab.github.io/solt/](https://imedslab.github.io/solt/).
 
 ## Features
 
-- Support of Images, masks, and keypoints for all the transforms (including multiple items at the time)
+- Support of Images, masks, distance maps, keypoints, and bounding boxes for all the transforms (including multiple items at the time)
 - Fast and PyTorch-integrated
 - Convenient and flexible serialization API
 - Excellent documentation
@@ -111,3 +112,7 @@ All the papers that use SOLT are listed [here](PAPERS.md).
   url          = {https://doi.org/10.5281/zenodo.3702819}
 }
 ```
+
+## License
+
+SOLT is released under the [MIT License](LICENSE). See also the [disclaimer](DISCLAIMER).

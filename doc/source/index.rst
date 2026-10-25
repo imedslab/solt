@@ -7,7 +7,8 @@ Welcome to solt's documentation!
 ================================
 
 **solt** is a fast data augmentation library, supporting arbitrary amount of images,
-segmentation masks, keypoints and data labels.
+segmentation masks, distance maps (e.g. signed distance fields), keypoints, bounding boxes
+and data labels.
 It has OpenCV in its back-end, thus it works very fast.
 
 Features
@@ -51,6 +52,7 @@ You can also fetch the most fresh changes from our GitHub repository:
    :caption: Examples:
 
    Basics_of_solt
-   Helen_faces
-   DSBowl18_segmentation
-   Medical_Data_Augmentation_CXR14.nblink
+   Instance_segmentation
+   Distance_maps
+   Keypoints
+   Bounding_boxes

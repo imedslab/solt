@@ -1,16 +1,51 @@
 # Contribution Guidelines
 
 ## Setting up the environment
-You need to make sure that you have the right setup. Install anaconda, and you can use the following script
-to setup your environment:
+The project is managed with [uv](https://docs.astral.sh/uv/). Install it first
+(e.g. `curl -LsSf https://astral.sh/uv/install.sh | sh` or `brew install uv`), then run:
 
 ```
-conda create -q -y -n solt_test_env python=3.11 pandoc
-source activate solt_test_env
-pip install -r ci/requirements.txt
-pip install pre-commit
-pre-commit install
-pip install -e .
+uv sync
+uv run pre-commit install
+```
+
+`uv sync` creates a virtual environment in `.venv`, installs `solt` in editable mode together with
+the `dev` dependency group (tests and linters), and resolves exactly the versions pinned in `uv.lock`.
+Prefix commands with `uv run` (e.g. `uv run pytest tests`) or activate the environment with
+`source .venv/bin/activate`.
+
+SOLT supports Python 3.12 and newer. To use a specific Python version, pass it explicitly,
+e.g. `uv sync --python 3.12`.
+
+If you change dependencies in `pyproject.toml`, run `uv lock` and commit the updated `uv.lock`.
+To upgrade all the locked versions, run `uv lock --upgrade`. The lower bounds in `pyproject.toml` are
+tested in CI as well; to check them locally, run in a copy of the repository (it rewrites `uv.lock`):
+
+```
+uv sync --resolution lowest-direct --python 3.12
+uv run --no-sync pytest tests
+```
+
+### Building the documentation
+The docs need [pandoc](https://pandoc.org/installing.html) installed on your system
+(`brew install pandoc` or `sudo apt-get install pandoc`). Then:
+
+```
+uv sync --group docs
+cd doc && uv run make html
+```
+
+### Running the example notebooks
+```
+uv sync --group notebooks
+uv run jupyter lab notebooks/
+```
+
+The notebooks use only the sample images of scikit-image, so they do not need any data to be downloaded.
+The docs show the outputs stored in the notebooks, so re-run a notebook after changing it:
+
+```
+uv run jupyter nbconvert --to notebook --execute --inplace notebooks/<name>.ipynb
 ```
 
 ## Contributing
@@ -20,11 +55,16 @@ pip install -e .
 3. Make sure that your codecoverage is 100%. The criteria for merging into master is
 that all of the tests pass and that the codecoverage is 100%.
 
+To run the tests with coverage:
+```
+uv run pytest tests --cov solt
+```
+
 Before commiting commiting, execute these actions:
 ```
 git add .
-black --config=black.toml .  
-pre-commit
+uv run black --config=black.toml .
+uv run pre-commit
 ```
 
 If everything is alright, this will be the expected output:

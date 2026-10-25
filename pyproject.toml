@@ -1,0 +1,91 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "solt"
+dynamic = ["version"]
+description = "Optimized data augmentation library for Deep Learning"
+readme = { text = """Data augmentation library for Deep Learning, which supports images, segmentation masks,
+distance maps (e.g. signed distance fields), keypoints, bounding boxes and labels.
+Furthermore, SOLT is fast and has OpenCV in its backend.
+Full auto-generated docs and examples are available here: https://imedslab.github.io/solt/.
+""", content-type = "text/plain" }
+authors = [{ name = "Aleksei Tiulpin", email = "imeds.service@gmail.com" }]
+license = "MIT"
+license-files = ["LICENSE", "DISCLAIMER"]
+keywords = ["data augmentations", "deep learning"]
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+]
+dependencies = [
+    "numpy>=2.4.0",
+    "scipy>=1.17.0",
+    "opencv-python-headless>=4.13.0.90",
+    "torch>=2.9.0",
+    "torchvision>=0.24.0",
+    "pyyaml>=6.0.3",
+]
+
+[project.urls]
+Homepage = "https://github.com/imedslab/solt"
+Documentation = "https://imedslab.github.io/solt/"
+
+[dependency-groups]
+dev = [
+    "black>=26.10.1",
+    "flake8>=7.4.1",
+    "pre-commit>=4.7.0",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "pytest-lazy-fixtures>=1.4.1",
+]
+docs = [
+    "sphinx>=8.2.0",
+    "nbsphinx>=0.9.8",
+    "nbsphinx-link>=1.4.1",
+    # Syntax highlighting of the code of the notebooks (the ipython3 lexer)
+    "ipython>=9.17.1",
+    "furo>=2025.12.19",
+]
+# Running the example notebooks: uv run --group notebooks jupyter lab notebooks/
+notebooks = [
+    "jupyterlab>=4.6.4",
+    "matplotlib>=3.11.2",
+    "pandas>=3.1.0",
+    "scikit-image>=0.26",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+# torch has wheels only, and only for some platforms. Without this, the lowest supported versions resolve to
+# torch==2.9.0 from the PyTorch CPU index, which has only a macOS wheel, instead of 2.9.0+cpu for Linux.
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+
+# CPU-only PyTorch wheels on Linux/Windows; macOS wheels come from PyPI.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform != 'darwin'" }]
+torchvision = [{ index = "pytorch-cpu", marker = "sys_platform != 'darwin'" }]
+
+[tool.setuptools.dynamic]
+version = { attr = "solt.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["solt*"]

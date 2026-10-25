@@ -35,3 +35,5 @@ solt/transforms/__pycache__/*
 
 benchmark/augbench.egg-info/
 benchmark/augbench/__pycache__/
+
+.venv/

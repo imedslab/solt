@@ -9,9 +9,9 @@ ALLOWED_INTERPOLATIONS = {
     "area": cv2.INTER_AREA,
     "lanczos": cv2.INTER_LANCZOS4,
 }
-ALLOWED_CROPS = {"c", "r"}
-ALLOWED_TYPES = {"I", "M", "P", "L"}
+ALLOWED_CROPS = {"c", "r", "lt", "rt", "lb", "rb"}
+ALLOWED_TYPES = {"I", "M", "D", "P", "B", "L"}
 ALLOWED_BLURS = {"g", "m", "mo"}
 ALLOWED_COLOR_CONVERSIONS = {"gs2rgb", "rgb2gs", "none"}
-DTYPES_MAX = {np.dtype("uint8"): 255, np.dtype("uint16"): 65536}
-ALLOWED_GRIDMASK_MODES = {"crop", "reserve", "none"}
+DTYPES_MAX = {np.dtype(dtype): np.iinfo(dtype).max for dtype in (np.uint8, np.uint16)}
+ALLOWED_GRIDMASK_MODES = {"crop", "reverse", "reserve", "none"}

@@ -8,11 +8,13 @@ Constants module
 .. data:: ALLOWED_TYPES
 
     Defines the allowed types to be stored in a DataCantainer. Can be
-    ``'I'`` - image, ``'M'`` - mask, ``'L'`` - labels, ``'P'`` - Keypoints.
+    ``'I'`` - image, ``'M'`` - mask, ``'D'`` - distance map (e.g. signed distance field),
+    ``'L'`` - labels, ``'P'`` - Keypoints, ``'B'`` - bounding boxes.
 
 .. data:: ALLOWED_CROPS
 
-    Defines the allowed crops. Can be ``'r'`` - random crop or ``'c'`` - center crop.
+    Defines the allowed crops. Can be ``'r'`` - random crop, ``'c'`` - center crop, or a corner crop:
+    ``'lt'`` - left top, ``'rt'`` - right top, ``'lb'`` - left bottom and ``'rb'`` - right bottom.
 
 .. data:: ALLOWED_PADDINGS
 

@@ -13,12 +13,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.3.2
         with:
-          python-version: '3.x'
+          python-version: "3.13"
+          enable-cache: true
 
       - name: Install Pandoc
         run: |
@@ -26,14 +27,11 @@ jobs:
           sudo apt-get install -y pandoc
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install sphinx sphinx_rtd_theme nbsphinx nbsphinx_link
-          pip install .
+        run: uv sync --locked --no-default-groups --group docs
 
       - name: Build documentation
         working-directory: doc
-        run: make html
+        run: uv run --no-sync make html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

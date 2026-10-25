@@ -1,7 +1,13 @@
 from functools import wraps
 import json
+import math
+import numbers
 import yaml
 import inspect
+
+import cv2
+import numpy as np
+from scipy import ndimage
 
 
 class Serializable(object):
@@ -108,17 +114,22 @@ def from_dict(transforms):
 
     if not isinstance(transforms, dict):
         raise TypeError("Transforms must be a dict!")
-    for t in transforms:
-        if "transforms" in transforms[t]:
-            transforms[t]["transforms"] = [from_dict(x) for x in transforms[t]["transforms"]]
-        if "affine_transforms" in transforms[t]:
-            transforms[t]["affine_transforms"] = from_dict(transforms[t]["affine_transforms"])
-        if t in Serializable.registry:
-            cls = Serializable.registry[t]
-        else:
-            raise ValueError(f"Could not find {t} in the registry!")
+    if len(transforms) != 1:
+        raise ValueError(f"A serialized transform must be a dict with one key, got {list(transforms)}")
+    ((t, kwargs),) = transforms.items()
 
-        return cls(**transforms[t])
+    # The arguments are collected in a new dict, so that the given one stays unchanged and can be loaded again
+    kwargs = dict(kwargs)
+    if "transforms" in kwargs:
+        kwargs["transforms"] = [from_dict(x) for x in kwargs["transforms"]]
+    if "affine_transforms" in kwargs:
+        kwargs["affine_transforms"] = from_dict(kwargs["affine_transforms"])
+    if t in Serializable.registry:
+        cls = Serializable.registry[t]
+    else:
+        raise ValueError(f"Could not find {t} in the registry!")
+
+    return cls(**kwargs)
 
 
 def from_json(s):
@@ -200,6 +211,127 @@ def img_shape_checker(method):
     return wrapper
 
 
+def distance_map_handler(method):
+    """Decorator for the ``_apply_distance_map`` methods of transforms.
+
+    It makes sure that the result has the same dtype and the same number of dimensions as the input:
+
+    * ``float16`` distance maps are processed in ``float32``, since most of OpenCV does not support ``float16``.
+    * Distance maps with more than 4 channels are processed in groups of at most 4 channels, since some OpenCV
+      operations (e.g. bicubic interpolation or a constant fill value) only support up to 4 channels.
+
+    Parameters
+    ----------
+    method : _apply_distance_map method of BaseTransform
+
+    Returns
+    -------
+    out : method of a class
+        Result
+
+    """
+
+    @wraps(method)
+    def wrapper(self, dmap, settings):
+        dtype = dmap.dtype
+        if dtype == np.float16:
+            dmap = dmap.astype(np.float32)
+
+        def apply(chunk):
+            res = method(self, chunk, settings)
+            if chunk.ndim == 3 and res.ndim == 2:
+                res = res[:, :, np.newaxis]
+            return res
+
+        if dmap.ndim == 3 and dmap.shape[2] > 4:
+            res = np.concatenate([apply(dmap[:, :, i : i + 4]) for i in range(0, dmap.shape[2], 4)], axis=2)
+        else:
+            res = apply(dmap)
+
+        return res.astype(dtype, copy=False)
+
+    return wrapper
+
+
+def mask_to_sdf(mask, max_distance=None, dtype=np.float32):
+    """Computes the signed distance field (SDF) of a binary mask.
+
+    The distances are in pixels: negative inside of the objects and positive outside. The pixels next to a boundary
+    have the distance of 1 (or -1), i.e. the boundary (the zero level) lies half way between the inside and the
+    outside pixels. The result can be augmented as a distance map (``'D'``) in a ``DataContainer``.
+
+    Parameters
+    ----------
+    mask : numpy.ndarray
+        Binary mask ``HxW``, or a multi-label mask ``HxWxC``, for which the SDF of every channel is computed.
+        Non-zero values belong to the objects.
+    max_distance : int or float or None
+        If set, the distances are clipped to ``[-max_distance, max_distance]`` (truncated SDF).
+    dtype : numpy.dtype
+        Floating point type of the result, e.g. ``numpy.float16``.
+
+    Returns
+    -------
+    out : numpy.ndarray
+        SDF of the same shape as the mask. If a mask (channel) has no boundary, i.e. it is empty or full, all of its
+        distances are equal to the image diagonal (or to ``max_distance`` if it is set): positive for an empty mask
+        and negative for a full one.
+
+    """
+    if not isinstance(mask, np.ndarray):
+        raise TypeError("Mask must be a numpy array!")
+    if mask.ndim not in (2, 3):
+        raise ValueError("Mask must be an HxW or HxWxC array!")
+    if not np.issubdtype(np.dtype(dtype), np.floating):
+        raise TypeError("The type of the SDF must be a floating point one!")
+    if max_distance is not None:
+        if not isinstance(max_distance, numbers.Real) or isinstance(max_distance, bool):
+            raise TypeError("Maximum distance must be a number!")
+        if max_distance <= 0:
+            raise ValueError("Maximum distance must be positive!")
+
+    if mask.ndim == 3:
+        return np.stack([mask_to_sdf(mask[:, :, c], max_distance, dtype) for c in range(mask.shape[2])], axis=-1)
+
+    mask = mask.astype(bool)
+    if mask.all() or not mask.any():
+        # No boundary: every pixel is farther from it than the size of the image
+        far = math.hypot(*mask.shape) if max_distance is None else max_distance
+        return np.full(mask.shape, -far if mask.any() else far, dtype=dtype)
+
+    sdf = ndimage.distance_transform_edt(~mask) - ndimage.distance_transform_edt(mask)
+    if max_distance is not None:
+        sdf = np.clip(sdf, -max_distance, max_distance)
+    return sdf.astype(dtype)
+
+
+def distance_map_border(border_mode, settings):
+    """Returns the OpenCV border mode and value to pad a distance map with.
+
+    Zero padding would create a false object boundary in a distance map. Therefore, for the zero padding mode,
+    a distance map is padded with its ``fill`` value if it is set, and with its edge values otherwise.
+
+    Parameters
+    ----------
+    border_mode : int
+        OpenCV border mode, which the transform uses for this item.
+    settings : dict
+        Item-wise settings of the distance map.
+
+    Returns
+    -------
+    out : tuple
+        OpenCV border mode and value.
+
+    """
+    if border_mode != cv2.BORDER_CONSTANT:
+        return border_mode, 0
+    if settings["fill"] is None:
+        return cv2.BORDER_REPLICATE, 0
+    # The same value for all (at most 4) channels
+    return cv2.BORDER_CONSTANT, (float(settings["fill"]),) * 4
+
+
 def validate_parameter(parameter, allowed_modes, default_value, basic_type=str, heritable=True):
     """
     Validates the parameter and wraps it into a tuple with the
@@ -249,6 +381,11 @@ def validate_parameter(parameter, allowed_modes, default_value, basic_type=str, 
             raise ValueError
     elif heritable:
         raise NotImplementedError
+    else:
+        if not isinstance(parameter, basic_type):
+            raise TypeError(f"Parameter must be of type {basic_type.__name__}, got {parameter!r}")
+        if parameter not in allowed_modes:
+            raise ValueError(f"Parameter must be one of {sorted(allowed_modes)}, got {parameter!r}")
 
     return parameter
 
