@@ -1,18 +1,18 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
     "python_full_version >= '3.14' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version >= '3.14' and sys_platform == 'darwin'",
     "python_full_version == '3.13.*' and sys_platform == 'win32'",
     "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.13.*' and sys_platform == 'darwin'",
     "python_full_version < '3.13' and sys_platform == 'win32'",
     "python_full_version < '3.13' and sys_platform == 'emscripten'",
     "python_full_version < '3.13' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-    "python_full_version >= '3.14' and sys_platform == 'darwin'",
-    "python_full_version == '3.13.*' and sys_platform == 'darwin'",
     "python_full_version < '3.13' and sys_platform == 'darwin'",
 ]
 required-markers = [
@@ -1952,7 +1952,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "ptyprocess" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
@@ -2819,11 +2819,11 @@ notebooks = [
 
 [[package]]
 name = "soupsieve"
-version = "3.0.4"
+version = "4.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/19/63/0b6bae54546aed98d72f12d09df57b19a287f01c84d22047fa2e23772ab9/soupsieve-3.0.4.tar.gz", hash = "sha256:924fab84ae21604c19e175e1f39815eb6fa83ba23836e09e9de180925e5bc4c0", size = 119017, upload-time = "2026-10-22T00:45:26.362Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/5e/19b7c5d20bc2f226c44f33a9d9aab9740efed7555b96e656231fd564e514/soupsieve-4.0.tar.gz", hash = "sha256:ccd6470b256394ac44b08b86fd94b30a17d335a5335c8a3d15565f7b03d3c8cf", size = 151929, upload-time = "2026-11-03T14:28:55.388Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/07/66/473f7ca0be0b06e38ee8c85ee2db184e3981bd769fac2e7c19c8a8865211/soupsieve-3.0.4-py3-none-any.whl", hash = "sha256:8412826614f9c632227067d0985aeb9f584bd15efc852955430e097a9fe7afbf", size = 42458, upload-time = "2026-10-22T00:45:24.843Z" },
+    { url = "https://files.pythonhosted.org/packages/4f/18/d24df2f733ee0655c58717d51add4118a70e64692d0e47d403b9aac4cf98/soupsieve-4.0-py3-none-any.whl", hash = "sha256:5e7494bfce90e06676cfb4c5c2cf22243e98e5cf24646bb1ecdda46d318550a0", size = 50158, upload-time = "2026-11-03T14:28:53.988Z" },
 ]
 
 [[package]]
@@ -2837,23 +2837,23 @@ resolution-markers = [
     "python_full_version < '3.13' and sys_platform == 'darwin'",
 ]
 dependencies = [
-    { name = "alabaster", marker = "python_full_version < '3.13'" },
-    { name = "babel", marker = "python_full_version < '3.13'" },
-    { name = "colorama", marker = "python_full_version < '3.13' and sys_platform == 'win32'" },
-    { name = "docutils", marker = "python_full_version < '3.13'" },
-    { name = "imagesize", marker = "python_full_version < '3.13'" },
-    { name = "jinja2", marker = "python_full_version < '3.13'" },
-    { name = "packaging", marker = "python_full_version < '3.13'" },
-    { name = "pygments", marker = "python_full_version < '3.13'" },
-    { name = "requests", marker = "python_full_version < '3.13'" },
-    { name = "roman-numerals", marker = "python_full_version < '3.13'" },
-    { name = "snowballstemmer", marker = "python_full_version < '3.13'" },
-    { name = "sphinxcontrib-applehelp", marker = "python_full_version < '3.13'" },
-    { name = "sphinxcontrib-devhelp", marker = "python_full_version < '3.13'" },
-    { name = "sphinxcontrib-htmlhelp", marker = "python_full_version < '3.13'" },
-    { name = "sphinxcontrib-jsmath", marker = "python_full_version < '3.13'" },
-    { name = "sphinxcontrib-qthelp", marker = "python_full_version < '3.13'" },
-    { name = "sphinxcontrib-serializinghtml", marker = "python_full_version < '3.13'" },
+    { name = "alabaster" },
+    { name = "babel" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "docutils" },
+    { name = "imagesize" },
+    { name = "jinja2" },
+    { name = "packaging" },
+    { name = "pygments" },
+    { name = "requests" },
+    { name = "roman-numerals" },
+    { name = "snowballstemmer" },
+    { name = "sphinxcontrib-applehelp" },
+    { name = "sphinxcontrib-devhelp" },
+    { name = "sphinxcontrib-htmlhelp" },
+    { name = "sphinxcontrib-jsmath" },
+    { name = "sphinxcontrib-qthelp" },
+    { name = "sphinxcontrib-serializinghtml" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/fc/73/567727fc8c8d85bc3adc88a246e12937cfda8d565cf1d80e85bceaa61fe5/sphinx-9.1.1.tar.gz", hash = "sha256:48b627f02908f22c601b3ba9c7b17265b4f315dd05c8bc64cd4da41183f44fbc", size = 8725638, upload-time = "2026-10-20T00:41:13.96Z" }
 wheels = [
@@ -2868,30 +2868,30 @@ resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
     "python_full_version >= '3.14' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version >= '3.14' and sys_platform == 'darwin'",
     "python_full_version == '3.13.*' and sys_platform == 'win32'",
     "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.13.*' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-    "python_full_version >= '3.14' and sys_platform == 'darwin'",
     "python_full_version == '3.13.*' and sys_platform == 'darwin'",
 ]
 dependencies = [
-    { name = "alabaster", marker = "python_full_version >= '3.13'" },
-    { name = "babel", marker = "python_full_version >= '3.13'" },
-    { name = "colorama", marker = "python_full_version >= '3.13' and sys_platform == 'win32'" },
-    { name = "docutils", marker = "python_full_version >= '3.13'" },
-    { name = "imagesize", marker = "python_full_version >= '3.13'" },
-    { name = "jinja2", marker = "python_full_version >= '3.13'" },
-    { name = "packaging", marker = "python_full_version >= '3.13'" },
-    { name = "pygments", marker = "python_full_version >= '3.13'" },
-    { name = "requests", marker = "python_full_version >= '3.13'" },
-    { name = "roman-numerals", marker = "python_full_version >= '3.13'" },
-    { name = "snowballstemmer", marker = "python_full_version >= '3.13'" },
-    { name = "sphinxcontrib-applehelp", marker = "python_full_version >= '3.13'" },
-    { name = "sphinxcontrib-devhelp", marker = "python_full_version >= '3.13'" },
-    { name = "sphinxcontrib-htmlhelp", marker = "python_full_version >= '3.13'" },
-    { name = "sphinxcontrib-jsmath", marker = "python_full_version >= '3.13'" },
-    { name = "sphinxcontrib-qthelp", marker = "python_full_version >= '3.13'" },
-    { name = "sphinxcontrib-serializinghtml", marker = "python_full_version >= '3.13'" },
+    { name = "alabaster" },
+    { name = "babel" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "docutils" },
+    { name = "imagesize" },
+    { name = "jinja2" },
+    { name = "packaging" },
+    { name = "pygments" },
+    { name = "requests" },
+    { name = "roman-numerals" },
+    { name = "snowballstemmer" },
+    { name = "sphinxcontrib-applehelp" },
+    { name = "sphinxcontrib-devhelp" },
+    { name = "sphinxcontrib-htmlhelp" },
+    { name = "sphinxcontrib-jsmath" },
+    { name = "sphinxcontrib-qthelp" },
+    { name = "sphinxcontrib-serializinghtml" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/64/d4/413466f0be8b1cb0e3e43893a148b96d7462d0923d82b4166b21afc5f30c/sphinx-9.2.0.tar.gz", hash = "sha256:90470459f3cab15d9dfed146c71cf77694b0445df17b2e0e69059cb9f7fc9ee4", size = 8782438, upload-time = "2026-10-21T00:05:15.019Z" }
 wheels = [
@@ -3039,13 +3039,13 @@ resolution-markers = [
     "python_full_version < '3.13' and sys_platform == 'darwin'",
 ]
 dependencies = [
-    { name = "filelock", marker = "sys_platform == 'darwin'" },
-    { name = "fsspec", marker = "sys_platform == 'darwin'" },
-    { name = "jinja2", marker = "sys_platform == 'darwin'" },
-    { name = "networkx", marker = "sys_platform == 'darwin'" },
-    { name = "setuptools", marker = "sys_platform == 'darwin'" },
-    { name = "sympy", marker = "sys_platform == 'darwin'" },
-    { name = "typing-extensions", marker = "sys_platform == 'darwin'" },
+    { name = "filelock" },
+    { name = "fsspec" },
+    { name = "jinja2" },
+    { name = "networkx" },
+    { name = "setuptools" },
+    { name = "sympy" },
+    { name = "typing-extensions" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4b/3c/379349820e9a6e713826de3d0b88f07728541bdcabe2a3afd128871cdc4b/torch-2.14.1-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:420dbf314c180ee4b86e9bc00aee5746a7d6e5bacdd7df925af671ed393f0b2e", size = 127307099, upload-time = "2026-09-30T17:44:10.421Z" },
@@ -3070,13 +3070,13 @@ resolution-markers = [
     "python_full_version < '3.13' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "filelock", marker = "sys_platform != 'darwin'" },
-    { name = "fsspec", marker = "sys_platform != 'darwin'" },
-    { name = "jinja2", marker = "sys_platform != 'darwin'" },
-    { name = "networkx", marker = "sys_platform != 'darwin'" },
-    { name = "setuptools", marker = "sys_platform != 'darwin'" },
-    { name = "sympy", marker = "sys_platform != 'darwin'" },
-    { name = "typing-extensions", marker = "sys_platform != 'darwin'" },
+    { name = "filelock" },
+    { name = "fsspec" },
+    { name = "jinja2" },
+    { name = "networkx" },
+    { name = "setuptools" },
+    { name = "sympy" },
+    { name = "typing-extensions" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.14.1%2Bcpu-cp312-cp312-linux_s390x.whl", hash = "sha256:6b06a7f6275c5fdecaf1dbf5546f0820b024a97785575bb99e3d9930d83cd86b", upload-time = "2026-09-30T19:47:30Z" },
@@ -3115,9 +3115,9 @@ resolution-markers = [
     "python_full_version < '3.13' and sys_platform == 'darwin'",
 ]
 dependencies = [
-    { name = "numpy", marker = "sys_platform == 'darwin'" },
-    { name = "pillow", marker = "sys_platform == 'darwin'" },
-    { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'darwin'" },
+    { name = "numpy" },
+    { name = "pillow" },
+    { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" } },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f3/f8/855c7b326ed17a8dac4a03e8e6fec33ef6728e4baa00d816cf1227bb6681/torchvision-0.29.1-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:3b6eb9d2f8fe9b93d9d37637749df361efeed133d96ddd503184a1b5b12bb27f", size = 1813847, upload-time = "2026-09-30T17:57:01.009Z" },
@@ -3142,9 +3142,9 @@ resolution-markers = [
     "python_full_version < '3.13' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "numpy", marker = "sys_platform != 'darwin'" },
-    { name = "pillow", marker = "sys_platform != 'darwin'" },
-    { name = "torch", version = "2.14.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+    { name = "numpy" },
+    { name = "pillow" },
+    { name = "torch", version = "2.14.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" } },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.29.1%2Bcpu-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:3058f855e65089330ec987b8cac1ccf5e7a26cd475f8cab20597b5577ddc8767", upload-time = "2026-09-30T15:46:11Z" },
